@@ -1,0 +1,1164 @@
+<!DOCTYPE html>
+<html
+  lang="ja"
+data-avail-langs="ja en"
+
+data-page="entry"
+data-static-domain="https://blog.st-hatena.com"
+data-blog="ruby-rails.hatenadiary.com"
+data-blog-name="Rails Webook"
+data-blogs-uri-base="http://ruby-rails.hatenadiary.com"
+data-globalheader-color="b"
+data-author="nipe880324"
+data-version="228df9a6e5a3ae04fdb53d33befa3556"
+data-blog-comments-top-is-new=""
+data-plus-available=""
+
+
+
+data-admin-domain="http://blog.hatena.ne.jp"
+
+data-brand="hatenablog"
+
+data-has-touch-view="1"
+
+
+itemscope
+itemtype="http://schema.org/Article"
+
+
+  data-device="pc"
+  data-globalheader-type="pc"
+  >
+  <head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# article: http://ogp.me/ns/article#">
+    
+    
+    
+
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=7; IE=9; IE=10; IE=11" />
+    <title>Railsのモデルのバリデーションエラー errors や full_messages の使い方 - Rails Webook</title>
+
+    
+
+    
+      <link rel="canonical" href="1407623400.html"/>
+    
+
+    
+    
+
+<meta itemprop="name" content="Railsのモデルのバリデーションエラー errors や full_messages の使い方 - Rails Webook"/>
+
+  <meta itemprop="image" content="http://f.st-hatena.com/images/fotolife/n/nipe880324/20140802/20140802105152.png"/>
+
+
+    <meta property="og:title" content="Railsのモデルのバリデーションエラー errors や full_messages の使い方 - Rails Webook"/>
+<meta property="og:type" content="article"/>
+<meta property="og:url" content="http://ruby-rails.hatenadiary.com/entry/20140810/1407623400"/>
+
+  <meta property="og:image" content="http://f.st-hatena.com/images/fotolife/n/nipe880324/20140802/20140802105152.png"/>
+
+    <meta property="og:description" content="Railsのモデルのバリデーションエラーの扱い方について説明します。 errors、独自のエラーメッセージの追加、エラーメッセージの表示、日本語化について説明します。" />
+<meta property="og:site_name" content="http://ruby-rails.hatenadiary.com/"/>
+
+  <meta property="article:published_time" content="1407623400" />
+
+    <meta property="article:tag" content="Rails初級" />
+    <meta property="article:tag" content="Rails Model" />
+        <meta name="twitter:card"  content="summary_large_image" />
+    <meta name="twitter:image" content="http://f.st-hatena.com/images/fotolife/n/nipe880324/20140802/20140802105152.png" />
+  <meta name="twitter:title" content="Railsのモデルのバリデーションエラー errors や full_messages の使い方 - Rails Webook" />    <meta name="twitter:description" content="Railsのモデルのバリデーションエラーの扱い方について説明します。 errors、独自のエラーメッセージの追加、エラーメッセージの表示、日本語化について説明します。" />  <meta name="twitter:app:name:iphone" content="はてなブログアプリ" />
+  <meta name="twitter:app:id:iphone" content="583299321" />
+  <meta name="twitter:app:url:iphone" content="hatenablog:///open?uri=http%3A%2F%2Fruby-rails.hatenadiary.com%2Fentry%2F20140810%2F1407623400" />  <meta name="twitter:site" content="@nipe032488" />
+    
+    <meta name="google-site-verification" content="OyOieuLgSrQckqbACTn_Q3G1dPq6LMlTqBRHa6V1XsA">    <meta name="keywords" content="Rails,Ruby on Rails,gem,Webアプリケーション,開発,構築,運用,インフラ">    <meta name="description" content="Railsのモデルのバリデーションエラーの扱い方について説明します。 errors、独自のエラーメッセージの追加、エラーメッセージの表示、日本語化について説明します。" />
+
+    
+<script type="text/javascript">
+// <!--
+
+if (~navigator.userAgent.indexOf('Mac OS X')) {
+  document.write('<style type="text/css">html, body { font-family: \x27Helvetica\x27, \x27Arial\x27, \x27ヒラギノ角ゴ Pro W3\x27, \x27Hiragino Kaku Gothic Pro\x27, sans-serif; } </style>');
+} else {
+  document.write('<style type="text/css">html, body { font-family: \x27Helvetica\x27, \x27Arial\x27, \x27メイリオ\x27, \x27Meiryo\x27, \x27MS PGothic\x27, sans-serif; } </style>');
+}
+
+// -->
+</script>
+
+<!--[if lt IE 9]>
+<script src="https://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+
+
+
+
+    <link rel="shortcut icon" href="https://blog.st-hatena.com/images/favicon.ico">
+<link rel="icon" sizes="192x192" href="https://blog.st-hatena.com/images/common/meta-icon-global.png">
+
+    
+<link rel="alternate" type="application/atom+xml" title="Atom" href="../../feed"/>
+<link rel="alternate" type="application/rss+xml" title="RSS2.0" href="../../rss.rss"/>
+<link rel="alternate" type="application/json+oembed" href="http://hatenablog.com/oembed?url=http%3A%2F%2Fruby-rails.hatenadiary.com%2Fentry%2F20140810%2F1407623400&amp;format=json" title="oEmbed Profile of Railsのモデルのバリデーションエラー errors や full_messages の使い方"/>
+<link rel="alternate" type="text/xml+oembed" href="http://hatenablog.com/oembed?url=http%3A%2F%2Fruby-rails.hatenadiary.com%2Fentry%2F20140810%2F1407623400&amp;format=xml" title="oEmbed Profile of Railsのモデルのバリデーションエラー errors や full_messages の使い方"/>
+
+      <link rel="author" href="http://www.hatena.ne.jp/nipe880324/">
+
+    <link rel="stylesheet" type="text/css" href="https://blog.st-hatena.com/css/blog.css?version=228df9a6e5a3ae04fdb53d33befa3556"/>
+
+    
+  <link rel="stylesheet" type="text/css" href="http://blog.hatena.ne.jp/-/blog_style/12921228815727789780/a052dbbef76fd4380abc811c11814f2d9f990b9a"/>
+
+    <script></script>
+
+    
+<style>div#google_afc_user,
+  div#google_afc_user_container_0,
+  div#google_afc_user_container_1,
+  div#google_afc_user_container_2,
+  div#google_afc_user_container_3,
+  div#google_afc_user_container_4,
+  div#google_afc_user_container_5,
+  div.google_afc_image,
+  div.google_afc_blocklink {
+      display: block !important;
+  }
+</style>
+
+
+    
+  </head>
+
+  <body class="page-entry enable-top-editarea enable-bottom-editarea category-Rails初級 category-Rails-Model">
+    <!-- Google Universal Analytics -->
+<script id="google-analytics-script">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-29716941-6', 'auto', {'name': 'HatenaBlogTracker', 'sampleRate': 1});
+  ga('HatenaBlogTracker.require', 'displayfeatures');
+  ga('HatenaBlogTracker.send', 'pageview');
+  ga('create', 'UA-29716941-26', 'auto', {'name': 'HatenaBlogSeparatedTracker', 'sampleRate': 10});
+  ga('HatenaBlogSeparatedTracker.require', 'displayfeatures');
+  ga('HatenaBlogSeparatedTracker.send', 'pageview');
+
+    
+      ga('create', 'UA-45988509-6', 'auto', {'name': 'HatenaBlogUserTracker'});
+      ga('HatenaBlogUserTracker.require', 'displayfeatures');
+      ga('HatenaBlogUserTracker.send', 'pageview');
+    
+  
+  ga('create', 'UA-7855606-1', 'auto', {'name': 'HatenaGlobalTracker', 'sampleRate': 1});
+  ga('HatenaGlobalTracker.require', 'displayfeatures');
+  ga('HatenaGlobalTracker.send', 'pageview');
+</script>
+<!-- End Google Universal Analytics -->
+
+    
+    <div id="header-container">
+     <div id="sp-suggest" style="display: none;"><a id="sp-suggest-link" href="1407623400.html#">スマートフォン用の表示で見る</a></div>
+    </div>
+
+    
+
+<div class="quote-box">
+  <div class="tooltip-quote tooltip-quote-star">
+    <i class="blogicon-star" title="引用スターをつける"></i>
+  </div>
+  <div class="tooltip-quote tooltip-quote-stock">
+    <i class="blogicon-quote" title="引用をストック"></i>
+  </div>
+</div>
+
+<div class="message-box" id="quote-star-message-box" style="display: none; position: absolute;">
+  スターをつけました
+</div>
+
+<div class="quote-stock-panel" id="quote-stock-message-box" style="position: absolute; z-index: 3000">
+  <div class="message-box" id="quote-stock-succeeded-message" style="display: none">
+    <p>引用をストックしました</p>
+    <button class="btn btn-primary" id="quote-stock-show-editor-button" data-track-name="curation-quote-edit-button">ストック一覧を見る</button>
+    <button class="btn quote-stock-close-message-button">閉じる</button>
+  </div>
+
+  <div class="message-box" id="quote-login-required-message" style="display: none">
+    <p>引用するにはまずログインしてください</p>
+    <button class="btn btn-primary" id="quote-login-button">ログイン</button>
+    <button class="btn quote-stock-close-message-button">閉じる</button>
+  </div>
+
+  <div class="error-box" id="quote-stock-failed-message" style="display: none">
+    <p>引用をストックできませんでした。再度お試しください</p>
+    <button class="btn quote-stock-close-message-button">閉じる</button>
+  </div>
+
+  <div class="error-box" id="unstockable-quote-message-box" style="display: none; position: absolute; z-index: 3000;">
+    <p>限定公開記事のため引用できません。</p>
+  </div>
+</div>
+
+<script type="x-underscore-template" id="js-requote-button-template">
+  <div class="requote-button js-requote-button">
+    <button class="requote-button-btn tipsy-top" title="引用する"><i class="blogicon-quote"></i></button>
+  </div>
+</script>
+
+
+    <div id="globalheader-container" >
+  <iframe id="globalheader" height="37" frameborder="0" allowTransparency="true"></iframe>
+</div>
+
+
+    
+    <div id="hidden-subscribe-button">
+      <div class="hatena-follow-button-box btn-subscribe js-hatena-follow-button-box"
+  
+  >
+
+  <a href="1407623400.html#" class="hatena-follow-button js-hatena-follow-button">
+    <span class="subscribing">
+      <span class="foreground">読者です</span>
+      <span class="background">読者をやめる</span>
+    </span>
+    <span class="unsubscribing" data-track-name="profile-widget-subscribe-button" data-track-once>
+      <span class="foreground">読者になる</span>
+      <span class="background">読者になる</span>
+    </span>
+  </a>
+  <div class="subscription-count-box js-subscription-count-box">
+    <i></i>
+    <u></u>
+    <span class="subscription-count js-subscription-count">
+    </span>
+  </div>
+</div>
+
+    </div>
+
+    <div id="container">
+      <div id="container-inner">
+        <header id="blog-title" data-brand="hatenablog">
+  <div id="blog-title-inner" >
+    <div id="blog-title-content">
+      <h1 id="title"><a href="../../index.html">Rails Webook</a></h1>
+      
+        <h2 id="blog-description">自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</h2>
+      
+    </div>
+  </div>
+</header>
+
+        
+          <div id="top-editarea">
+            <!-- start Mixpanel --><script type="text/javascript">(function(e,b){if(!b.__SV){var a,f,i,g;window.mixpanel=b;b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable time_event track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.union people.track_charge people.clear_charges people.delete_user".split(" ");
+for(g=0;g<i.length;g++)f(c,i[g]);b._i.push([a,e,d])};b.__SV=1.2;a=e.createElement("script");a.type="text/javascript";a.async=!0;a.src="undefined"!==typeof MIXPANEL_CUSTOM_LIB_URL?MIXPANEL_CUSTOM_LIB_URL:"file:"===e.location.protocol&&"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js".match(/^\/\//)?"https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js":"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js";f=e.getElementsByTagName("script")[0];f.parentNode.insertBefore(a,f)}})(document,window.mixpanel||[]);
+mixpanel.init("16db652100dca0a23c6a55a9205f0824");</script><!-- end Mixpanel -->
+<script async src="http://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- rails top bar 728 x 90 -->
+<ins class="adsbygoogle"
+     style="display:inline-block;width:728px;height:90px"
+     data-ad-client="ca-pub-2736751992834286"
+     data-ad-slot="6687328050"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+          </div>
+        
+        
+        
+
+
+
+<div id="content" class="hfeed"
+  
+  >
+  <div id="content-inner">
+    <div id="wrapper">
+      <div id="main">
+        <div id="main-inner">
+          
+            
+            <!-- google_ad_section_start -->
+            <!-- rakuten_ad_target_begin -->
+            
+              
+                <article class="entry hentry js-entry-article date-first autopagerize_page_element chars-2400 words-400 mode-hatena entry-odd" id="entry-12921228815729883102" data-keyword-campaign="" data-uuid="12921228815729883102">
+  <div class="entry-inner">
+    <header class="entry-header">
+      <div class="entry-date date first">
+        <a href="../../entries/2014/08/10.html" rel="nofollow">
+          <time pubdate datetime="2014-08-09T22:30:00Z" title="2014-08-09T22:30:00Z">
+            <span class="date-year">2014</span><span class="hyphen">-</span><span class="date-month">08</span><span class="hyphen">-</span><span class="date-day">10</span>
+          </time>
+        </a>
+      </div>
+      <h1 class="entry-title">
+        <a href="1407623400.html" class="entry-title-link bookmark">Railsのモデルのバリデーションエラー errors や full_messages の使い方</a>
+      </h1>
+      
+      
+        <div class="entry-categories categories">
+          
+          <a href="../../archive/category/Rails%E5%88%9D%E7%B4%9A.html">Rails初級</a>
+          
+          <a href="../../archive/category/Rails%20Model.html">Rails Model</a>
+          
+        </div>
+      
+      
+
+      
+    </header>
+        
+    <div class="entry-content">
+
+      
+        <p>Railsのモデルのバリデーションエラーの扱い方について説明します。<br />
+<code>errors</code>(エラーメッセージオブジェクト)、独自のエラーメッセージの追加、エラーメッセージの表示、日本語化について説明します。<br />
+<br />
+</p>
+
+<div class="section">
+    <h3>動作確認</h3>
+    
+<ul>
+<li>Rails 4.1</li>
+</ul>
+</div>
+<div class="section">
+    <h3>目次</h3>
+    
+<ol>
+<li><a href="1407623400.html#erorrs-usage">モデル(model)のエラーメッセージ errors の使い方</a></li>
+<li><a href="1407623400.html#add-error">モデル(model)にエラーメッセージを追加</a></li>
+<li><a href="1407623400.html#view-validation">ビューにモデルのバリデーションエラーを表示</a></li>
+<li><a href="1407623400.html#view-validation-japanese">モデルのバリデーションエラーメッセージを日本語化</a></li>
+</ol><p></p><p><h3 id="erorrs-usage">モデル(model)のエラーメッセージ errors の使い方</h3>Railsのモデル(model)でバリデーションエラーが発生した場合に、model の <code>errors</code>にエラーメッセージが設定されます。さらに、<code>full_messages</code>でバリデーションのエラーメッセージの配列を取得できます。</p><p>次のProductモデルが設定されている前提で話を進めます。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synComment"># app/models/product.rb</span>
+<span class="synPreProc">class</span> <span class="synType">Product</span> &lt; <span class="synType">ActiveRecord</span>::<span class="synType">Base</span>
+  <span class="synComment"># name属性に値が存在しない場合バリデーションエラーになります</span>
+  validates <span class="synConstant">:name</span>, <span class="synConstant">presence</span>: <span class="synConstant">true</span>
+<span class="synPreProc">end</span>
+</pre><p>コンソールで動きを確認します。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>$ rails console --sandbox
+
+<span class="synComment"># バリデーションエラーが発生する場合</span>
+&gt; product = <span class="synType">Product</span>.new
+=&gt; <span class="synComment">#&lt;Product id: nil, name: nil, price: nil, discontinued: nil, created_at: nil, updated_at: nil&gt;</span>
+&gt; product.valid? <span class="synComment"># バリデーションエラーが発生し、errorsにメッセージが登録される</span>
+=&gt; <span class="synConstant">false</span>
+&gt; product.errors.messages
+=&gt; {<span class="synConstant">:name</span>=&gt;[<span class="synSpecial">&quot;</span><span class="synConstant">can't be blank</span><span class="synSpecial">&quot;</span>]}
+&gt; product.errors.full_messages
+=&gt; [<span class="synSpecial">&quot;</span><span class="synConstant">Name can't be blank</span><span class="synSpecial">&quot;</span>]
+&gt; product.save
+=&gt; <span class="synConstant">false</span>
+
+<span class="synComment"># バリデーションエラーが発生しない場合</span>
+product = <span class="synType">Product</span>.new( <span class="synConstant">name</span>: <span class="synSpecial">&quot;</span><span class="synConstant">商品名</span><span class="synSpecial">&quot;</span> )
+=&gt; <span class="synComment">#&lt;Product id: nil, name: &quot;商品名&quot;, price: nil, discontinued: nil, created_at: nil, updated_at: nil&gt;</span>
+irb(main):<span class="synConstant">017</span>:<span class="synConstant">0</span>&gt; product.valid? <span class="synComment"># バリデーションエラーが発生しない。errorsにメッセージが登録されない。</span>
+=&gt; <span class="synConstant">true</span>
+&gt; product.errors.messages
+=&gt; {}
+&gt; product.errors.full_messages
+=&gt; []
+&gt; product.save
+=&gt; <span class="synConstant">true</span>
+</pre><p><br />
+<h3 id="add-error">モデル(model)にエラーメッセージを追加</h3><code>errors.add</code>と<code>errors[:base]</code>を使うことでエラーメッセージを自分で追加することができます。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synPreProc">class</span> <span class="synType">Product</span> &lt; <span class="synType">ActiveRecord</span>::<span class="synType">Base</span>
+  validate <span class="synConstant">:add_error_sample</span>
+
+  <span class="synPreProc">def</span> <span class="synIdentifier">add_error_sample</span>
+    <span class="synComment"># nameが空のときにエラーメッセージを追加する</span>
+    <span class="synStatement">if</span> name.empty?
+      errors.add(<span class="synConstant">:name</span>, <span class="synSpecial">&quot;</span><span class="synConstant">に関係するエラーを追加</span><span class="synSpecial">&quot;</span>)
+      errors[<span class="synConstant">:base</span>] &lt;&lt; <span class="synSpecial">&quot;</span><span class="synConstant">モデル全体に関係するエラーを追加</span><span class="synSpecial">&quot;</span>
+    <span class="synStatement">end</span>
+  <span class="synPreProc">end</span>
+<span class="synPreProc">end</span>
+</pre><p>エラーが発生したときの画面です。<br />
+<span itemscope itemtype="http://schema.org/Photograph"><img src="http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140809/20140809021320.png" alt="f:id:nipe880324:20140809021320p:plain:w380" title="f:id:nipe880324:20140809021320p:plain:w380" class="hatena-fotolife" style="width:380px" itemprop="image"></span></p><br />
+<p>逆に、エラーメッセージを削除するメソッドもあります。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>product = <span class="synType">Product</span>.new
+product.valid? <span class="synComment"># =&gt; false</span>
+product.errors.full_messages <span class="synComment"># =&gt; [&quot;Name can't be blank&quot;]</span>
+product.errors.clear  <span class="synComment"># エラーメッセージを削除</span>
+product.erros.empty? <span class="synComment"># =&gt; true</span>
+</pre><p><h3 id="view-validation">ビューにモデルのバリデーションエラーを表示</h3>モデルのバリデーションエラー時に、ビューにバリデーションエラーを表示します。<br />
+<span itemscope itemtype="http://schema.org/Photograph"><img src="http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140809/20140809012601.png" alt="f:id:nipe880324:20140809012601p:plain:w380" title="f:id:nipe880324:20140809012601p:plain:w380" class="hatena-fotolife" style="width:380px" itemprop="image"></span><br />
+</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synComment"># 通常はフォームの表示領域の上部に記載</span>
+&lt;% <span class="synStatement">if</span> <span class="synIdentifier">@product</span>.errors.any? %&gt;
+  &lt;div id=<span class="synSpecial">&quot;</span><span class="synConstant">error_explanation</span><span class="synSpecial">&quot;</span>&gt;
+    &lt;h2&gt;&lt;%= <span class="synIdentifier">@product</span>.errors.count %&gt;件のエラーがあります。&lt;/h2&gt;
+ 
+    &lt;ul&gt;
+    &lt;% <span class="synIdentifier">@product</span>.errors.full_messages.each <span class="synStatement">do</span> |<span class="synIdentifier">msg</span>| %&gt;
+      &lt;li&gt;&lt;%= msg %&gt;&lt;/li&gt;
+    &lt;% <span class="synStatement">end</span> %&gt;
+    &lt;/ul&gt;
+  &lt;/div&gt;
+&lt;% <span class="synStatement">end</span> %&gt;
+</pre>
+</div>
+<div class="section">
+    <h3><h3 id="view-validation-japanese">モデルのバリデーションエラーメッセージを日本語化</h3></h3>
+    <p>日本語にする場合は次を実施して下さい。</p>
+
+<ol>
+<li><a href="https://github.com/svenfuchs/rails-i18n/blob/master/rails/locale/ja.yml">ja.yml</a>を<code>config/locales/</code>に追加</li>
+<li><code>config/application.rb</code>に<code>config.i18n.default_locale = :ja</code>を追加</li>
+<li>サーバーを再起動</li>
+</ol><p>さらにモデルの属性名(nameなど)を日本語化する場合は、<code>ja.yml</code>に次のように記載して下さい。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synComment"># config/locales/ja.yml</span>
+ja:
+  attributes:
+    <span class="synConstant">name</span>:   名前
+...
+</pre>
+</div>
+<div class="section">
+    <h3>参考文献</h3>
+    
+<ul>
+<li><a href="http://guides.rubyonrails.org/active_record_validations.html" target="_blank">RailsGuide</a></li>
+</ul><p>以上です。<br />
+分からない箇所や間違いがある場合は、コメントを頂けると嬉しいです。</p>
+
+</div>
+      
+    </div>
+    <footer class="entry-footer">
+      <p class="entry-footer-section">
+        <span class="author vcard"><span class="fn" data-load-nickname="1" data-user-name="nipe880324">nipe880324</span></span>
+        <span class="entry-footer-time"><a href="1407623400.html"><time data-relative datetime="2014-08-09T22:30:00Z" title="2014-08-09T22:30:00Z" pubdate class="updated">2014-08-10 07:30</time></a></span>
+      </p>
+
+      
+
+      
+<div class="social-buttons">
+  
+  
+    <div class="social-button-item">
+      <a href="http://b.hatena.ne.jp/entry/http://ruby-rails.hatenadiary.com/entry/20140810/1407623400" class="hatena-bookmark-button" data-hatena-bookmark-layout="vertical-balloon" data-hatena-bookmark-lang="ja" title="この記事をはてなブックマークに追加"><img src="https://b.st-hatena.com/images/entry-button/button-only.gif" alt="この記事をはてなブックマークに追加" width="20" height="20" style="border: none;" /></a>
+    </div>
+  
+  
+  
+    <div class="social-button-item">
+      <a href="https://twitter.com/search?q=http%3A%2F%2Fruby-rails.hatenadiary.com%2Fentry%2F20140810%2F1407623400" class="social-button-twitter-balloon" target="_blank">
+        <span class="social-button-twitter-balloon-list">list</span>
+        <i class="social-button-twitter-balloon-arrow-border"></i>
+        <u class="social-button-twitter-balloon-arrow"></u>
+      </a>
+      <a href="https://twitter.com/share" class="twitter-share-button" data-url="http://ruby-rails.hatenadiary.com/entry/20140810/1407623400" data-count="vertical" data-text="Railsのモデルのバリデーションエラー errors や full_messages の使い方 - Rails Webook" data-lang="ja">Tweet</a>
+    </div>
+  
+  
+  
+  
+  
+    <div class="social-button-item">
+      <a data-pocket-label="pocket" data-save-url="http://ruby-rails.hatenadiary.com/entry/20140810/1407623400" data-pocket-count="vertical" class="pocket-btn" data-lang="en"></a>
+    </div>
+  
+</div>
+
+
+      
+        
+          
+            
+            <div class="google-afc-image test-google-rectangle-ads ">
+              
+              
+                <script>
+  var hatenadfp = hatenadfp || {};
+  hatenadfp.adUnits = hatenadfp.adUnits || [];
+  hatenadfp.adUnits.push(
+    
+      { unitName: 'blog_user', size: [[300, 250], [336, 280]], divId: 'google_afc_user_container_0', allowContentMatch: true }
+    
+  );
+  hatenadfp.isNGContent = false;
+  
+</script>
+
+                <div id="google_afc_user_container_0" class="google_afc_blocklink2_5 google_afc_boder"></div>
+                
+                  <a href="http://blog.hatena.ne.jp/guide/pro" class="open-pro-modal" data-guide-pro-modal-ad-url="http://hatenablog.com/guide/pro/modal/ad">広告を非表示にする</a>
+                
+                
+              
+            </div>
+          
+        
+      
+
+      <div class="customized-footer">
+
+        
+
+          
+
+          
+
+          
+        
+      </div>
+
+      <div class="comment-box">
+        
+        <ul class="comment">
+          
+        </ul>
+        
+          <a class="leave-comment-title">コメントを書く</a>
+        
+      </div>
+      <!-- enjapan ad -->
+      
+    </footer>
+  </div>
+</article>
+
+                
+
+                
+                  
+                  
+                  <div class="permalink pager">
+                    
+                      
+                      <span class="pager-prev">
+                        <a href="1407634200.html" rel="prev">
+                          <span class="pager-arrow">« </span>
+                          Railsのmigrationの基本とレシピ集
+                        </a>
+                      </span>
+                    
+                    
+                      
+                      <span class="pager-next">
+                        <a href="1407603600.html" rel="next">
+                          Railsでビューのレイアウトを指定する
+                          <span class="pager-arrow"> »</span>
+                        </a>
+                      </span>
+                    
+                  </div>
+                
+
+              
+            
+            <!-- rakuten_ad_target_end -->
+            <!-- google_ad_section_end -->
+
+            
+          
+        </div>
+      </div>
+
+      
+      <aside id="box1">
+        <div id="box1-inner">
+        </div>
+      </aside>
+
+    </div><!-- #wrapper -->
+
+    <aside id="box2">
+  
+  <div id="box2-inner">
+    
+      
+<div class="hatena-module hatena-module-html">
+  <div class="hatena-module-body">
+    <script async src="http://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- -->
+<ins class="adsbygoogle"
+     style="display:inline-block;width:160px;height:600px"
+     data-ad-client="ca-pub-2736751992834286"
+     data-ad-slot="8116686456"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+  </div>
+</div>
+
+      
+      
+    
+      
+
+<div class="hatena-module hatena-module-profile">
+  <div class="hatena-module-title">
+    プロフィール
+  </div>
+  <div class="hatena-module-body">
+    
+    <a href="../../about.html" class="profile-icon-link">
+      <img src="http://cdn1.www.st-hatena.com/users/ni/nipe880324/profile.gif?1406435422"
+      alt="id:nipe880324" class="profile-icon" />
+    </a>
+    
+
+    
+    <span class="id">
+      <a href="../../about.html" class="hatena-id-link"><span data-load-nickname="1" data-user-name="nipe880324">id:nipe880324</span></a>
+      
+  
+    
+    
+  
+
+
+    </span>
+    
+
+    
+
+    
+      <div class="hatena-follow-button-box btn-subscribe js-hatena-follow-button-box"
+  
+  >
+
+  <a href="1407623400.html#" class="hatena-follow-button js-hatena-follow-button">
+    <span class="subscribing">
+      <span class="foreground">読者です</span>
+      <span class="background">読者をやめる</span>
+    </span>
+    <span class="unsubscribing" data-track-name="profile-widget-subscribe-button" data-track-once>
+      <span class="foreground">読者になる</span>
+      <span class="background">読者になる</span>
+    </span>
+  </a>
+  <div class="subscription-count-box js-subscription-count-box">
+    <i></i>
+    <u></u>
+    <span class="subscription-count js-subscription-count">
+    </span>
+  </div>
+</div>
+
+    
+
+    
+
+    
+
+    
+  </div>
+</div>
+
+      
+      
+    
+      
+<div class="hatena-module hatena-module-entries-access-ranking"
+     data-count="4"
+     data-display_entry_category="1"
+     data-display_entry_image="0"
+     data-display_entry_image_size_width="100"
+     data-display_entry_image_size_height="100"
+     data-display_entry_body_length="0"
+     data-display_entry_date="1"
+     data-display_bookmark_count="0"
+     data-source="access"
+>
+  <div class="hatena-module-title">
+    
+      最近のアクセス
+    
+  </div>
+  <div class="hatena-module-body">
+    
+  </div>
+</div>
+
+      
+      
+    
+      
+<div class="hatena-module hatena-module-html">
+    <div class="hatena-module-title">    </div>
+  <div class="hatena-module-body">
+    <nav>
+  <div class="side-category">
+    <span class="side-category-title">Rails 入門</span>
+    <ul class="side-category-list">
+      <li><a href="../20140713/1405251091.html">RailsのためのRuby基礎</a></li>
+      <li><a href="../20140813/1407915718.html">Rails入門者向け ブログ開発</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Railsコマンド</span>
+    <ul class="side-category-list">
+      <li><a href="../20140713/1405251709.html">rails new / server / console</a></li>
+      <li><a href="../20150204/1423055537.html">rails new時の有用な6つの設定</a></li>
+      <li><a href="../20150208/1423391199.html">rails new時のテンプレート</a></li>
+      <li><a href="../20140802/1406948695.html">rails generate</a></li>
+      <li><a href="../20141116/1416115266.html">rakeコマンド一覧</a></li>
+      <li><a href="../20141117/1416225563.html">自前rakeコマンド</a></li>
+      <li><a href="../20141110/1415623670.html">productionモードで起動</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Route / Controller</span>
+    <ul class="side-category-list">
+      <li><a href="../20140716/1405451238.html">Routing</a></li>
+      <li><a href="1407603600.html">レイアウトファイルを指定</a></li>
+      <li><a href="../20141125/1416918957.html">ビューを返す(render)</a></li>
+      <li><a href="../20140808/1407427457.html">リダイレクトする(redirect_to)</a></li>
+      <li><a href="../20141126/1417012848.html">Strong Parameters</a></li>
+      <li><a href="../20141129/1417223453.html">フィルタ(before_action, after_action)</a></li>
+      <li><a href="../20141127/1417086075.html">簡易なメッセージ表示(Flash)</a></li>
+      <li><a href="../20141130/1417334030.html">セッション(session)</a></li>
+      <li><a href="../20141201/1417432408.html">リクエストヘッダ、レスポンスヘッダ(request, response)</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Model, Migration</span>
+    <ul class="side-category-list">
+      <li><a href="../20140724/1406142120.html">CRUD</a></li>
+      <li><a href="../20141203/1417601540.html">1対多関連</a></li>
+      <li><a href="../20141204/1417688260.html">多対多関連</a></li>
+      <li><a href="../20141205/1417779929.html">1対1関連</a></li>
+      <li><a href="../20141206/1417839458.html">STI(単一継承テーブル)</a></li>
+      <li><a href="../20141207/1417926599.html">ポリモフィック関連</a></li>
+      <li><a href="../20141208/1418018874.html">複数の子レコードを作成/更新</a></li>
+      <li><a href="../20140724/1406145303.html">バリデーション(validation)</a></li>
+      <li><a href="1407623400.html">バリデーションエラー(validation errors)</a></li>
+      <li><a href="../20140814/1407994568.html">スコープ(scope)</a></li>
+      <li><a href="../20141211/1418301640.html">コールバック(callback)</a></li>
+      <li><a href="../20150428/1430154446.html">複雑なSELECT文のまとめ</a></li>
+      <li><a href="../20150710/1436461745.html">enum (Rails 4.1以上)</a></li>
+      <li><a href="../20141209/1418123425.html">楽観的ロック</a></li>
+      <li><a href="../20141210/1418207618.html">悲観的ロック</a></li>
+      <li><a href="1407634200.html">Migration(マイグレーション)</a></li>
+      <li><a href="../20150607/1433606267.html">Postgresとマイグレーション</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">API</span>
+    <ul class="side-category-list">
+      <li><a href="../20150708/1436284476.html">Roar</a></li>
+      <li>ActiveSerializer</li>
+      <li>Versioning</li>
+      <li>CORS</li>
+    </ul>
+  </div>
+
+  <div class="side-category">
+    <span class="side-category-title">View, Helper, Presenter</span>
+    <ul class="side-category-list">
+      <li><a href="1407603600.html">レイアウトファイルを指定</a></li>
+      <li><a href="../20140807/1407419013.html">部分テンプレート</a></li>
+      <li><a href="../20140727/1406448610.html">フォーム周りのMVC連携フロー</a></li>
+      <li><a href="../20150113/1421149061.html">ビューヘルパーまとめ(View Helper)</a></li>
+      <li><a href="../20140802/1406969793.html">フォーマットヘルパー</a></li>
+      <li><a href="../20140803/1407049200.html">独自ヘルパー作成</a></li>
+      <li><a href="../20141208/1418018874.html">複数の子レコード(has_many)を作成/更新するフォーム</a></li>
+      <li><a href="../20141225/1419515057.html">1フォームに複数のSubmitボタンを配置</a></li>
+      <li><a href="../20140730/1406700205.html">simple_form</a></li>
+      <li><a href="../20150415/1429031791.html">Draper</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">テンプレートエンジン</span>
+    <ul class="side-category-list">
+      <li><a href="../20140929/1411997071.html">HTMLテンプレートエンジンまとめ</a></li>
+      <li><a href="../20140929/1411997071.html">Slim</a></li>
+      <li><a href="../20141001/1412097051.html">Haml</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">ActionSupport / ActionMailer / ActiveJob / i18n</span>
+    <ul class="side-category-list">
+      <li><a href="../20141217/1418817120.html">タイムゾーン、時刻処理</a></li>
+      <li><a href="../20141218/1418901424.html">Timecop 時刻処理のテスト</a></li>
+      <li><a href="../20141216/1418729961.html">クラス名,DB名,ファイル名の変換</a></li>
+      <li><a href="../20141230/1419936984.html">JSON, XML, YAMLの読み書き</a></li>
+      <li><a href="../20141030/1414599853.html">文字コード/エンコード</a></li>
+      <li><a href="../20140828/1409236436.html">メール送信</a></li>
+      <li><a href="../20150304/1425396671.html">DelayedJob バックグラウンド処理</a></li>
+      <li><a href="../20150110/1420863998.html">ログ・ログレベル・ログフォーマット(log, logger)</a></li>
+      <li><a href="../20150226/1424937175.html">i18nまとめ</a></li>
+      <li><a href="../20141111/1415707101.html">エラーハンドリング</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">テスト</span>
+    <ul class="side-category-list">
+      <li><a href="../20150101/1420093487.html">RSpec/Capybaraの導入方法</a></li>
+      <li><a href="../20150103/1420280252.html">RSpec/Capybaraのレシピ集</a></li>
+      <li><a href="../20150101/1420093487.html">FactoryGirlのレシピ集</a></li>
+      <li><a href="../20150105/1420465062.html">Jasmine(Javascriptの単体テスト)</a></li>
+      <li><a href="../20150108/1420675366.html">APIの作成とテスト</a></li>
+      <li><a href="../20150106/1420545920.html">RSpecテストを速くする</a></li>
+      <li><a href="../20150108/1420721205.html">デバッグ(debug)</a></li>
+      <li><a href="../20150420/1429462755.html">Seleniumでスタンドアローンなテスト</a></li>
+      <li><a href="../20140719/1405708234.html">Cucumber+RSpec+Capybara インストール</a></li>
+      <li><a href="../20140719/1405777918.html">Cucumber+RSpec+Capybara BDD/TDD開発例</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Security</span>
+    <ul class="side-category-list">
+      <li><a href="../20141215/1418641291.html">ログ上での秘密情報のフィルタリング</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">パフォーマンス</span>
+    <ul class="side-category-list">
+      <li><a href="../20141109/1415522242.html">Bullet</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">設定</span>
+    <ul class="side-category-list">
+      <li><a href="../20141224/1419414316.html">新しいEnvironmentを追加</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">UI/UX</span>
+    <ul class="side-category-list">
+      <li><a href="../20140801/1406818800.html">Twitter Bootstrap 3</a></li>
+      <li><a href="../20141112/1415804076.html">select2</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Gemの基礎</span>
+    <ul class="side-category-list">
+      <li><a href="../20140715/1405361727.html">RubyGemsの選び方</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">ログイン/認証機能</span>
+    <ul class="side-category-list">
+      <li><a href="../20140801/1406907000.html">devise1 インストール</a></li>
+      <li><a href="../20140804/1407168000.html">devise2 カスタマイズ</a></li>
+      <li><a href="../20140805/1407200400.html">devise3 Twitterでログイン(OAuth連携)</a></li>
+      <li><a href="../20141212/1418380288.html">devise4 ゲストユーザー(Guest)作成</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">ファイルアップロード機能</span>
+    <ul class="side-category-list">
+      <li><a href="../20140716/1405443484.html">PaperClip</a></li>
+      <li><a href="../20141015/1413300088.html">CarrierWave1 インストール</a></li>
+      <li><a href="../20141022/1413907332.html">CarrierWave2 カスタマイズ</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">検索機能・Elasticsearch</span>
+    <ul class="side-category-list">
+      <li><a href="../20141008/1412774436.html">Ransack 検索機能</a></li>
+      <li><a href="../20150224/1424776132.html">Sunspot 全文検索</a></li>
+      <li><a href="../20151018/1445142266.html">Elasticsearch 1: 全文検索・フィルタ</a></li>
+      <li><a href="../20151019/1445265581.html">Elasticsearch 2: ページネーション</a></li>
+      <li><a href="../20151021/1445353566.html">Elasticsearch 3: ソート</a></li>
+      <li><a href="../20151022/1445439798.html">Elasticsearch 4: アグリゲーション（ファセット）・post_filter</a></li>
+      <li><a href="../../20151025/1445703231.html">Elasticsearch 5: ハイライト</a></li>
+      <li><a href="../20151027/1445957667.html">Elasticsearch 6: サジェスト</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">ページネーション</span>
+    <ul class="side-category-list">
+      <li><a href="../20141118/1416314608.html">ページネーションまとめ</a></li>
+      <li><a href="../20141113/1415874683.html">kaminari</a></li>
+      <li><a href="../20141114/1415967206.html">will_paginate</a></li>
+      <li><a href="../20141115/1416021886.html">動的ページロード</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">CSV</span>
+    <ul class="side-category-list">
+      <li><a href="../20141119/1416398472.html">CSVダウンロード</a></li>
+      <li><a href="../20141120/1416483136.html">CSVアップロード</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">PDFファイル作成機能</span>
+    <ul class="side-category-list">
+      <li><a href="../20140906/1409995011.html">PDF作成Gem まとめ</a></li>
+      <li><a href="../20140907/1410078997.html">コードのみでPDF作成 Prawn</a></li>
+      <li><a href="../20140908/1410176894.html">HTMLを変換してPDF作成 PDFKit + wkhtmltopdf</a></li>
+      <li><a href="../20140909/1410241835.html">GUIツールでPDF作成 ThinReports</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">開発効率をあげる</span>
+    <ul class="side-category-list">
+      <li><a href="../20141026/1414289421.html">Spring</a></li>
+      <li><a href="../20141016/1413389293.html">Guard-LiveReload</a></li>
+      <li><a href="../20141021/1413819783.html">Guard-RSpec</a></li>
+      <li><a href="../20141019/1413698128.html">Guard-RuboCop</a></li>
+      <li><a href="../20141024/1414081224.html">Pry-Rails / Pry-BuyBug</a></li>
+      <li><a href="../20141024/1414160189.html">Hirb</a></li>
+      <li><a href="../20141028/1414505988.html">Awesome Print</a></li>
+      <li><a href="../20141029/1414584929.html">Quiet Assets</a></li>
+      <li><a href="../20141025/1414225490.html">Better_Errors</a></li>
+      <li><a href="../20141027/1414409495.html">Rails-ERD</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">その他Gem</span>
+    <ul class="side-category-list">
+      <li><a href="../20150225/1424858414.html">acts-as-taggable-on タグ管理</a></li>
+      <li><a href="../20141016/1413389293.html">wenerber Cron設定</a></li>
+      <li><a href="../20150221/1424489524.html">friendly_id URLスラッグ</a></li>
+      <li><a href="../20150216/1424092796.html">awesome_nested_set ツリー構造</a></li>
+      <li><a href="../20150217/1424179269.html">awesome_nested_set にjsTreeを追加</a></li>
+      <li><a href="../20150214/1423923524.html">PaperTrail 取り消し機能</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Tips</span>
+    <ul class="side-category-list">
+      <li><a href="../20141229/1419856433.html">Virtual Attributes(仮想属性)</a></li>
+      <li><a href="../20141226/1419600679.html">日付/時刻のフォーマット</a></li>
+      <li><a href="../20141225/1419515057.html">1フォームに複数のSubmitボタンを配置</a></li>
+      <li><a href="../20141223/1419334845.html">URLのパーマリンクをID以外に変更</a></li>
+      <li><a href="../20141220/1419058040.html">CSSスタイリングのコントローラー単位で分割</a></li>
+      <li><a href="../20141219/1418990626.html">ページタイトルの変更</a></li>
+      <li><a href="../20150101/1420049679.html">Ruby/Railsの便利なメソッド(useful methods)</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Rubyテクニック</span>
+    <ul class="side-category-list">
+      <li><a href="../20150921/1442839934.html">キーワード引数</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">良い設計/リファクタリング</span>
+    <ul class="side-category-list">
+      <li><a href="../20150922/1442923521.html">デメテルの法則(Law of Demeter)</a></li>
+      <li><a href="../20150312/1426141352.html">HTML/CSS/JSを疎結合にする方法</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">JavaScript</span>
+    <ul class="side-category-list">
+      <li><a href="../20150311/1426062668.html">オブジェクト指向</a></li>
+      <li><a href="../20150313/1426238835.html">thisの参照先</a></li>
+      <li><a href="../20150317/1426599220.html">設定データを分離</a></li>
+      <li><a href="../20150607/1433652441.html">ページを離れる時にアラートを出す</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">jQuery</span>
+    <ul class="side-category-list">
+      <li><a href="../20150325/1427291741.html">Ajax</a></li>
+      <li><a href="../20150326/1427379215.html">イベント処理(Event)</a></li>
+      <li><a href="../20150331/1427809820.html">DOM操作</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">React.js</span>
+    <ul class="side-category-list">
+      <li><a href="../20151122/1448118932.html">React.jsチュートリアル: メッセージボックス</a></li>
+      <li><a href="../20151124/1448300267.html">サーバーレンダリング</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">AngularJS</span>
+    <ul class="side-category-list">
+      <li><a href="../20150114/1421235346.html">AngularJSのインストール</a></li>
+      <li><a href="../20150115/1421316461.html">UI Bootstrapのインストール</a></li>
+      <li><a href="../20150116/1421407124.html">AngularJS Controller</a>
+      <li><a href="../20150119/1421666497.html">ngResource + RailsでAPI作成</a></li>
+      <li><a href="../20150120/1421761471.html">ngRoute</a></li>
+      <li><a href="../20150126/1422276839.html">編集可能(Editable)</a></li>
+      <li><a href="../20150127/1422357163.html">ソート可能(Sortable)</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">開発手法</span>
+    <ul class="side-category-list">
+      <li><a href="../20140917/1410963376.html">スクラム開発</a></li>
+      <li><a href="../20141010/1412867452.html">カイゼンフレームワークKPT</a>
+      <li><a href="../20140816/1408126999.html">GitHubを使ったチーム開発フロー</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">開発ツール</span>
+    <ul class="side-category-list">
+      <li><a href="../20141103/1414940400.html">git - 初期設定と便利なエイリアス</a></li>
+      <li><a href="../20140713/1405248403.html">git - よく使うコマンド</a></li>
+      <li><a href="../20140724/1406137504.html">SublimeText3 - 便利コマンドとプラグイン</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">DB</span>
+    <ul class="side-category-list">
+      <li><a href="../20140726/1406331785.html">MongoDBの基礎入門 CRUD操作</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">インフラ</span>
+    <ul class="side-category-list">
+      <li><a href="../20150719/1437249020.html">Vagrant</a></li>
+      <li><a href="../20150721/1437404524.html">Chef(Rails環境構築)</a></li>
+      <li><a href="../20150314/1426332751.html">Herokuの準備とデプロイ</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">リファレンス</span>
+    <ul class="side-category-list">
+      <li><a href="https://github.com/" target="_blank">GitHub</a></li>
+      <li><a href="http://guides.rubyonrails.org/index.html" target="_blank">RailsGuides</a></li>
+      <li><a href="http://railscasts.com/" target="_blank">RailsCast</a></li>
+      <li><a href="https://rubygems.org/" target="_blank">RubyGems</a></li>
+      <li><a href="https://www.ruby-toolbox.com/" target="_blank">RubyToolbox</a></li>
+      <li><a href="http://rubular.com/" target="_blank">正規表現 Rubular</a></li>
+      <li><a href="http://ruby-doc.org/core-2.1/" target="_blank">Ruby API (2.1)</a></li>
+      <li><a href="http://api.rubyonrails.org/" target="_blank">Ruby on Rails API (4.1)</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Phoenix</span>
+    <ul class="side-category-list">
+      <li><a href="../20151011/1444560106.html">Phoenix環境設定(Phoenix入門1)</a></li>
+      <li><a href="../20151013/1444662887.html">基本的な認証機能(Phoenix入門2)</a></li>
+      <li><a href="../20151016/1444930756.html">基本的なチャット機能(Phoenix入門3)</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">その他</span>
+    <ul class="side-category-list">
+      <li><a href="../20150401/1427898898.html">広告収入向上</a></li>
+      <li><a href="../20140830/1409361710.html">著者が読んだ本</a></li>
+    </ul>
+  </div>
+</nav>
+
+  </div>
+</div>
+
+      
+      
+    
+      
+
+<div class="hatena-module hatena-module-archive" data-archive-type="default" data-archive-url="../../archive.html">
+  <div class="hatena-module-title">
+    <a href="../../archive.html">月別アーカイブ</a>
+  </div>
+  <div class="hatena-module-body">
+  </div>
+</div>
+
+      
+      
+    
+    
+  </div>
+</aside>
+
+  </div>
+</div>
+
+
+
+
+        
+        
+          <script type="text/javascript" src="http://b.hatena.ne.jp/js/hatena_dfp2.js"></script>
+        
+        
+          <div id="bottom-editarea">
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script>
+$('.unsubscribing').on('click', function() {
+    ga('send', 'event', 'button', 'click', 'hatenaReader');  
+});
+</script>
+          </div>
+        
+      </div>
+    </div>
+
+    
+      <footer id="footer" data-brand="hatenablog">
+  <div id="footer-inner">
+    <address>
+      
+      <a href="../../about.html"><img src="http://cdn1.www.st-hatena.com/users/ni/nipe880324/profile.gif" width="16" height="16" alt=""/>
+        <span data-load-nickname="1" data-user-name="nipe880324">nipe880324</span>
+      </a>
+    </address>
+    <p class="services">Powered by <a href="http://hatenablog.com/">Hatena Blog</a></p>
+  </div>
+</footer>
+
+    
+
+    
+  <script type="text/javascript">!function(d,i){if(!d.getElementById(i)){var j=d.createElement("script");j.id=i;j.src="https://widgets.getpocket.com/v1/j/btn.js?v=1";var w=d.getElementById(i);d.body.appendChild(j);}}(document,"pocket-btn-js");</script>
+
+
+    
+
+    <script type="text/javascript" src="https://platform.twitter.com/widgets.js"></script>
+<script type="text/javascript" src="https://apis.google.com/js/plusone.js">
+  {"parsetags": "explicit"}
+</script>
+<script type="text/javascript" src="https://b.st-hatena.com/js/bookmark_button.js" charset="utf-8" async="async"></script>
+
+
+
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.7/react-with-addons.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.7/react-dom.min.js"></script>
+
+
+<script type="text/javascript" src="http://cdn7.www.st-hatena.com/js/jquery-1.9.1.min.js"></script>
+<script type="text/javascript" src="http://cdn7.www.st-hatena.com/js/jquery/jquery-ui.1.10.0.custom.min.js"></script>
+<script type="text/javascript" src="http://cdn7.www.st-hatena.com/js/jquery/jquery.flot.0.8.3.js"></script>
+<script type="text/javascript" src="http://cdn7.www.st-hatena.com/js/jquery/jquery.flot.time.0.8.3.js"></script>
+
+
+
+<script id="hatenablog-js" data-env="production"
+  type="text/javascript" src="https://blog.st-hatena.com/js/hatenablog.js?version=228df9a6e5a3ae04fdb53d33befa3556" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://blog.st-hatena.com/js/texts-ja.js?version=228df9a6e5a3ae04fdb53d33befa3556"></script>
+
+
+  <script type="text/javascript">Hatena.Diary.GlobalHeader.init()</script>
+
+
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
+
+
+
+    
+
+
+    
+       
+
+  <script id="hatena-counter-script" type="text/javascript"><!--
+      hatena_counter_name = "nipe880324";
+      hatena_counter_id = "102";
+      hatena_counter_ref = document.referrer+"";
+      hatena_counter_screen = screen.width + "x" + screen.height+","+screen.colorDepth;
+  //--></script>
+  <script type="text/javascript" src="http://counter.hatena.ne.jp/js/counter.js"></script>
+  <noscript><img src="http://counter.hatena.ne.jp/nipe880324/102" border="0" alt="counter"></noscript>
+
+
+    
+
+  </body>
+</html>
+

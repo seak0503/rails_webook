@@ -1,0 +1,372 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>Git/GitHub - Rails Webook</title>
+    <link>http://ruby-rails.hatenadiary.com/category/Git%2FGitHub</link>
+    <description>自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</description>
+    <lastBuildDate>Fri, 18 Dec 2015 02:44:31 +0900</lastBuildDate>
+    <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+    <generator>Hatena::Blog</generator>
+    
+      
+      
+        <item>
+          <title>よく使うgitコマンドまとめ</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20140713/1405248403</link>
+          <description>&lt;p&gt;gitを使っているときによく使うgitコマンドを集めました。&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;コミットの操作&lt;/h3&gt;
+    &lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;// 追加&lt;span class=&quot;synPreProc&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;add&lt;/span&gt;&lt;span class=&quot;synPreProc&quot;&gt;)&lt;/span&gt;とコミット&lt;span class=&quot;synPreProc&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;commit&lt;/span&gt;&lt;span class=&quot;synPreProc&quot;&gt;)&lt;/span&gt;を同時にする
+$ git commit &lt;span class=&quot;synSpecial&quot;&gt;-am&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;コメントメッセージを記載&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;&amp;quot;&lt;/span&gt;
+
+// 強制的に上書きして以前のコミットの状態に戻す
+$ git checkout &lt;span class=&quot;synSpecial&quot;&gt;-f&lt;/span&gt;
+
+// 指定したコミットの状態まで戻る
+$ git reset &lt;span class=&quot;synSpecial&quot;&gt;--hard&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;コミットのハッシュ値&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;&amp;quot;&lt;/span&gt;
+
+// 指定したコミットになるように逆の変更を行い戻す
+$ git revert
+
+// 直近の&lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;つ分をまとめる
+$ git rebase &lt;span class=&quot;synSpecial&quot;&gt;-i&lt;/span&gt; HEAD~&lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;
+pick    7b12a31 コミットB
+fixup  371a227 コミットA
+
+// 指定したコミットをHEADに追加する
+$ git chery-pick &lt;span class=&quot;synStatement&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;コミットのハッシュ値&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;ブランチの操作&lt;/h3&gt;
+    &lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;// ブランチ一覧を表示（-a リモートリポジトリも含む）
+$ git branch
+
+// ブランチを作成し、ブランチを切り替える
+$ git checkout &lt;span class=&quot;synSpecial&quot;&gt;-b&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;&amp;lt;&lt;/span&gt;ブランチ名&lt;span class=&quot;synStatement&quot;&gt;&amp;gt;&lt;/span&gt;
+
+// ブランチを移動
+$ git checkout &lt;span class=&quot;synStatement&quot;&gt;&amp;lt;&lt;/span&gt;ブランチ名&lt;span class=&quot;synStatement&quot;&gt;&amp;gt;&lt;/span&gt;
+
+// ブランチを削除
+$ git branch &lt;span class=&quot;synSpecial&quot;&gt;-d&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;&amp;lt;&lt;/span&gt;ブランチ名&lt;span class=&quot;synStatement&quot;&gt;&amp;gt;&lt;/span&gt; // マージしていないと削除できない
+$ git branch &lt;span class=&quot;synSpecial&quot;&gt;-D&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;&amp;lt;&lt;/span&gt;ブランチ名&lt;span class=&quot;synStatement&quot;&gt;&amp;gt;&lt;/span&gt; // マージしていなくても削除できる
+&lt;/pre&gt;
+&lt;/div&gt;</description>
+          <pubDate>Tue, 04 Nov 2014 00:00:00 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/12921228815728052252</guid>
+          
+            <category>Git/GitHub</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>gitの設定ファイル.gitconfigの初期設定とエイリアス</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20141103/1414940400</link>
+          <description>&lt;p&gt;gitの設定ファイルの&lt;code&gt;.gitconfig&lt;/code&gt;の初期設定とエイリアスの説明をします。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;初期設定&lt;/h3&gt;
+    &lt;p&gt;&lt;code&gt;user.name&lt;/code&gt;と&lt;code&gt;user.email&lt;/code&gt;を設定する必要があります。&lt;br /&gt;
+これは、gitのコミットメッセージに表示されます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;$ git config &lt;span class=&quot;synSpecial&quot;&gt;--global&lt;/span&gt; user.name &lt;span class=&quot;synStatement&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;自分の名前&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;&amp;quot;&lt;/span&gt;
+$ git config &lt;span class=&quot;synSpecial&quot;&gt;--global&lt;/span&gt; user.email &lt;span class=&quot;synStatement&quot;&gt;&amp;lt;&lt;/span&gt;自分のメールアドレス&lt;span class=&quot;synStatement&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;エイリアス&lt;/h3&gt;
+    &lt;p&gt;&lt;code&gt;git checkout&lt;/code&gt;や&lt;code&gt;git status&lt;/code&gt;など何度もコマンドを実行するので、短いエイリアスを作ることで作業を効率化しましょう。&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;git config &lt;span class=&quot;synSpecial&quot;&gt;--global&lt;/span&gt; alias.ci commit
+git config &lt;span class=&quot;synSpecial&quot;&gt;--global&lt;/span&gt; alias.st &lt;span class=&quot;synStatement&quot;&gt;status&lt;/span&gt;
+git config &lt;span class=&quot;synSpecial&quot;&gt;--global&lt;/span&gt; alias.co checkout
+git config &lt;span class=&quot;synSpecial&quot;&gt;--global&lt;/span&gt; alias.br branch
+git config &lt;span class=&quot;synSpecial&quot;&gt;--global&lt;/span&gt; alias.gr &lt;span class=&quot;synStatement&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;log --graph --date=short --decorate=short --pretty=format:&#39;%Cgreen%h %Creset%cd %Cblue%cn %Cred%d %Creset%s&#39;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+gitの設定内容を確認する&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;$ git config &lt;span class=&quot;synSpecial&quot;&gt;--list&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;Gitを学べるサイト&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://progit-ja.github.io/&quot;&gt;Pro Git &amp;#x65E5;&amp;#x672C;&amp;#x8A9E;&amp;#x7248;&amp;#x96FB;&amp;#x5B50;&amp;#x66F8;&amp;#x7C4D;&amp;#x516C;&amp;#x958B;&amp;#x30B5;&amp;#x30A4;&amp;#x30C8;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://k.swd.cc/learnGitBranching-ja/&quot;&gt;Learn Git Branching&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://try.github.io/levels/1/challenges/1&quot;&gt;Code School - Try Git&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Mon, 03 Nov 2014 00:00:00 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450086753648</guid>
+          
+            <category>Git/GitHub</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>最近のモダンなチーム開発でのgit/GitHubの使い方</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20141101/1414767600</link>
+          <description>&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150303/20150303210122.jpg&quot; alt=&quot;f:id:nipe880324:20150303210122j:plain&quot; title=&quot;f:id:nipe880324:20150303210122j:plain&quot; class=&quot;hatena-fotolife&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;最近のモダンな開発ではgit/GitHubが使われています。（GitLabなどの近しいツールも含む）&lt;br /&gt;
+git/GitHubでのチーム開発の中でのgit/GitHubの使い方を説明します。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;Gitフロー&lt;/h3&gt;
+    &lt;p&gt;機能やバグフィックスなどコードを修正する場合は、ブランチを作り、そのブランチを修正する。&lt;br /&gt;
+作業が終わったら、GitHub上でブランチからmasterへのPRを行い、ソースコードレビューをし、masterへマージする。&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;0. リポジトリの最新化
+$ git pull
+
+1. ブランチを作成
+$ git checkout &lt;span class=&quot;synSpecial&quot;&gt;-b&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;&amp;lt;&lt;/span&gt;ブランチ名&lt;span class=&quot;synPreProc&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;yyyymmdd_修正名&lt;/span&gt;&lt;span class=&quot;synPreProc&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;&amp;gt;&lt;/span&gt;
+
+2. 作業を実施
+// 新しいブランチでいろいろとファイルを変更する
+$ git ci &lt;span class=&quot;synSpecial&quot;&gt;-am&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;コメント&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;&amp;quot;&lt;/span&gt;
+// 必要に応じてsquashして、コミットをまとめる
+$ git rebase &lt;span class=&quot;synSpecial&quot;&gt;-i&lt;/span&gt; master 
+
+3. リモートリポジトリ&lt;span class=&quot;synPreProc&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;GitHub&lt;/span&gt;&lt;span class=&quot;synPreProc&quot;&gt;)&lt;/span&gt;にブランチをpushする 
+$ git push &lt;span class=&quot;synSpecial&quot;&gt;-u&lt;/span&gt; origin &lt;span class=&quot;synStatement&quot;&gt;&amp;lt;&lt;/span&gt;ブランチ名&lt;span class=&quot;synStatement&quot;&gt;&amp;gt;&lt;/span&gt;
+
+4. GitHub上でmasterブランチへPRを出し、GitHub上でコードレビューしてもらう
+
+5. コードレビューが終わったら、PR画面のmergeボタンを押し、masterへマージする。
+// 他の人との変更が競合している場合は、mergeボタンを押せないので、下記を実行して競合をなくす
+$ git checkout master
+$ git pull
+$ git checkout &lt;span class=&quot;synStatement&quot;&gt;&amp;lt;&lt;/span&gt;ブランチ名&lt;span class=&quot;synStatement&quot;&gt;&amp;gt;&lt;/span&gt;
+$ git merge master
+// Conflictと表示されるので、競合を解消する
+$ git ci &lt;span class=&quot;synSpecial&quot;&gt;-am&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Fix conflict&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;&amp;quot;&lt;/span&gt;
+$ git push
+
+6. masterの最新化とローカルリポジトリのブランチを削除
+$ git checkout master
+$ git pull
+$ git br &lt;span class=&quot;synSpecial&quot;&gt;-d&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;&amp;lt;&lt;/span&gt;ブランチ名&lt;span class=&quot;synStatement&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;Gitを学べるサイト&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://progit-ja.github.io/&quot;&gt;Pro Git &amp;#x65E5;&amp;#x672C;&amp;#x8A9E;&amp;#x7248;&amp;#x96FB;&amp;#x5B50;&amp;#x66F8;&amp;#x7C4D;&amp;#x516C;&amp;#x958B;&amp;#x30B5;&amp;#x30A4;&amp;#x30C8;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://k.swd.cc/learnGitBranching-ja/&quot;&gt;Learn Git Branching&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://try.github.io/levels/1/challenges/1&quot;&gt;Code School - Try Git&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Sat, 01 Nov 2014 00:00:00 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450086751512</guid>
+          
+            <category>Git/GitHub</category>
+          
+            <category>チーム</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>GitHubを使った今時のWebアプリ/システム開発の流れ</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20140816/1408126999</link>
+          <description>&lt;p&gt;GitHubを使った今時(2014年頃)のWebアプリ/システム開発の流れを説明します。&lt;br /&gt;
+Webアプリケーション、スマホアプリ/スマホゲームを開発している会社では、「アジャイル開発」が主流となっています。ユーザーの反応を見て、機能追加やバグ改修を行い、商用環境に数日、１週間でリリースするといったスピード感で開発するために「GitHubを使った開発フロー」が行われています。&lt;/p&gt;&lt;p&gt;&lt;i&gt;&lt;br /&gt;
+※必ずしもGitHubを使わなくても良いですが、多くの会社はGitHubやその類いのツールやサービスを使っています。&lt;/i&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#background-this-developmment-flow&quot;&gt;開発フローの背景&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#developmment-flow-in-company&quot;&gt;会社内で開発する開発フロー(on GitHub)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#developmment-flow-for-contributing-oss&quot;&gt;オマケ：OSSに貢献する開発フローメモ(on GitHub）&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;background-this-developmment-flow&quot;&gt;1. 開発フローの背景&lt;/h3&gt;従来からある開発方法論である「ウォーターフォールモデル」では、&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;1,2年開発している間にビジネス環境が変わってしまったため、システム要件がビジネス要件に適合しなくなった。&lt;/li&gt;
+&lt;li&gt;完成するまでユーザー/発注者がシステムを実際に動かさないので、ユーザー/発注者が想像してたものと開発されたものが違う。&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;など&lt;b&gt;「ユーザーにとって役に立たない（=価値のない）システムを作成する可能性が高い」&lt;/b&gt;という欠点がありました。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;そこで、昨今ではWeb業界やスマホアプリやゲームを作っている会社では「アジャイル開発」で開発しています。厳密なアジャイル開発で実施していなくても以下のようなエッセンスを取り入れています。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;現状のWebアプリケーションやシステムの利用状況から改善項目やバグ改修などのタスクを洗い出して、優先度をつける&lt;/li&gt;
+&lt;li&gt;タスクを優先度順に、チームメンバーに割り振って「イテレーション単位（１週間などの設計からリリースまでの期間）」で実施&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;これを繰り返していくことで、実際のユーザーの声（利用状況やアンケートなど）を反映し、&lt;br /&gt;
+&lt;b&gt;「ユーザーにとって役立つWebアプリケーションやシステムを開発すること」&lt;/b&gt;ができます。&lt;/p&gt;&lt;p&gt;&lt;i&gt;&lt;br /&gt;
+※アジャイル開発は、チーム内でプロダクトの方向性を決め、実装し、リリースするということが短期間で行われるのでコミュニケーションが多発します。そのため、受発注関係のSIer業界ではスピード感を実施しづらい開発方法です。&lt;/i&gt;&lt;br /&gt;
+&lt;i&gt;&lt;br /&gt;
+※ウォーターフォール開発自体を否定しているわけではありません。&lt;br /&gt;
+実際、BtoCの会社では、エンドユーザーに見せられるレベルまでをウォーターフォールで開発しリリースし、その後、ユーザーの利用状況を確認しながら、追加機能やバグ改修をアジャイル開発で実施して、柔軟にユーザーの満足度をあげて、サービスをグロースさせている企業もあります。&lt;/i&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;developmment-flow-in-company&quot;&gt;2. 会社内で開発する開発フロー(on GitHub)&lt;/h3&gt;シンプルなので学習コストが低く、実施コストも低く、小さな変更もすばやく柔軟に対処できるGitHub社自身も実施している開発フロー。&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;0. 前提条件&lt;/h4&gt;
+    
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;&lt;u&gt;masterブランチは常にデプロイできる状態しておく&lt;/u&gt;&lt;/h5&gt;
+    &lt;p&gt;masterブランチは常にデプロイできるということは、大きなバグなどがない安定したソースであるということ（小さなバグはあるかも）&lt;br /&gt;
+そのため、いつでも機能追加やバグ改修などのブランチを作成できるようになります。これは、つまり、複数人での並行開発のベースとなります。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;&lt;u&gt;デプロイをコマンド一発でできるように自動化する&lt;/u&gt;&lt;/h5&gt;
+    &lt;p&gt;デプロイツールを利用して、コマンド一発でソースコードを商用環境にデプロイできるようにしておき、人的ミスをなくしましょう。&lt;br /&gt;
+デプロイツールには、ロールバック機能もついているものもあるので、前のバージョンに戻すことも簡単にできます。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;&lt;u&gt;CIツールにより、テストの作成とテストの自動実行をする&lt;/u&gt;&lt;/h5&gt;
+    &lt;p&gt;全てのソースコードにはテストコードを書きます。（テスト駆動開発で開発することを推奨）&lt;br /&gt;
+リモートリポジトリにpushすると、CIツールにより自動的にすべてのテストを実行できるようにしておきましょう。&lt;br /&gt;
+&lt;i&gt;クックパッド社では、17000件のテスト項目を60並列程度の分散処理で行い、平均8-9分で実施&lt;br /&gt;
+&lt;a href=&quot;http://techlife.cookpad.com/entry/2014/03/24/rrrspec/&quot;&gt;http://techlife.cookpad.com/entry/2014/03/24/rrrspec/&lt;/a&gt;から引用&lt;br /&gt;
+GitHub社では、14,000件のテスト項目を3.5分程度で実施&lt;br /&gt;
+&lt;a href=&quot;https://speakerdeck.com/holman/how-github-works&quot;&gt;https://speakerdeck.com/holman/how-github-works&lt;/a&gt;から引用&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;&lt;u&gt;ステージング環境（本番環境を再現した環境）を用意する&lt;/u&gt;&lt;/h5&gt;
+    &lt;p&gt;クリティカルな部分に影響を与えるような大きな変更などを加えたときに手動でテストするために、本番環境にデプロイする前に動作を確認できるようにします。&lt;br /&gt;
+もちろん、ステージング環境へのデプロイもコマンド一発でデプロイしておくようにしておいてください。&lt;br /&gt;
+タイポ（誤字脱字）など細かなレベルであればこの環境を使わず商用に直接デプロイしても良いと思います。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;1. コマンドラインでローカルにソースをコピーする&lt;/h4&gt;
+    &lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ git clone &amp;#34;リポジトリのURL (例：https://github.com/rails/rails.git)&amp;#34;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;2. 新しい作業をするときは、masterブランチから記述的な名前のブランチを作成する&lt;/h4&gt;
+    &lt;p&gt;まず、masterブランチを最新の状態にする&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ git co master
+$ git pull&lt;/pre&gt;&lt;p&gt;そして、トピックブランチを作成し、GitHubのリポートリポジトリにpushする&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ git co -b &amp;#34;トピックブランチ名&amp;#34;
+$ git push orign &amp;#34;トピックブランチ名&amp;#34;&lt;/pre&gt;&lt;p&gt;開発者が何をしているか想像できる具体的な名前が良い。&lt;br /&gt;
+(例：&lt;code&gt;user-content-cache-key&lt;/code&gt;&lt;code&gt;submodules-init-task&lt;/code&gt;&lt;code&gt;redis2-transition&lt;/code&gt;など）&lt;br /&gt;
+こうすることにより、リモートリポジトリのブランチ一覧を確認すれば、チームがどんなタスクをやっているか明確。&lt;br /&gt;
+機能や要件が、トピックブランチになり、それが、PR(ソースコードレビュー)に対応するので、ソースコードレビューをしてもらいやすくするために、機能や要件を細かくし、トピックブランチも数日や1週間など短期間で開発できるぐらいの粒度にしましょう。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;3. ソースコードを記述する&lt;/h4&gt;
+    &lt;p&gt;こまめにコミットして、ソースコードレビューをしやすいようにする。&lt;br /&gt;
+コミットの粒度はチームで合わせておくことで、それぞれがソースコードレビューをしやすくなります。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ git add .
+$ git ci -m &amp;#34;コミットメッセージを記載&amp;#34;
+$ git push -u origin &amp;#34;トピックブランチ名&amp;#34;&lt;/pre&gt;&lt;p&gt;テスト駆動開発の流れで実施する場合、&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;テストコードを記載する&lt;/li&gt;
+&lt;li&gt;そのテストが通るようにソースコードを実装する&lt;/li&gt;
+&lt;li&gt;テストが通ったらリファクタリングし、リファクタリング後にテストが成功することを確認し、&lt;/li&gt;
+&lt;li&gt;リモートリポジトリにソースをpushする。&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;4. Pull Requestを作成し、Pull Requestでやりとりする&lt;/h4&gt;
+    &lt;p&gt;上記の&quot;3&quot;の作業は、PRに&lt;code&gt;WIP(Work In Progress:作業途中)&lt;/code&gt;をタイトルにつけて、フィードバックをえながら開発する。&lt;br /&gt;
+コメント内に「@ユーザ名」と入力すれば、そのユーザにNotificationsが飛ぶ。&lt;br /&gt;
+いつPRを作成するかはチームで決める。&lt;/p&gt;&lt;p&gt;&lt;i&gt;&lt;br /&gt;
+問題が複数あり、指摘と修正を何度も繰り返しmasterブランチへなかなかマージされない状況がたまにあります。&lt;br /&gt;
+それは、コミュニケーション不足の場合は、直接顔を合わせて話し合う。&lt;br /&gt;
+また、技術力や能力の不足野場合は、コーディングルールの整備と周知、開発上のルールはwikiなどでまとめ、開発者のスキルをあげるために勉強会や書籍などで知識の共有、ペアプログラミングなどを実施し、「レビューをすんなり通り、すぐにマージできる品質でコードを書き上げれるレベル」までもっていく。&lt;/i&gt;&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;5. ほかの開発者がレビューする。&lt;/h4&gt;
+    &lt;p&gt;全てのソースコードは他の誰かがレビューをした状態にする。&lt;br /&gt;
+&lt;code&gt;:+1:&lt;/code&gt;、&lt;code&gt;+1&lt;/code&gt;、&lt;code&gt;LGTM(Looks good to me=良いと思う)&lt;/code&gt;などの同意を得る。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;6. 作業終了を確認したらmasterブランチにマージする&lt;/h4&gt;
+    &lt;p&gt;「2,3人以上がレビューし、その結果+1などのコメントが2,3個以上存在したらPRを行った開発者がmasterブランチにマージできる」などmasterブランチに「マージする人」、「マージするタイミング」はチームで決める必要があります。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ rebase -i HEAD~3  # 3つのコミットをまとめる。基本はpick1つ、その他はfixupで過去のコミット１つにまとめる
+$ git push&lt;/pre&gt;&lt;p&gt;その後、GitHubのプルリクエスト画面で緑色のマージリクエストボタンを押して、マージリクエストをする。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;7. masterブランチへマージしたら、すぐにデプロイする&lt;/h4&gt;
+    &lt;p&gt;誰かが（自動で）マージを取り込まれると、CIにより自動テストが自動実行され、それがパスしたらコマンド一発でデプロイして下さい。&lt;br /&gt;
+もし、大人数・複数チームで並行で開発していて本番環境へのデプロイが並行する可能性がある場合は、チームでのデプロイルールを整備する必要があります。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;developmment-flow-for-contributing-oss&quot;&gt;3. オマケ：OSSに貢献する開発フローメモ(on GitHub)&lt;/h3&gt;&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;1. GitHub上でOSSソースをForkする&lt;/h5&gt;
+    
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;2. コマンドラインローカルにソースをコピーする(&lt;code&gt;$ git clone&lt;/code&gt;)&lt;/h5&gt;
+    
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;3. トピックブランチを作成する(&lt;code&gt;$ git checkout -b &quot;トピックブランチ名&quot;&lt;/code&gt;)&lt;/h5&gt;
+    &lt;p&gt;・OSSが英語なら、トピックブランチ名やコミットメッセージは英語で記載する&lt;br /&gt;
+・トピックブランチ名は、変更内容を端的に表した名前にする&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;4. トピックブランチに対してコードを変更し、コミットする&lt;/h5&gt;
+    &lt;p&gt;・Pull Request（以下、PR）でソースコードレビューしやすいように細かくコミットする&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;5. トピックブランチをリポジトリにpushする(&lt;code&gt;$ git push -u origin &quot;トピックブランチ名&quot;&lt;/code&gt;)&lt;/h5&gt;
+    
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;6. GitHubでFork元に対してPRを作成して送る&lt;/h5&gt;
+    
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;7. PR上でやり取りして、コミット権限がある人にソースを取り入れてもらう（mergeしてもらう）&lt;/h5&gt;
+    
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;git, github, 開発フローなど基本から分かりやすく説明されているのでgit, github初心者は一読する価値があります。&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;div class=&quot;hatena-asin-detail&quot;&gt;&lt;a href=&quot;http://www.amazon.co.jp/exec/obidos/ASIN/477416366X/hatena-blog-22/&quot;&gt;&lt;img src=&quot;http://ecx.images-amazon.com/images/I/51PjpAUHZBL._SL160_.jpg&quot; class=&quot;hatena-asin-detail-image&quot; alt=&quot;GitHub実践入門 ~Pull Requestによる開発の変革 (WEB+DB PRESS plus)&quot; title=&quot;GitHub実践入門 ~Pull Requestによる開発の変革 (WEB+DB PRESS plus)&quot;&gt;&lt;/a&gt;&lt;div class=&quot;hatena-asin-detail-info&quot;&gt;&lt;p class=&quot;hatena-asin-detail-title&quot;&gt;&lt;a href=&quot;http://www.amazon.co.jp/exec/obidos/ASIN/477416366X/hatena-blog-22/&quot;&gt;GitHub実践入門 ~Pull Requestによる開発の変革 (WEB+DB PRESS plus)&lt;/a&gt;&lt;/p&gt;&lt;ul&gt;&lt;li&gt;&lt;span class=&quot;hatena-asin-detail-label&quot;&gt;作者:&lt;/span&gt; 大塚弘記&lt;/li&gt;&lt;li&gt;&lt;span class=&quot;hatena-asin-detail-label&quot;&gt;出版社/メーカー:&lt;/span&gt; 技術評論社&lt;/li&gt;&lt;li&gt;&lt;span class=&quot;hatena-asin-detail-label&quot;&gt;発売日:&lt;/span&gt; 2014/03/20&lt;/li&gt;&lt;li&gt;&lt;span class=&quot;hatena-asin-detail-label&quot;&gt;メディア:&lt;/span&gt; 単行本（ソフトカバー）&lt;/li&gt;&lt;li&gt;&lt;a href=&quot;http://d.hatena.ne.jp/asin/477416366X/hatena-blog-22&quot; target=&quot;_blank&quot;&gt;この商品を含むブログ (18件) を見る&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;&lt;/div&gt;&lt;div class=&quot;hatena-asin-detail-foot&quot;&gt;&lt;/div&gt;&lt;/div&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://speakerdeck.com/holman/how-github-uses-github-to-build-github&quot;&gt;How GitHub Uses GitHub to Build GitHub // Speaker Deck&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;以上です。&lt;br /&gt;
+よく分からない箇所や、間違いがありましたらコメントください。&lt;/p&gt;
+
+&lt;/div&gt;</description>
+          <pubDate>Sat, 16 Aug 2014 03:23:19 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/12921228815730340425</guid>
+          
+            <category>Git/GitHub</category>
+          
+            <category>チーム</category>
+          
+        </item>
+      
+    
+  </channel>
+</rss>

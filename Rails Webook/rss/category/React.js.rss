@@ -1,0 +1,768 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>React.js - Rails Webook</title>
+    <link>http://ruby-rails.hatenadiary.com/category/React.js</link>
+    <description>自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</description>
+    <lastBuildDate>Fri, 18 Dec 2015 02:44:31 +0900</lastBuildDate>
+    <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+    <generator>Hatena::Blog</generator>
+    
+      
+      
+        <item>
+          <title>RailsでReact.jsをサーバーレンダリングする</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20151124/1448300267</link>
+          <description>&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151122/20151122001321.png&quot; alt=&quot;f:id:nipe880324:20151122001321p:plain:w420&quot; title=&quot;f:id:nipe880324:20151122001321p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/reactjs/react-rails&quot;&gt;react-rails&lt;/a&gt;というReact.jsを&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;に簡単に統合できるgemを使い、React.jsをサーバー&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%EC%A5%F3%A5%C0%A5%EA%A5%F3%A5%B0&quot;&gt;レンダリング&lt;/a&gt;する方法を説明します。&lt;br /&gt;
+サーバー&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%EC%A5%F3%A5%C0%A5%EA%A5%F3%A5%B0&quot;&gt;レンダリング&lt;/a&gt;することで、初期値をHTMLの初期レンダー時に渡せるようになるので、ロード中による画面のばたつきや、ロード中といった表示をなくせます。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20151122/1448118932&quot;&gt;Rails&amp;#x3067;React&amp;#x3092;&amp;#x4F7F;&amp;#x3063;&amp;#x3066;&amp;#x30E1;&amp;#x30C3;&amp;#x30BB;&amp;#x30FC;&amp;#x30B8;&amp;#x30DC;&amp;#x30C3;&amp;#x30AF;&amp;#x30B9;&amp;#x30A2;&amp;#x30D7;&amp;#x30EA;&amp;#x3092;&amp;#x4F5C;&amp;#x6210; - Rails Webook&lt;/a&gt;をベースに説明しています。&lt;/p&gt;&lt;p&gt;また、この記事の&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%BD%A1%BC%A5%B9%A5%B3%A1%BC%A5%C9&quot;&gt;ソースコード&lt;/a&gt;は&lt;br /&gt;
+&lt;a href=&quot;https://github.com/nipe0324/rails_samples/tree/master/react_server_rendering_test&quot;&gt;https://github.com/nipe0324/rails_samples/tree/master/react_server_rendering_test&lt;/a&gt;&lt;br /&gt;
+です。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#react-server-rendering-react_component&quot;&gt;RailsでReactコンポーネントをレンダーする&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#react-server-rendering-prerender&quot;&gt;Reactコンポーネントをサーバーレンダリングする&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#react-server-rendering-controller-render&quot;&gt;コントローラーでReactコンポーネントをレンダーする&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Ruby&quot;&gt;Ruby&lt;/a&gt; 2.2.0&lt;/li&gt;
+&lt;li&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt; 4.2.3&lt;/li&gt;
+&lt;li&gt;react-&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/rails&quot;&gt;rails&lt;/a&gt; 1.4.2&lt;/li&gt;
+&lt;li&gt;react 0.14.2&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;react-server-rendering-react_component&quot;&gt;1. &lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;でReact&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;をレンダーする&lt;/h3&gt;&lt;code&gt;react-rails&lt;/code&gt;は、&lt;code&gt;react_component&lt;/code&gt;というビューヘルパーを用意しており、ビュー上でこの&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;を使うことで、React&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;のレンダーを&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%D0%A5%A4%A5%F3%A5%C7%A5%A3%A5%F3%A5%B0&quot;&gt;バインディング&lt;/a&gt;なしでできるようになります。&lt;/p&gt;&lt;p&gt;main.js.jsxでのReact&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;のレンダーしている&lt;code&gt;ReactDOM.render&lt;/code&gt;を削除します。&lt;code&gt;react_component&lt;/code&gt;ビューヘルパーのおかげでこれが必要なくなります。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// app/assets/javascripts/main.js.jsx&lt;/span&gt;
+- $(&lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+-   ReactDOM.render(
+-     &amp;lt;MessageBox url=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;/messages&amp;quot;&lt;/span&gt;/&amp;gt;,
+-     &lt;span class=&quot;synStatement&quot;&gt;document&lt;/span&gt;.getElementById(&lt;span class=&quot;synConstant&quot;&gt;&#39;content&#39;&lt;/span&gt;)
+-   );
+- &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;&lt;code&gt;react_component&lt;/code&gt;を使うように修正します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- app/views/top/index.html.erb --&amp;gt;&lt;/span&gt;
+
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Message Box&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+- &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;content&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
++ &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; react_component(&#39;MessageBox&#39;,&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;/messages&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;) %&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;最後に、&lt;code&gt;application.js&lt;/code&gt;に&lt;code&gt;react_ujs&lt;/code&gt;があることを確認します。&lt;br /&gt;
+&lt;code&gt;react_ujs&lt;/code&gt;がページをスキャンをし、&lt;code&gt;react_component&lt;/code&gt;の箇所に指定したReact&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;をマウントしています。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// app/assets/javascripts/application.js&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;//= require jquery&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;//= require jquery_ujs&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;//= require react&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;//= require react_ujs&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;//= require_tree .&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+画面を確認するとちゃんとメッセージ一覧が表示されます。&lt;br /&gt;
+[&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151122/20151122000620.png&quot; alt=&quot;f:id:nipe880324:20151122000620p:plain&quot; title=&quot;f:id:nipe880324:20151122000620p:plain&quot; class=&quot;hatena-fotolife&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;:420]&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;HTMLは次のようになっています。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;-react-&lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;MessageBox&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;-react-props=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;{&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;/messages&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;}&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  ...
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;Turbolinksと一緒に使う場合や、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;名が階層構造になっているなどの場合などは公式ドキュメントを参照ください。&lt;br /&gt;
+&lt;a href=&quot;https://github.com/reactjs/react-rails#rendering--mounting&quot;&gt;reactjs/react-rails &amp;middot; GitHub&lt;/a&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;react-server-rendering-prerender&quot;&gt;2. React&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;をサーバー&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%EC%A5%F3%A5%C0%A5%EA%A5%F3%A5%B0&quot;&gt;レンダリング&lt;/a&gt;する&lt;/h3&gt;今度は、サーバーサイドでReact&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;をレンダーするようにします。&lt;br /&gt;
+&lt;code&gt;react_component&lt;/code&gt;ビューヘルパーに、&lt;code&gt;prerender: true&lt;/code&gt;を渡します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- app/views/top/index.html.erb --&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Message Box&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+* &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; react_component(&#39;MessageBox&#39;,&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; { &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;/messages&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; }, { prerender: true }) %&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+また、規約により&lt;code&gt;components.js&lt;/code&gt;が必要です。その中で、「React&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;」や必要であればUnderscore.jsなどの「依存ライブラリ」を読み込むようにします。&lt;br /&gt;
+今回は、React&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;を配置している&lt;code&gt;components&lt;/code&gt;ディレクトリを読み込むようにします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// app/assets/javascripts/components.js&lt;/span&gt;
+
++ &lt;span class=&quot;synComment&quot;&gt;//= require_tree ./components&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+そして、&lt;code&gt;application.js&lt;/code&gt;でこの&lt;code&gt;components.js&lt;/code&gt;を読み込むように修正します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// app/assets/javascripts/application.js&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;//= require jquery&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;//= require jquery_ujs&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;//= require react&lt;/span&gt;
++ &lt;span class=&quot;synComment&quot;&gt;//= require components&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;//= require react_ujs&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;//= require_tree .&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+公式ドキュメントに&lt;a href=&quot;https://facebook.github.io/react/docs/component-specs.html#lifecycle-methods&quot;&gt;Component Specs and Lifecycle | React&lt;/a&gt;に書かれていますが、&lt;code&gt;componentDidMount&lt;/code&gt;はサーバーサイドで&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%EC%A5%F3%A5%C0%A5%EA%A5%F3%A5%B0&quot;&gt;レンダリング&lt;/a&gt;した時には呼ばれないので、&lt;code&gt;props&lt;/code&gt;でReact&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;に渡すようにします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- app/views/top/index.html.erb --&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Message Box&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+* &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; react_component(&#39;MessageBox&#39;,&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; { &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;/messages&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, messages: @messages }, { prerender: true }) %&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;コントローラーで&lt;code&gt;@messages&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%A4%A5%F3%A5%B9%A5%BF%A5%F3%A5%B9&quot;&gt;インスタンス&lt;/a&gt;変数に値を設定します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/top_controller.rb&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;TopController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;index&lt;/span&gt;
++     &lt;span class=&quot;synIdentifier&quot;&gt;@messages&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Message&lt;/span&gt;.all
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;code&gt;componentDidMount&lt;/code&gt;でメッセージをサーバーから取得してましたが、上記の通り、サーバーサイドでprops経由でMessageBoxに渡すようにしたので、初期値をpropsから取得するように修正します。&lt;br /&gt;
+また、&lt;code&gt;componentDidMount&lt;/code&gt;も呼ばれないので削除します。&lt;br /&gt;
+さらに、メッセージのロード中と言う状態がなくなるので合わせて削除します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// app/assets/components/message_box.js.jsx&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; MessageBox = React.createClass(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+*   getInitialState: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;(props) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+*     &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;　messages: &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.props.messages &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;;
+    &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;,
+
+-   componentDidMount: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+-     $.ajax(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+-       url:      &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.props.url,
+-       dataType: &lt;span class=&quot;synConstant&quot;&gt;&#39;json&#39;&lt;/span&gt;,
+-       cache:    &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;,
+-       success: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;(messages) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+-         &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.setState(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; messages: messages, isLoading: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+-       &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;.bind(&lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;),
+-       eror: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;(_xhr, &lt;span class=&quot;synStatement&quot;&gt;status&lt;/span&gt;, err) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+-         console.error(&lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.props.url, &lt;span class=&quot;synStatement&quot;&gt;status&lt;/span&gt;, err.toString());
+-       &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;.bind(&lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;)
+-     &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+-   &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;,
+
+    handleMessageSubmit: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;(message) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+      $.ajax(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+        url:      &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.props.url,
+        dataType: &lt;span class=&quot;synConstant&quot;&gt;&#39;json&#39;&lt;/span&gt;,
+        type:     &lt;span class=&quot;synConstant&quot;&gt;&#39;POST&#39;&lt;/span&gt;,
+        data:     message,
+        success: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;(message) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+          &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; newMessages = &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.state.messages.concat(message);
+          &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.setState(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; messages: newMessages &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+        &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;.bind(&lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;),
+        error: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;(_xhr, &lt;span class=&quot;synStatement&quot;&gt;status&lt;/span&gt;, err) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+          console.error(&lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.props.url, &lt;span class=&quot;synStatement&quot;&gt;status&lt;/span&gt;, err.toString());
+        &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;.bind(&lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;)
+      &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+    &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;,
+
+    render: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; messageItems = &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.state.messages.map(&lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;(message) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; (
+          &amp;lt;MessageItem key=&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;message.id&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt; message=&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;message&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;/&amp;gt;
+        );
+      &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+
+-     &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; (&lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.state.isLoading) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+-       &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; (
+-         &amp;lt;div&amp;gt;ロード中&amp;lt;/div&amp;gt;
+-       );
+-     &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; (
+        &amp;lt;div className=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;messageBox&amp;quot;&lt;/span&gt;&amp;gt;
+          &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;messageItems&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+          &amp;lt;MessageForm onMessageSubmit=&lt;span class=&quot;synIdentifier&quot;&gt;{this&lt;/span&gt;.handleMessageSubmit&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;/&amp;gt;
+        &amp;lt;/div&amp;gt;
+      );
+-     &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;画面を確認するとメッセージ一覧が表示されます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151122/20151122000620.png&quot; alt=&quot;f:id:nipe880324:20151122000620p:plain:w420&quot; title=&quot;f:id:nipe880324:20151122000620p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;注意点として、&lt;code&gt;react_component&lt;/code&gt;でレンダーするReact&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;群の&lt;code&gt;render&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;で&lt;code&gt;document&lt;/code&gt;を参照できません。そのため、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/jQuery&quot;&gt;jQuery&lt;/a&gt;やライブラリなどいくつか動かない場合があります。サブミット時に$.&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/ajax&quot;&gt;ajax&lt;/a&gt;などはつかえます。どこらへんまで使用可能かはよくわかってないですが、うまくいかないときはこれを疑ってください。&lt;/p&gt;&lt;p&gt;また、&lt;code&gt;therubyracer&lt;/code&gt;を使ったほうがパフォーマンスがいいなど、サーバー&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%EC%A5%F3%A5%C0%A5%EA%A5%F3%A5%B0&quot;&gt;レンダリング&lt;/a&gt;の設定は&lt;a href=&quot;https://github.com/reactjs/react-rails#server-rendering&quot;&gt;reactjs/react-rails &amp;middot; GitHub&lt;/a&gt;を参照してください。&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;react-server-rendering-controller-render&quot;&gt;3. コントローラーでReact&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;をレンダーする&lt;/h3&gt;おまけで、使う頻度は少ないと思いますが、コントローラーから直接React&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;をレンダーできます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synSpecial&quot;&gt;//&lt;/span&gt; app/controllers/top_controller.rb
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;TopController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;index&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@messages&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Message&lt;/span&gt;.all
+    render &lt;span class=&quot;synConstant&quot;&gt;component&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;MessageBox&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;props&lt;/span&gt;: { &lt;span class=&quot;synConstant&quot;&gt;url&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;/messages&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;messages&lt;/span&gt;: &lt;span class=&quot;synIdentifier&quot;&gt;@messages&lt;/span&gt; }
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3&gt;まとめ&lt;/h3&gt;&lt;h4&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;でReact&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;をレンダーする&lt;/h4&gt;&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;code&gt;react_component&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;でReact&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;をレンダーする&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;react_ujs&lt;/code&gt;が必要（react_ujsがマウントしてくれる）&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;h4&gt;サーバーサイド&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%EC%A5%F3%A5%C0%A5%EA%A5%F3%A5%B0&quot;&gt;レンダリング&lt;/a&gt;を行う&lt;/h4&gt;&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;code&gt;react_component&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;に&lt;code&gt;prerender: true&lt;/code&gt;をつける&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;react_ujs&lt;/code&gt;が必要（react_ujsがマウントしてくれる）&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;components.js&lt;/code&gt;が必要&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;document&lt;/code&gt;が使えない&lt;/li&gt;
+&lt;li&gt;サーバーサイド&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%EC%A5%F3%A5%C0%A5%EA%A5%F3%A5%B0&quot;&gt;レンダリング&lt;/a&gt;では幾つかライフサイクルの呼ばれない&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;がある。詳細:&lt;a href=&quot;https://facebook.github.io/react/docs/component-specs.html#lifecycle-methods&quot;&gt;Component Specs and Lifecycle | React&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;以上です。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/reactjs/react-rails#server-rendering&quot;&gt;reactjs/react-rails &amp;middot; GitHub&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Tue, 24 Nov 2015 02:37:47 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/6653586347146273156</guid>
+          
+            <category>Javascript</category>
+          
+            <category>React.js</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>RailsでReactを使ってメッセージボックスアプリを作成</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20151122/1448118932</link>
+          <description>&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151122/20151122001321.png&quot; alt=&quot;f:id:nipe880324:20151122001321p:plain:w420&quot; title=&quot;f:id:nipe880324:20151122001321p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/reactjs/react-rails&quot;&gt;react-rails&lt;/a&gt;というReact.jsを&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;に簡単に統合できるgemを使い、React.jsについて説明します。&lt;/p&gt;&lt;p&gt;次のような画面をReact.jsで実装し、Reactとサーバ(&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;)間でメッセージ一覧の取得や作成をできるようにします。&lt;br /&gt;
+&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%BD%A1%BC%A5%B9%A5%B3%A1%BC%A5%C9&quot;&gt;ソースコード&lt;/a&gt;はこちらです。 &lt;a href=&quot;https://github.com/nipe0324/rails_samples/tree/master/react_test&quot;&gt;https://github.com/nipe0324/rails_samples/tree/master/react_test&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151122/20151122000620.png&quot; alt=&quot;f:id:nipe880324:20151122000620p:plain:w420&quot; title=&quot;f:id:nipe880324:20151122000620p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#react-install-gem&quot;&gt;react-railsのインストール&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#react-render&quot;&gt;Reactのコンポーネントの表示&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#react-design&quot;&gt;メッセージボックスの概要&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#react-message-item&quot;&gt;メッセージボックスのリストを作成&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#react-message-form&quot;&gt;メッセージフォームを作成&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#react-integration-with-rails&quot;&gt;サーバーサイド(Rails)との連携&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Ruby&quot;&gt;Ruby&lt;/a&gt; 2.2.0&lt;/li&gt;
+&lt;li&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt; 4.2.3&lt;/li&gt;
+&lt;li&gt;react-&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/rails&quot;&gt;rails&lt;/a&gt; 1.4.2&lt;/li&gt;
+&lt;li&gt;react 0.14.2&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3&gt;0. React.jsとは&lt;/h3&gt;React.jsは&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/MVC&quot;&gt;MVC&lt;/a&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%D5%A5%EC%A1%BC%A5%E0%A5%EF%A1%BC%A5%AF&quot;&gt;フレームワーク&lt;/a&gt;でいう、ビューのみを扱っています。&lt;/p&gt;&lt;p&gt;Backbone.jsやAngularJS、React.jsなど触ってきた私の個人的な感想として、&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;React.jsは、状態をルートの一箇所(※1)で管理し、その状態を更新すれば、自動的に全ての&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;をレンダーしてくれます。&lt;/li&gt;
+&lt;li&gt;状態を一箇所で管理できるので、レンダーの細かな制御が必要なくなるので可読性や保守性は高いと思います。また、React.jsが差分だけレンダーするのでパフォーマンスも悪くはなりにくいです。&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;※1: 基本的には状態をルートの１箇所で管理するとよいと思いますが、ルートの&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;がFatになってしまうので大規模化するとつらくなりそうです。Fluxで解決できるかもですが、Flux実装が乱立しているのでどうしようか迷っています。Flux実装で最近よく聞くReduxを軽く触ってみようかと思います。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Backbone.jsの場合、モデルやコレクションの更新やクリックイベントなどをトリガーとして、細かく分けたビューを更新します。ビューが大きくなり大規模化していくと、異なるビュー同士でイベントが絡み合うので、状態が増えて、つらくなってくる気がします。&lt;/li&gt;
+&lt;li&gt;AngularJSの場合、個人的に嫌いじゃないですが、&lt;code&gt;ng-xxx&lt;/code&gt;というディレクティブがたくさん必要になり覚えることがたくさんあるのでつらいかなと思います。また、Angularに処理がラッピングされているので、バグを踏んだ時に対応するのがなかなか難しい気がします。&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;react-install-gem&quot;&gt;1. react-&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/rails&quot;&gt;rails&lt;/a&gt;のインストール&lt;/h3&gt;&lt;code&gt;react-rails&lt;/code&gt;は&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;でReact.jsとJSXを簡易に使えるようにするgemです。&lt;/p&gt;&lt;p&gt;プロジェクトを作成します&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rails new react_test
+cd ./react_test&lt;/pre&gt;&lt;p&gt;&lt;code&gt;react-rails&lt;/code&gt;をGemfileに追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Gemfile&lt;/span&gt;
++ gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;react-rails&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;~&amp;gt; 1.4.0&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;gemをインストールします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;bundle install&lt;/pre&gt;&lt;p&gt;&lt;code&gt;applicaiton.js&lt;/code&gt;に&lt;code&gt;react&lt;/code&gt;を追加し、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;がReact.jsを読み込むようにします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;// app/assets/javascripts/application.js
+
+ //= require jquery_ujs
+-  //= require turbolinks
++  //= require react
++  //= require react_ujs
+ //= require_tree .&lt;/pre&gt;&lt;p&gt;React.jsの環境値を設定します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# config/environments/development.rb&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt;.application.configure &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+...
++ &lt;span class=&quot;synComment&quot;&gt;# Reactの環境値を development にする&lt;/span&gt;
++ config.react.variant = &lt;span class=&quot;synConstant&quot;&gt;:development&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# config/environments/production.rb&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt;.application.configure &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+...
++ &lt;span class=&quot;synComment&quot;&gt;# Reactの環境値を production にする&lt;/span&gt;
++ config.react.variant = &lt;span class=&quot;synConstant&quot;&gt;:production&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;補足&lt;br /&gt;
+今回は入れないですが、ReactにはAddonと言うものが付いていて、Addonも使いたい場合は、下記の設定をします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# config/environments/(development|test|production).rb&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt;.application.configure &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+...
+  &lt;span class=&quot;synComment&quot;&gt;# React.jsのAddonを有効にする(デフォルトはfalse)&lt;/span&gt;
+  config.react.addons = &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;TopController#indxを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rails g controller top index&lt;/pre&gt;&lt;p&gt;ルートのパス(/)にtop#indexを設定しておきます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# config/routes.rb&lt;/span&gt;
++ root &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;top#index&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;a href=&quot;http://localhost:3000&quot;&gt;http://localhost:3000&lt;/a&gt;にアクセスし、トップ&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Javascript&quot;&gt;Javascript&lt;/a&gt;コンソールにエラーがでないことを確認します。&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;react-render&quot;&gt;2. Reactの&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;の表示&lt;/h3&gt;まずはReactで&lt;code&gt;Hello react with rails&lt;/code&gt;を表示しています。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// app/assets/javascripts/main.js.jsx&lt;/span&gt;
+
++ $(&lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++    ReactDOM.render(
++      &amp;lt;h1&amp;gt;Hello react &lt;span class=&quot;synStatement&quot;&gt;with&lt;/span&gt; rails&amp;lt;/h1&amp;gt;,
++      &lt;span class=&quot;synStatement&quot;&gt;document&lt;/span&gt;.getElementById(&lt;span class=&quot;synConstant&quot;&gt;&#39;content&#39;&lt;/span&gt;)
++    );
++ &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;ReactDOM.render(&lt;Reactコンポーネント&gt;, &lt;element&gt;)でReactの&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;群をレンダー開始します。&lt;br /&gt;
+※少し前まではReact.renderでした。&lt;br /&gt;
+&lt;code&gt;&lt;h1&gt;Hello react with rails&lt;/h1&gt;&lt;/code&gt;がReactの&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;として認識されて表示されます。&lt;br /&gt;
+他にも、divやspanなど基本的なHTML要素は利用できます。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- app/views/top/index.html.erb --&amp;gt;&lt;/span&gt;
++ &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Message Box&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
++ 
++ &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;content&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+画面を再表示すると次のように「Hello react with &lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/rails&quot;&gt;rails&lt;/a&gt;」とReactにより表示されます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151121/20151121235843.png&quot; alt=&quot;f:id:nipe880324:20151121235843p:plain:w420&quot; title=&quot;f:id:nipe880324:20151121235843p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;react-design&quot;&gt;3. メッセージボックスの概要&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;ReactはVirtual DOMツリーを使って差分のみのHTMLを更新します。&lt;br /&gt;
+ルートノードがstate(変更可能)を持っていて、必要な子ノードにstate(変更不可)を渡します。&lt;br /&gt;
+子は親から渡された値をprops(変更不可)として受け取り、それを使ってHTMLをレンダーします。&lt;br /&gt;
+各子ノードはイベントが発生したら親までイベントを伝え、親のstate(変更可能)をsetState&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;で更新します。&lt;br /&gt;
+すると、親ノードから全てのノードが再度更新されます。この時、Virtual DOMツリーがあるためHTMLを差分だけ更新します。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;次のようなツリー構造を作っていきます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;MessageBox
+L MessageList
+|  L MessageItem
+L MessageForm&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;react-message-item&quot;&gt;4. メッセージボックスのリストを作成&lt;/h3&gt;では、ここからメッセージボックスを作成していきます。&lt;br /&gt;
+まずは、Reactの&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;を配置するディレクトリを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;mkdir app/assets/javascripts/components&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;MessageBox&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;の作成&lt;/h4&gt;MessageBox&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;を作成します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// app/assets/javascripts/components/message_box.js.jsx&lt;/span&gt;
++ &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; MessageBox = React.createClass(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++   render: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++     &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; (
++       &amp;lt;div className=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;messageBox&amp;quot;&lt;/span&gt;&amp;gt;
++         This is message box.
++       &amp;lt;/div&amp;gt;
++     );
++   &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
++ &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;&lt;code&gt;React.createClass()&lt;/code&gt;で&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;を作成します。&lt;br /&gt;
+また、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;が表示するHTMLを&lt;code&gt;render&lt;/code&gt;の関数で返します。&lt;br /&gt;
+classが予約されているので、HTMLのclass属性の指定は&lt;code&gt;className&lt;/code&gt;を使います。&lt;/p&gt;&lt;p&gt;main.js.jsxからMessageBox&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;を呼び出すように修正します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// app/assets/javascripts/main.js.jsx&lt;/span&gt;
+ $(&lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+   ReactDOM.render(
+*    &amp;lt;MessageBox /&amp;gt;,
+     &lt;span class=&quot;synStatement&quot;&gt;document&lt;/span&gt;.getElementById(&lt;span class=&quot;synConstant&quot;&gt;&#39;content&#39;&lt;/span&gt;)
+   );
+ &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;画面を確認すると次のようになります&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151122/20151122000052.png&quot; alt=&quot;f:id:nipe880324:20151122000052p:plain:w420&quot; title=&quot;f:id:nipe880324:20151122000052p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;code&gt;ReactDOM.render&lt;/code&gt;で&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%EC%A5%F3%A5%C0%A5%EA%A5%F3%A5%B0&quot;&gt;レンダリング&lt;/a&gt;しているHTMLは次のようになっています。&lt;br /&gt;
+MessageBox&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;の&lt;code&gt;render&lt;/code&gt;のHTMLが表示されていることがわかると思います。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;content&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;messageBox&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;-reactid=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;.0&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    This is message box.
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;※&lt;code&gt;data-reactid&lt;/code&gt;は、Reactが各DOMを管理するために自動的に付与しているデータです。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h4&gt;Reactの&lt;code&gt;render&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;の実装時にはまりやすいポイント&lt;/h4&gt;&lt;code&gt;render&lt;/code&gt;で返すトップのHTML要素は１つでないといけません。&lt;br /&gt;
+次のように、div要素を2つ返そうとするとエラーになります。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; MessageBox = React.createClass(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  render: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;// 2つのdiv要素を返しているのでエラーになる&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; (
+      &amp;lt;div className=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;messageBox&amp;quot;&lt;/span&gt;&amp;gt;
+        This is message box.
+      &amp;lt;/div&amp;gt;
+      &amp;lt;div className=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;messageBox&amp;quot;&lt;/span&gt;&amp;gt;
+        This is message box.
+      &amp;lt;/div&amp;gt;
+    );
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+また、inputやimageなどの要素でも&lt;b&gt;必ず閉じタグが必要&lt;/b&gt;です。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; MessageBox = React.createClass(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  render: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; (
+      &amp;lt;div className=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;messageBox&amp;quot;&lt;/span&gt;&amp;gt;
+        &amp;lt;image src=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;/path/to/file&amp;quot;/&amp;gt; {/* 正しい */&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+        &amp;lt;image src=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;/path/to/file&amp;quot;&lt;/span&gt;&amp;gt;  &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;synComment&quot;&gt;/* エラー */&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+      &amp;lt;/div&amp;gt;
+    );
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;MessageItem&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;の作成&lt;/h4&gt;各メッセージを表示するMessageItem&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;を作成します。&lt;br /&gt;
+MessageBox&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;を作成します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// app/assets/javascripts/components/message_item.js.jsx&lt;/span&gt;
++&lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; MessageItem = React.createClass(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++  render: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++    &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; (
++      &amp;lt;div className=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;message&amp;quot;&lt;/span&gt;&amp;gt;
++        &amp;lt;h2 className=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;messageUser&amp;quot;&lt;/span&gt;&amp;gt;&lt;span class=&quot;synIdentifier&quot;&gt;{this&lt;/span&gt;.props.message.user&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;&amp;lt;/h2&amp;gt;
++        &amp;lt;span&amp;gt;&lt;span class=&quot;synIdentifier&quot;&gt;{this&lt;/span&gt;.props.message.text&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;&amp;lt;/span&amp;gt;
++      &amp;lt;/div&amp;gt;
++    );
++  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
++&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;&lt;code&gt;this.props&lt;/code&gt;には、親&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;から渡された値が入ります。&lt;br /&gt;
+また、&lt;code&gt;{変数名}&lt;/code&gt;で変数の値を表示することができます。&lt;/p&gt;&lt;p&gt;ここでは、親から&lt;code&gt;message = { user: &#39;username&#39;, text: &#39;text&#39; }&lt;/code&gt;といったような値が渡されて、&lt;code&gt;{}&lt;/code&gt;を使ってそれぞれユーザ名とメッセージのテキストを表示しています。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;message_box.js.jsxでMessageItem&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;を作成し、returnで返すようにします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// message_box.js.jsx&lt;/span&gt;
+ &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; MessageBox = React.createClass(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+   render: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++   &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; messageItems = &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.state.messages.map(&lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;(message) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++      &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; (
++        &amp;lt;MessageItem key=&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;message.id&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt; message=&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;message&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;/&amp;gt;
++      );
++    &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+
+     &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; (
+       &amp;lt;div className=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;messageBox&amp;quot;&lt;/span&gt;&amp;gt;
++        &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;messageItems&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+       &amp;lt;/div&amp;gt;
+     );
+   &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+ &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;&lt;code&gt;this.state&lt;/code&gt;は変更可能な値で名前からわかる通りアプリの状態を保持します。&lt;br /&gt;
+基本的にはルートのノード(MessageBox)だけで&lt;code&gt;state&lt;/code&gt;を管理すると、いろいろな&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;に状態が散らばらないので分かり易い、保守し易いJSコードになります。&lt;br /&gt;
+そして、&lt;code&gt;this.setState&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;を通して&lt;code&gt;state&lt;/code&gt;を更新することでルート以下の&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;の&lt;code&gt;render&lt;/code&gt;が呼ばれ、&lt;code&gt;state&lt;/code&gt;の状態を表せます。この時、Reactが差分だけ更新するのでパフォーマンスをあまり気にしなくてもrenderが行えるようになっています。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;最終的にはサーバーからデータを取得しますがまずは仮で、初期データを用意します。&lt;br /&gt;
+&lt;code&gt;getInitialState&lt;/code&gt;は&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;が作成された時に１度だけ呼ばれ、&lt;code&gt;state&lt;/code&gt;の初期値を返すように実装します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// message_box.js.jsx&lt;/span&gt;
+ &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; MessageBox = React.createClass(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++  getInitialState: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++    &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++      messages: &lt;span class=&quot;synIdentifier&quot;&gt;[&lt;/span&gt;
++        &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; id: 1, user: &lt;span class=&quot;synConstant&quot;&gt;&#39;Tom&#39;&lt;/span&gt;,   text: &lt;span class=&quot;synConstant&quot;&gt;&#39;Good morning&#39;&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;,
++        &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; id: 2, user: &lt;span class=&quot;synConstant&quot;&gt;&#39;John&#39;&lt;/span&gt;,  text: &lt;span class=&quot;synConstant&quot;&gt;&#39;Good afternoon&#39;&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;,
++        &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; id: 3, user: &lt;span class=&quot;synConstant&quot;&gt;&#39;Emily&#39;&lt;/span&gt;, text: &lt;span class=&quot;synConstant&quot;&gt;&#39;Good evening&#39;&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
++      &lt;span class=&quot;synIdentifier&quot;&gt;]&lt;/span&gt;
++    &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;;
++  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;,
+
+   render: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+     ...
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+では、画面をリロードします。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151122/20151122000154.png&quot; alt=&quot;f:id:nipe880324:20151122000154p:plain:w420&quot; title=&quot;f:id:nipe880324:20151122000154p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;ちなみにHTMLは次のようになっています。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;content&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;messageBox&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;-reactid=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;.0&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;message&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;-reactid=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;.0.$1&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h2&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;messageUser&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;-reactid=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;.0.$1.0&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Tom&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h2&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;span&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;-reactid=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;.0.$1.1&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Good morning&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;span&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;message&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;-reactid=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;.0.$2&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h2&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;messageUser&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;-reactid=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;.0.$2.0&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;John&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h2&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;span&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;-reactid=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;.0.$2.1&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Good afternoon&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;span&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;message&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;-reactid=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;.0.$3&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h2&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;messageUser&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;-reactid=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;.0.$3.0&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Emily&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h2&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;span&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;-reactid=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;.0.$3.1&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Good evening&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;span&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;react-message-form&quot;&gt;5. メッセージフォームを作成&lt;/h3&gt;メッセージを入力するフォームのMessageForm&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;を作成し、メッセージを投稿できるようにします。&lt;/p&gt;&lt;p&gt;&lt;h4&gt;MessageForm&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;の作成&lt;/h4&gt;まずはイベントなどないシンプルなMessageForm&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;を作成します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// app/assets/javascripts/components/message_form.js.jsx&lt;/span&gt;
++ &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; MessageForm = React.createClass(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++   render: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++     &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; (
++       &amp;lt;form className=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;commentForm&amp;quot;&lt;/span&gt;&amp;gt;
++         &amp;lt;input type=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;text&amp;quot;&lt;/span&gt; placeholder=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Yousr name&amp;quot;&lt;/span&gt; /&amp;gt;
++         &amp;lt;input type=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;text&amp;quot;&lt;/span&gt; placeholder=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Message&amp;quot;&lt;/span&gt; /&amp;gt;
++         &amp;lt;input type=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;submit&amp;quot;&lt;/span&gt; value=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Post&amp;quot;&lt;/span&gt; /&amp;gt;
++       &amp;lt;/form&amp;gt;
++     );
++   &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
++ &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;MessageBoxからMessageFormをレンダーするように修正します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// message_box.js.jsx&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; MessageBox = React.createClass(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  getInitialState: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    ...
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;,
+
+  render: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; messageItems = &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.state.messages.map(&lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;(message) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; (
+        &amp;lt;MessageItem key=&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;message.id&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt; message=&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;message&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;/&amp;gt;
+      );
+    &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+
+    &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; (
+      &amp;lt;div className=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;messageBox&amp;quot;&lt;/span&gt;&amp;gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;messageItems&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
++       &amp;lt;MessageForm /&amp;gt;
+      &amp;lt;/div&amp;gt;
+    );
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;画面を確認するとFormが表示されます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151122/20151122000252.png&quot; alt=&quot;f:id:nipe880324:20151122000252p:plain:w420&quot; title=&quot;f:id:nipe880324:20151122000252p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h4&gt;Submitイベントのハンドリング&lt;/h4&gt;Postボタンを押した時に、動的にMessageItemを追加するように修正します。&lt;/p&gt;&lt;p&gt;まずは、MessageFormにイベントのハンドリングを行う&lt;code&gt;handleSubmit&lt;/code&gt;を追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; MessageForm = React.createClass(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++   handleSubmit: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;(&lt;span class=&quot;synStatement&quot;&gt;event&lt;/span&gt;) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++     &lt;span class=&quot;synStatement&quot;&gt;event&lt;/span&gt;.preventDefault();
++     &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; user = &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.refs.user.value.trim();
++     &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; text = &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.refs.text.value.trim();
++     &lt;span class=&quot;synComment&quot;&gt;// どちらか入力されてなければ何もしない&lt;/span&gt;
++     &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; (!user || !text) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++       &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt;;
++     &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
++     &lt;span class=&quot;synComment&quot;&gt;// 親コンポーネントのMessageBoxのイベントを呼ぶ&lt;/span&gt;
++     &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.props.onMessageSubmit(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; user: user, text: text &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
++     &lt;span class=&quot;synComment&quot;&gt;// フォームの内容を削除&lt;/span&gt;
++     &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.refs.user.value = &lt;span class=&quot;synConstant&quot;&gt;&#39;&#39;&lt;/span&gt;;
++     &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.refs.text.value = &lt;span class=&quot;synConstant&quot;&gt;&#39;&#39;&lt;/span&gt;;
++   &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;,
+
+    render: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; (
+*       &amp;lt;form className=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;commentForm&amp;quot;&lt;/span&gt; onSubmit=&lt;span class=&quot;synIdentifier&quot;&gt;{this&lt;/span&gt;.handleSubmit&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;&amp;gt;
+*         &amp;lt;input type=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;text&amp;quot;&lt;/span&gt; placeholder=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Yousr name&amp;quot;&lt;/span&gt; ref=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;user&amp;quot;&lt;/span&gt; /&amp;gt;
+*         &amp;lt;input type=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;text&amp;quot;&lt;/span&gt; placeholder=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Message&amp;quot;&lt;/span&gt; ref=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;text&amp;quot;&lt;/span&gt;/&amp;gt;
+          &amp;lt;input type=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;submit&amp;quot;&lt;/span&gt; value=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Post&amp;quot;&lt;/span&gt; /&amp;gt;
+        &amp;lt;/form&amp;gt;
+      );
+    &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;まず&lt;code&gt;onSubmit={this.handleSubmit}&lt;/code&gt;でSubmitイベントが発生したら、handleSubmitが呼ばれるように定義しています。&lt;/p&gt;&lt;p&gt;Postボタンを押すとリストに入力内容が追加されます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151122/20151122000403.png&quot; alt=&quot;f:id:nipe880324:20151122000403p:plain:w420&quot; title=&quot;f:id:nipe880324:20151122000403p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h4&gt;keyについて&lt;/h4&gt;Postボタンでもう一つメッセージを追加すると&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Javascript&quot;&gt;Javascript&lt;/a&gt;コンソールに次のようなメッセージが表示されます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;react.self-bf407d87....js?body=1:2166
+Warning: Each child in an array or iterator should have a unique &amp;#34;key&amp;#34; prop. Check the render method of `MessageBox`. See https://fb.me/react-warning-keys for more information.&lt;/pre&gt;&lt;p&gt;和訳すると、&lt;br /&gt;
+&gt; 配列や&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%A4%A5%C6%A5%EC%A1%BC%A5%BF&quot;&gt;イテレータ&lt;/a&gt;のそれぞれの子要素はユニークな&quot;key&quot;属性をつけてください。&lt;br /&gt;
+&gt; &quot;MessageBox&quot;のrender&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;のところが怪しいです。&lt;br /&gt;
+&gt; より詳細を知りたい場合は、&lt;a href=&quot;https://fb.me/react-warning-keys&quot;&gt;https://fb.me/react-warning-keys&lt;/a&gt; を読んでください。&lt;br /&gt;
+です。&lt;/p&gt;&lt;p&gt;なぜ、Reactで&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%CA%A3%BF%F4&quot;&gt;複数&lt;/a&gt;の同じ子要素(liやReactの&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;など)を表示するときにkey属性を指定しないといけないかは、&lt;br /&gt;
+Reactのstateが変わったときにどの要素を更新すればいいか識別するために使われています。key属性がなくてもうまく更新ができますが、Reactがいい感じにしないといけず計算量が多くなってしまいパフォーマンスが悪くなってしまう基本的にはkey属性をつけます。&lt;/p&gt;&lt;p&gt;今回は、MessageItemがリスト要素になっているので、key属性に値を設定します。&lt;br /&gt;
+すでに設定していますが、新たにフォームから追加したメッセージはidがないので、&lt;code&gt;handleMessageSubmit&lt;/code&gt;ないでユニークなidを生成するようにします。&lt;br /&gt;
+※後ほどサーバーから取得したメッセージを取得するようにしますが、今はidを生成する仕組みがないので暫定で日付を設定するようにします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// message_box.js.jsx&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; MessageBox = React.createClass(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    getInitialState: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+      ...
+    &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;,
+
+    handleMessageSubmit: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;(message) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++     message.id = &lt;span class=&quot;synStatement&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Date&lt;/span&gt;();
+      &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; newMessages = &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.state.messages.concat(message);
+      &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.setState(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; messages: newMessages &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+    &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;,
+
+    render: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; messageItems = &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.state.messages.map(&lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;(message) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+        &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; (
+          &amp;lt;MessageItem key=&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;message.id&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt; message=&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;message&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;/&amp;gt;
+        );
+      &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+
+      &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; (
+        &amp;lt;div className=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;messageBox&amp;quot;&lt;/span&gt;&amp;gt;
+          &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;messageItems&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+          &amp;lt;MessageForm onMessageSubmit=&lt;span class=&quot;synIdentifier&quot;&gt;{this&lt;/span&gt;.handleMessageSubmit&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;/&amp;gt;
+        &amp;lt;/div&amp;gt;
+      );
+    &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;これでワーニングが出なくなりました。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;react-integration-with-rails&quot;&gt;6. サーバーサイド(&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;)との連携&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;&lt;h4&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;で&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;を作成&lt;/h4&gt;&lt;/p&gt;&lt;p&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;のエンドポイントとして下記2つを用意します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;GET  /messages.json - メッセージの一覧を取得する
+POST /messages.json - メッセージを作成する&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+まず、コントローラ、モデルを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rails g resource Message user:string text:string&lt;/pre&gt;&lt;p&gt;※&lt;code&gt;railg g resource&lt;/code&gt;は、モデル、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%DE%A5%A4%A5%B0%A5%EC%A1%BC%A5%B7%A5%E7%A5%F3&quot;&gt;マイグレーション&lt;/a&gt;ファイル、コントローラ、アセット、ヘルパーを作成（ビューを作成しない）&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;ルートをエンドポイントの2つだけにします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;  &lt;span class=&quot;synComment&quot;&gt;# config/routes.rb&lt;/span&gt;
+
+  &lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt;.application.routes.draw &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+*   resources &lt;span class=&quot;synConstant&quot;&gt;:messages&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;only&lt;/span&gt;: [&lt;span class=&quot;synConstant&quot;&gt;:index&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:create&lt;/span&gt;], &lt;span class=&quot;synConstant&quot;&gt;format&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;json&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+    root &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;top#index&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+MessageControllerで&lt;code&gt;index&lt;/code&gt;と&lt;code&gt;create&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;を実装します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;  &lt;span class=&quot;synComment&quot;&gt;# app/controllers/messages_controller.rb&lt;/span&gt;
++ &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;MessagesController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt;
++   &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;index&lt;/span&gt;
++     messages = &lt;span class=&quot;synType&quot;&gt;Message&lt;/span&gt;.all
++     render &lt;span class=&quot;synConstant&quot;&gt;json&lt;/span&gt;: messages
++   &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
++
++   &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;create&lt;/span&gt;
++     message = &lt;span class=&quot;synType&quot;&gt;Message&lt;/span&gt;.new(create_params)
++     &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; message.save
++       render &lt;span class=&quot;synConstant&quot;&gt;json&lt;/span&gt;: message, &lt;span class=&quot;synConstant&quot;&gt;status&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:created&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# 201&lt;/span&gt;
++     &lt;span class=&quot;synStatement&quot;&gt;else&lt;/span&gt;
++       render &lt;span class=&quot;synConstant&quot;&gt;json&lt;/span&gt;: message, &lt;span class=&quot;synConstant&quot;&gt;status&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:unprocessable_entity&lt;/span&gt;
++     &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
++   &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
++
++   &lt;span class=&quot;synStatement&quot;&gt;private&lt;/span&gt;
++
++     &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;create_params&lt;/span&gt;
++       params.permit(&lt;span class=&quot;synConstant&quot;&gt;:user&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:text&lt;/span&gt;)
++     &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
++ &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+初期データを作成し、投入しておきます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# db/seeds.rb&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Message&lt;/span&gt;.delete_all
+&lt;span class=&quot;synType&quot;&gt;Message&lt;/span&gt;.create!([
+  { &lt;span class=&quot;synConstant&quot;&gt;user&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Tom&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;,   &lt;span class=&quot;synConstant&quot;&gt;text&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Good morning&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; },
+  { &lt;span class=&quot;synConstant&quot;&gt;user&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;John&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;,  &lt;span class=&quot;synConstant&quot;&gt;text&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Good afternoon&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; },
+  { &lt;span class=&quot;synConstant&quot;&gt;user&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Emily&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;text&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Good evening&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; }
+])
+
+
+&lt;span class=&quot;synComment&quot;&gt;# terminal&lt;/span&gt;
+bundle exec rake db&lt;span class=&quot;synConstant&quot;&gt;:migrate&lt;/span&gt; db&lt;span class=&quot;synConstant&quot;&gt;:seed&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+サーバー再起動して、&lt;a href=&quot;http://localhost:3000/messages.json&quot;&gt;http://localhost:3000/messages.json&lt;/a&gt;にアクセスすると次のように値が返ってくると思います。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;[{&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;id&amp;quot;&lt;/span&gt;:1,&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;user&amp;quot;&lt;/span&gt;:&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Tom&amp;quot;&lt;/span&gt;,&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;text&amp;quot;&lt;/span&gt;:&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Good morning&amp;quot;&lt;/span&gt;,&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;created_at&amp;quot;&lt;/span&gt;:&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;2015-11-19T04:02:27.956Z&amp;quot;&lt;/span&gt;,&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;updated_at&amp;quot;&lt;/span&gt;:&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;2015-11-19T04:02:27.956Z&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;,&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;id&amp;quot;&lt;/span&gt;:2,&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;user&amp;quot;&lt;/span&gt;:&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;John&amp;quot;&lt;/span&gt;,&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;text&amp;quot;&lt;/span&gt;:&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Good afternoon&amp;quot;&lt;/span&gt;,&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;created_at&amp;quot;&lt;/span&gt;:&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;2015-11-19T04:02:27.958Z&amp;quot;&lt;/span&gt;,&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;updated_at&amp;quot;&lt;/span&gt;:&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;2015-11-19T04:02:27.958Z&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;,&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;id&amp;quot;&lt;/span&gt;:3,&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;user&amp;quot;&lt;/span&gt;:&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Emily&amp;quot;&lt;/span&gt;,&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;text&amp;quot;&lt;/span&gt;:&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Good evening&amp;quot;&lt;/span&gt;,&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;created_at&amp;quot;&lt;/span&gt;:&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;2015-11-19T04:02:27.962Z&amp;quot;&lt;/span&gt;,&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;updated_at&amp;quot;&lt;/span&gt;:&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;2015-11-19T04:02:27.962Z&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;}]&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;Reactでサーバからメッセージ一覧を取得&lt;/h4&gt;メッセージの一覧を取得するエンドポイントは、&lt;code&gt;GET /messages.json&lt;/code&gt;なので、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Ajax&quot;&gt;Ajax&lt;/a&gt;でサーバからメッセージを取得して、それをReactで表示するようにしてみます。&lt;/p&gt;&lt;p&gt;まずは、MessageBoxに&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;へのエンドポイントとなるurl属性を渡します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// app/assets/javascripts/main.js.jsx&lt;/span&gt;
+  $(&lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    ReactDOM.render(
+*     &amp;lt;MessageBox url=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;/messages&amp;quot;&lt;/span&gt;/&amp;gt;,
+      &lt;span class=&quot;synStatement&quot;&gt;document&lt;/span&gt;.getElementById(&lt;span class=&quot;synConstant&quot;&gt;&#39;content&#39;&lt;/span&gt;)
+    );
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;次に&lt;code&gt;getInitialState&lt;/code&gt;の仮で用意していた初期値を空の配列にします。&lt;br /&gt;
+また、&lt;code&gt;componentDidMount&lt;/code&gt;を定義し、その中でサーバーからメッセージ一覧を取得し、&lt;code&gt;setState({ messages: messages })&lt;/code&gt;でstateにメッセージを設定します。&lt;/p&gt;&lt;p&gt;&lt;code&gt;componentDidMount&lt;/code&gt;は、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;が表示された時にReactによって自動的に呼ばれる&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;です。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// app/assets/javascripts/components/message_box.js.jsx&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; MessageBox = React.createClass(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    getInitialState: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+*     &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; messages: &lt;span class=&quot;synIdentifier&quot;&gt;[]&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;;
+    &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;,
+
++   componentDidMount: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++     $.ajax(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++       url:      &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.props.url,
++       dataType: &lt;span class=&quot;synConstant&quot;&gt;&#39;json&#39;&lt;/span&gt;,
++       cache:    &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;,
++       success: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;(messages) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++         &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.setState(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; messages: messages &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
++       &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;.bind(&lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;),
++       eror: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;(_xhr, &lt;span class=&quot;synStatement&quot;&gt;status&lt;/span&gt;, err) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++         console.error(&lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.props.url, &lt;span class=&quot;synStatement&quot;&gt;status&lt;/span&gt;, err.toString());
++       &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;.bind(&lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;)
++     &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
++   &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;,
+
+    ...
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;画面を確認するとメッセージ一覧が表示されます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151122/20151122000516.png&quot; alt=&quot;f:id:nipe880324:20151122000516p:plain:w420&quot; title=&quot;f:id:nipe880324:20151122000516p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;この時若干画面がバタつくのは、次のようになっているからです。&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;&lt;code&gt;getInitialState&lt;/code&gt;でmessagesに空の配列がセットされる。&lt;/li&gt;
+&lt;li&gt;Reactが&lt;code&gt;MessageBox&lt;/code&gt;を表示する。この時、メッセージがないので一覧は表示されない。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;MessageBox&lt;/code&gt;が表示されたので、&lt;code&gt;componentDidMount&lt;/code&gt;が呼ばれ、サーバからメッセージを取得し、messagesにメッセージをセットする。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;setState&lt;/code&gt;でmessagesが更新されたので、Reactは差分をレンダーする。この時、メッセージがあるので一覧は表示される。&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;このように、一度なにも表示しないで、その後、サーバーからメッセージを取得して、一覧を表示するので若干バタつくようになっています。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h4&gt;ロード中と表示&lt;/h4&gt;ロード中に「ロード中」と表示するようにします。うまくスタイリングすれば、「getInitialState〜サーバーからのデータ取得」をまでの間のバタつくような表示を解消できます。&lt;br /&gt;
+具体的には、次のようにロード中と一瞬だけ出てから一覧が表示されるようにします。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151122/20151122000634.png&quot; alt=&quot;f:id:nipe880324:20151122000634p:plain:w420&quot; title=&quot;f:id:nipe880324:20151122000634p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;MessageBoxを修正し、&lt;code&gt;isLoading&lt;/code&gt;というステータスをもたせて、ロードが完了した時点でロードが完了したと設定しています。&lt;br /&gt;
+また、その&lt;code&gt;isLoading&lt;/code&gt;の値を見て、レンダーする表示を変えています。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// app/assets/javascripts/components/message_box.js.jsx&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; MessageBox = React.createClass(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  getInitialState: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;// isLoading = true : ロード中を表示&lt;/span&gt;
+*   &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;　messages:  &lt;span class=&quot;synIdentifier&quot;&gt;[]&lt;/span&gt;,　isLoading: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;　&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;;
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;,
+
+  componentDidMount: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    $.ajax(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+      url:      &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.props.url,
+      dataType: &lt;span class=&quot;synConstant&quot;&gt;&#39;json&#39;&lt;/span&gt;,
+      cache:    &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;,
+      success: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;(messages) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+         &lt;span class=&quot;synComment&quot;&gt;// isLoading = false : ロード中を表示しない&lt;/span&gt;
+*        &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.setState(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; messages: messages, isLoading: &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+      &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;.bind(&lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;),
+      eror: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;(_xhr, &lt;span class=&quot;synStatement&quot;&gt;status&lt;/span&gt;, err) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+        console.error(&lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.props.url, &lt;span class=&quot;synStatement&quot;&gt;status&lt;/span&gt;, err.toString());
+      &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;.bind(&lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;)
+    &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;,
+
+  handleMessageSubmit: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;(message) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    ...
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;,
+
+  render: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; messageItems = &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.state.messages.map(&lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;(message) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; (
+        &amp;lt;MessageItem key=&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;message.id&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt; message=&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;message&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;/&amp;gt;
+      );
+    &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+
+    &lt;span class=&quot;synComment&quot;&gt;// isLoadingの値により表示するRenderする内容を変えている&lt;/span&gt;
++   &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; (&lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.state.isLoading) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++     &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; (
++       &amp;lt;div&amp;gt;ロード中&amp;lt;/div&amp;gt;
++     );
++   &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+*     &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; (
+*       &amp;lt;div&amp;gt;
+*         &amp;lt;h1&amp;gt;Message Box&amp;lt;/h1&amp;gt;
+*         &amp;lt;div className=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;messageBox&amp;quot;&lt;/span&gt;&amp;gt;
+*           &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;messageItems&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+*           &amp;lt;MessageForm onMessageSubmit=&lt;span class=&quot;synIdentifier&quot;&gt;{this&lt;/span&gt;.handleMessageSubmit&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;/&amp;gt;
+*         &amp;lt;/div&amp;gt;
+*       &amp;lt;/div&amp;gt;
+*     );
++   &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;このローディング中という表示が嫌な場合は、、サーバー側で&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%EC%A5%F3%A5%C0%A5%EA%A5%F3%A5%B0&quot;&gt;レンダリング&lt;/a&gt;するデータも含めて返すようにする「サーバー&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%EC%A5%F3%A5%C0%A5%EA%A5%F3%A5%B0&quot;&gt;レンダリング&lt;/a&gt;」という方法があります。そちらについては、次の記事で書きます。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h4&gt;ReactでサーバへメッセージをPOSTする&lt;/h4&gt;メッセージを作成するエンドポイントは、&lt;code&gt;POST /messages.json&lt;/code&gt;なので、フォームのPostボタンが押された時に&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Ajax&quot;&gt;Ajax&lt;/a&gt;でサーバーにメッセージ情報をPOSTするようにします。&lt;/p&gt;&lt;p&gt;MessageBoxの&lt;code&gt;handleSubmit&lt;/code&gt;でサーバー側にフォームに入力されたメッセージ情報をPOSTするようにします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// app/assets/javascripts/components/message_box.js.jsx&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; MessageBox = React.createClass(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    ...
+
++   handleMessageSubmit: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;(message) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++     $.ajax(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++       url:      &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.props.url,
++       dataType: &lt;span class=&quot;synConstant&quot;&gt;&#39;json&#39;&lt;/span&gt;,
++       type:     &lt;span class=&quot;synConstant&quot;&gt;&#39;POST&#39;&lt;/span&gt;,
++       data:     message,
++       success: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;(message) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+*         &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; newMessages = &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.state.messages.concat(message);
+          &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.setState(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; messages: newMessages &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
++       &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;.bind(&lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;),
++       error: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;(_xhr, &lt;span class=&quot;synStatement&quot;&gt;status&lt;/span&gt;, err) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++         console.error(&lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.props.url, &lt;span class=&quot;synStatement&quot;&gt;status&lt;/span&gt;, err.toString());
++       &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;.bind(&lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;)
++     &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
++   &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;,
+
+    ...
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;h4&gt;確認&lt;/h4&gt;投稿できるようになります。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151122/20151122000620.png&quot; alt=&quot;f:id:nipe880324:20151122000620p:plain:w420&quot; title=&quot;f:id:nipe880324:20151122000620p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;以上です。&lt;/p&gt;&lt;p&gt;サーバーサイドでReact.jsを&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%EC%A5%F3%A5%C0%A5%EA%A5%F3%A5%B0&quot;&gt;レンダリング&lt;/a&gt;する「サーバー&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%EC%A5%F3%A5%C0%A5%EA%A5%F3%A5%B0&quot;&gt;レンダリング&lt;/a&gt;」について記載しましたので、ロード中による画面のばたつきや、ロード中といった表示をなくしたい場合は参考にしてください。&lt;br /&gt;
+&lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20151124/1448300267&quot;&gt;Rails&amp;#x3067;React.js&amp;#x3092;&amp;#x30B5;&amp;#x30FC;&amp;#x30D0;&amp;#x30FC;&amp;#x30EC;&amp;#x30F3;&amp;#x30C0;&amp;#x30EA;&amp;#x30F3;&amp;#x30B0;&amp;#x3059;&amp;#x308B; - Rails Webook&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://facebook.github.io/react/docs/tutorial.html&quot;&gt;Tutorial | React&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Sun, 22 Nov 2015 00:15:32 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/6653586347146034337</guid>
+          
+            <category>Javascript</category>
+          
+            <category>React.js</category>
+          
+        </item>
+      
+    
+  </channel>
+</rss>

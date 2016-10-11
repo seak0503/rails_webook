@@ -1,0 +1,586 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>Rails入門 - Rails Webook</title>
+    <link>http://ruby-rails.hatenadiary.com/category/Rails%E5%85%A5%E9%96%80</link>
+    <description>自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</description>
+    <lastBuildDate>Fri, 18 Dec 2015 02:44:31 +0900</lastBuildDate>
+    <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+    <generator>Hatena::Blog</generator>
+    
+      
+      
+        <item>
+          <title>Railsのlink_toメソッドでclass属性を指定する</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20150210/1423494000</link>
+          <description>&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150304/20150304013504.png&quot; alt=&quot;f:id:nipe880324:20150304013504p:plain&quot; title=&quot;f:id:nipe880324:20150304013504p:plain&quot; class=&quot;hatena-fotolife&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;link_toメソッドでclass属性を指定するには、&lt;code&gt;class&lt;/code&gt;オプションを利用します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# ビューファイル&lt;/span&gt;
+&amp;lt;%= link_to &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;プロフィール&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;@profile&lt;/span&gt;, &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;btn btn-large&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;id&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;profile-btn&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; %&amp;gt;
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;lt;a href=&amp;quot;/profiles/1&amp;quot; class=&amp;quot;btn btn-large&amp;quot; id=&amp;quot;profile-btn&amp;quot;&amp;gt;プロフィール&amp;lt;/a&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;以上です。&lt;/p&gt;
+</description>
+          <pubDate>Tue, 10 Feb 2015 00:00:00 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450086938187</guid>
+          
+            <category>Rails View</category>
+          
+            <category>Rails入門</category>
+          
+            <category>Rails Tips</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>Railsでjpostal.jpを使って住所を自動入力する</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20150112/1421029284</link>
+          <description>&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150110/20150110203636.jpg&quot; alt=&quot;f:id:nipe880324:20150110203636j:plain:w480&quot; title=&quot;f:id:nipe880324:20150110203636j:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+&lt;i&gt;Photo by &lt;a href=&quot;https://www.flickr.com/photos/bevgoodwin/&quot;&gt;Flickr: Bev Goodwin&amp;#39;s Photostream&lt;/a&gt;&lt;/i&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;郵便番号を入力することで、自動的に住所を入力できるjQueryプラグインの&lt;a href=&quot;https://github.com/ninton/jquery.jpostal.js/&quot; target=&quot;_blank&quot;&gt;jpostal.jp&lt;/a&gt;の導入方法と使い方について説明します。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails 4.2.0&lt;/li&gt;
+&lt;li&gt;jquery.jpostal.js 2.2&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#jpostaljp_compare&quot;&gt;郵便番号を自動入力するjQueryプラグインの簡単な比較&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#jpostaljp_install&quot;&gt;jquery.jpostal.js をインストール&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#jpostaljp_usage&quot;&gt;jquery.jpostal.js を使う&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#jpostaljp_prefecture&quot;&gt;プルダウンの都道府県に対応する&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;jpostaljp_compare&quot;&gt;1. 郵便番号を自動入力するjQueryプラグインの簡単な比較&lt;/h3&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/ninton/jquery.jpostal.js/&quot; target=&quot;_blank&quot;&gt;jpostal.jp&lt;/a&gt; - Nintonという日本の会社が開発している。定期的な郵便番号データの更新は必要なし。Commitログから2015/1月時点でも定期的にメンテナンスしていそう。&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://ninkigumi.com/ajaxzip3/&quot; target=&quot;_blank&quot;&gt;ajaxzip3.js&lt;/a&gt; - 人気組という日本の会社が開発している。ファイルの更新日からメンテされてなさそう。定期的な郵便番号データの更新は必要なしそうだが、ソースと同様に郵便番号データも更新されているかは不明。&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://yamitake.github.io/jquery.ajaxzip.js/&quot; target=&quot;_blank&quot;&gt;個人が開発。ボタンを押すことで郵便番号をサーバーから取得する方式。郵便番号データを自分でアップデートする必要がある。&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;jpostaljp_install&quot;&gt;2. jquery.jpostal.js をインストール&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/ninton/jquery.jpostal.js/&quot; target=&quot;_blank&quot;&gt;jpostal.jp - GitHub&lt;/a&gt;から&lt;code&gt;jquery.jposta.js&lt;/code&gt;というファイルを取得し、&lt;code&gt;vendor/assets/javascripts/&lt;/code&gt;に配置します。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;次に&lt;code&gt;assets/javascripts/application.js&lt;/code&gt;で&lt;code&gt;jquery.jpostal&lt;/code&gt;をロードするように記載します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;//= require jquery.jpostal &lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;jpostaljp_usage&quot;&gt;3. jquery.jpostal.js を使う&lt;/h3&gt;次のような「郵便番号入力欄が１つ」で、「都道府県、市町村、番地、建物」となっている画面に導入してみます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150110/20150110203958.jpg&quot; alt=&quot;f:id:nipe880324:20150110203958j:plain:w480&quot; title=&quot;f:id:nipe880324:20150110203958j:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;CoffeeScriptで&lt;code&gt;jpostal&lt;/code&gt;メソッドを呼び出します。&lt;br /&gt;
+&lt;code&gt;postcode&lt;/code&gt;オプションに「郵便番号の入力フィールドのID属性」を指定します。&lt;br /&gt;
+また、&lt;code&gt;address&lt;/code&gt;オプションに「自動入力される入力フィールドのID属性」を指定します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# CoffeeScript&lt;/span&gt;
+$ -&amp;gt;
+  &lt;span class=&quot;synError&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;#address_zipcode&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;).jpostal({
+    &lt;span class=&quot;synComment&quot;&gt;# 郵便番号の入力欄が１つの場合&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# 111-1111と1111111のどちらの入力形式でも住所を自動入力してくれる&lt;/span&gt;
+    postcode : [ &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;#address_zipcode&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; ],
+
+    &lt;span class=&quot;synComment&quot;&gt;# 郵便番号の入力欄が3桁-4桁で分かれている場合&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# postcode : [ &#39;#zipcode1&#39;, &#39;#zipcode2&#39; ]&lt;/span&gt;
+
+
+
+    &lt;span class=&quot;synComment&quot;&gt;# 入力項目フォーマット&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;#   %3  都道府県&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;#   %4  市区町村&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;#   %5  町域&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;#   %6  大口事業所の番地&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;#   %7  大口事業所の名称&lt;/span&gt;
+    address  : {
+                  &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;#address_prefecture_name&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; : &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;%3&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synComment&quot;&gt;# 都道府県が入力される&lt;/span&gt;
+                  &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;#address_city&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;            : &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;%4%5&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synComment&quot;&gt;# 市区町村と町域が入力される&lt;/span&gt;
+                  &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;#address_street&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;          : &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;%6%7&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# 大口事務所の番地と名称が入力される&lt;/span&gt;
+                }
+  })
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+これで&lt;b&gt;郵便番号を入力すると、自動的に住所が入力&lt;/b&gt;されます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150110/20150110204302.jpg&quot; alt=&quot;f:id:nipe880324:20150110204302j:plain:w480&quot; title=&quot;f:id:nipe880324:20150110204302j:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;しかし、「都道府県」がうまく入力されていません。&lt;br /&gt;
+これは、プルダウンの&lt;code&gt;option&lt;/code&gt;のvalue属性がPrefectureのidを表示しており、jpostal.jsで取得した都道府県は文字列（東京都、埼玉県など）のため、value属性がマッチせず、自動で選択されません。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Railsのビューのコード&lt;/span&gt;
+&amp;lt;%= f.label &lt;span class=&quot;synConstant&quot;&gt;:prefecture_id&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;都道府県&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; %&amp;gt;&amp;lt;br&amp;gt;
+&amp;lt;%= f.collection_select &lt;span class=&quot;synConstant&quot;&gt;:prefecture_id&lt;/span&gt;, &lt;span class=&quot;synType&quot;&gt;Prefecture&lt;/span&gt;.all, &lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;include_blank&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;  %&amp;gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;# 作祭されたHTMLソース&lt;/span&gt;
+&amp;lt;label &lt;span class=&quot;synStatement&quot;&gt;for&lt;/span&gt;=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;address_prefecture_id&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&amp;gt;都道府県&amp;lt;/label&amp;gt;&amp;lt;br&amp;gt;
+&amp;lt;select name=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;address[prefecture_id]&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; id=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;address_prefecture_id&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&amp;gt;
+  &amp;lt;option value=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;&amp;gt;&amp;lt;/option&amp;gt;
+  &amp;lt;option value=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&amp;gt;東京都&amp;lt;/option&amp;gt;
+  &amp;lt;option value=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&amp;gt;埼玉県&amp;lt;/option&amp;gt;
+  &amp;lt;option value=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&amp;gt;神奈川県&amp;lt;/option&amp;gt;
+  &amp;lt;option value=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&amp;gt;千葉県&amp;lt;/option&amp;gt;
+  &amp;lt;option value=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;5&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&amp;gt;茨城県&amp;lt;/option&amp;gt;
+  &amp;lt;option value=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;6&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&amp;gt;群馬県&amp;lt;/option&amp;gt;
+&amp;lt;/select&amp;gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+そのため、プルダウンの&lt;code&gt;option&lt;/code&gt;のvalue属性をidから都道府県に変更する必要があります。&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;jpostaljp_prefecture&quot;&gt;プルダウンの都道府県に対応する&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;まず、ビューのvalue属性をIDから都道府県にします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Railsのビューのコード&lt;/span&gt;
+&amp;lt;%= f.label &lt;span class=&quot;synConstant&quot;&gt;:prefecture_id&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;都道府県&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; %&amp;gt;&amp;lt;br&amp;gt;
+&amp;lt;%= f.collection_select &lt;span class=&quot;synConstant&quot;&gt;:prefecture_id&lt;/span&gt;, &lt;span class=&quot;synType&quot;&gt;Prefecture&lt;/span&gt;.all, &lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;include_blank&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;  %&amp;gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;# 作祭されたHTMLソース （value属性がIDから都道府県名になっている）&lt;/span&gt;
+&amp;lt;label &lt;span class=&quot;synStatement&quot;&gt;for&lt;/span&gt;=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;address_prefecture_name&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&amp;gt;都道府県&amp;lt;/label&amp;gt;&amp;lt;br&amp;gt;
+&amp;lt;select name=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;address[prefecture_name]&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; id=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;address_prefecture_name&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&amp;gt;
+  &amp;lt;option value=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;&amp;gt;&amp;lt;/option&amp;gt;
+  &amp;lt;option value=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;東京都&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&amp;gt;東京都&amp;lt;/option&amp;gt;
+  &amp;lt;option value=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;埼玉県&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&amp;gt;埼玉県&amp;lt;/option&amp;gt;
+  &amp;lt;option value=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;神奈川県&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&amp;gt;神奈川県&amp;lt;/option&amp;gt;
+  &amp;lt;option value=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;千葉県&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&amp;gt;千葉県&amp;lt;/option&amp;gt;
+  &amp;lt;option value=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;茨城県&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&amp;gt;茨城県&amp;lt;/option&amp;gt;
+  &amp;lt;option value=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;群馬県&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&amp;gt;群馬県&amp;lt;/option&amp;gt;
+&amp;lt;/select&amp;gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+次に、このソースコードに対応するために、モデルに&lt;code&gt;prefecture_name&lt;/code&gt;メソッドを定義します。こうすることで、ビューやコントローラーから&lt;code&gt;prefecture_name&lt;/code&gt;を扱えるようになります。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/model/address.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Address&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  belongs_to &lt;span class=&quot;synConstant&quot;&gt;:prefecture&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;prefecture_name&lt;/span&gt;
+    prefecture.try(&lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;)
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;prefecture_name=&lt;/span&gt;(prefecture_name)
+    &lt;span class=&quot;synConstant&quot;&gt;self&lt;/span&gt;.prefecture = &lt;span class=&quot;synType&quot;&gt;Prefecture&lt;/span&gt;.find_by(&lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;: prefecture_name)
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+最後に、StrongParametersに&lt;code&gt;prefecture_name&lt;/code&gt;を追加しておきます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/addresses_controller.rb&lt;/span&gt;
+
+&lt;span class=&quot;synStatement&quot;&gt;private&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;address_params&lt;/span&gt;
+      params.require(&lt;span class=&quot;synConstant&quot;&gt;:address&lt;/span&gt;).permit(&lt;span class=&quot;synConstant&quot;&gt;:zipcode&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:prefecture_name&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:city&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:street&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:building&lt;/span&gt;)
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+では、郵便番号を入力してみましょう。「都道府県」も自動で入力されるようになりました。&lt;br /&gt;
+もちろん、作成、更新なども問題なく行えます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150110/20150110205249.jpg&quot; alt=&quot;f:id:nipe880324:20150110205249j:plain:w480&quot; title=&quot;f:id:nipe880324:20150110205249j:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;以上です。&lt;/p&gt;
+
+&lt;/div&gt;</description>
+          <pubDate>Mon, 12 Jan 2015 11:21:24 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450079839266</guid>
+          
+            <category>Rails入門</category>
+          
+            <category>UI/UX</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>RailsでRakeタスクの作成</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20141117/1416225563</link>
+          <description>&lt;p&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;でRakeタスクを作成する手順を説明します。&lt;br /&gt;
+開発中に何度も実行するコマンドや操作をRakeタスクにしておくことで開発をスムーズに進められるようになります。&lt;/p&gt;&lt;p&gt;&lt;i&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;には、既に有用なRakeタスクがデフォルトで定義されていますので、&lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20141116/1416115266&quot; target=&quot;_blank&quot;&gt;Rakeコマンド一覧&lt;/a&gt;を参照して、既に存在していないか、一部として使えそうなタスクはないかと見ることも大切です。&lt;/i&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;今回は、次のユーザーモデルのテストデータを作成するタスクを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;User nickname email password&lt;/pre&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;1. Rakeタスクをファイルを作成&lt;/h3&gt;
+    &lt;p&gt;&lt;code&gt;rails g task [タスク名]&lt;/code&gt;でRakeタスクのファイルを作成します。&lt;br /&gt;
+Rakeタスクは&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%B3%C8%C4%A5%BB%D2&quot;&gt;拡張子&lt;/a&gt;が&lt;code&gt;.rake&lt;/code&gt;である必要があります。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rails g task sample
+      create  lib/tasks/sample.rake&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;2. Rakeタスクの実装&lt;/h3&gt;
+    &lt;p&gt;&lt;code&gt;lib/tasks&lt;/code&gt;配下にファイルが作成されるので、タスクで実行したい処理を実装します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# lib/tasks/sample.rake&lt;/span&gt;
+
+namespace &lt;span class=&quot;synConstant&quot;&gt;:sample&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;           &lt;span class=&quot;synComment&quot;&gt;# ネームスペースを定義 &amp;quot;rake sample: ...&amp;quot;となる&lt;/span&gt;
+  desc &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;サンプルデータを作成する&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;    &lt;span class=&quot;synComment&quot;&gt;# rake -T のタスク一覧の結果で表示されるタスクの説明文&lt;/span&gt;
+  task &lt;span class=&quot;synConstant&quot;&gt;populate&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:environment&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# タスク名を定義 &amp;quot;rake db:populate&amp;quot;で呼べる&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# 100ユーザ作成する&lt;/span&gt;
+    &lt;span class=&quot;synConstant&quot;&gt;100&lt;/span&gt;.times &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;n&lt;/span&gt;|
+      nickname = &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;nickname&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;n&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt;
+      email    = &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;n&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;@example.co.jp&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+      password = &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;password&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+      &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.create!(&lt;span class=&quot;synConstant&quot;&gt;nickname&lt;/span&gt;: nickname, &lt;span class=&quot;synConstant&quot;&gt;email&lt;/span&gt;: email, &lt;span class=&quot;synConstant&quot;&gt;password&lt;/span&gt;: password)
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;では、Rakeタスクを実行します。(migrationが実行済みであること)&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rake sample:populate&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;3. Rakeタスクに引数を渡す&lt;/h3&gt;
+    &lt;p&gt;次のように環境引数で渡すのが一般的です。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rake sample:populate LIMIT=10&lt;/pre&gt;&lt;p&gt;ここでは、&lt;code&gt;LIMIT&lt;/code&gt;を指定することで作成するUser数を設定できるようにします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# lib/tasks/sample.rake&lt;/span&gt;
+
+namespace &lt;span class=&quot;synConstant&quot;&gt;:sample&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  desc &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;サンプルデータを作成する&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; 
+  task &lt;span class=&quot;synConstant&quot;&gt;populate&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:environment&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# 環境変数の値を取得。指定がないときはデフォルト値100で設定&lt;/span&gt;
+    limit = &lt;span class=&quot;synIdentifier&quot;&gt;ENV&lt;/span&gt;[&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;LIMIT&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;] || &lt;span class=&quot;synConstant&quot;&gt;100&lt;/span&gt;
+
+    &lt;span class=&quot;synComment&quot;&gt;# limitの数だけUserを作成する&lt;/span&gt;
+    limit.times &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;n&lt;/span&gt;|
+      nickname = &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;nickname&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;n&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt;
+      email    = &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;n&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;@example.co.jp&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+      password = &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;password&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+      &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.create!(&lt;span class=&quot;synConstant&quot;&gt;nickname&lt;/span&gt;: nickname, &lt;span class=&quot;synConstant&quot;&gt;email&lt;/span&gt;: email, &lt;span class=&quot;synConstant&quot;&gt;password&lt;/span&gt;: password)
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;え&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+以上です。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://guides.rubyonrails.org/command_line.html#custom-rake-tasks&quot;&gt;The Rails Command Line &amp;mdash; Ruby on Rails Guides&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://www.ownway.info/Ruby/rake/arguments&quot;&gt;rake &amp;#x3067;&amp;#x306E;&amp;#x30B3;&amp;#x30DE;&amp;#x30F3;&amp;#x30C9;&amp;#x30E9;&amp;#x30A4;&amp;#x30F3;&amp;#x5F15;&amp;#x6570;&amp;#x306E;&amp;#x6271;&amp;#x3044; - &amp;#x541B;&amp;#x306E;&amp;#x77B3;&amp;#x306F;&amp;#x307E;&amp;#x308B;&amp;#x3067;&amp;#x30EB;&amp;#x30D3;&amp;#x30FC; - Ruby &amp;#x95A2;&amp;#x9023;&amp;#x307E;&amp;#x3068;&amp;#x3081;&amp;#x30B5;&amp;#x30A4;&amp;#x30C8;&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Mon, 17 Nov 2014 20:59:23 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450073934357</guid>
+          
+            <category>Rails入門</category>
+          
+            <category>Rails初級</category>
+          
+            <category>開発を効率化する</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>Railsのbundleのwithoutオプション</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20141102/1414854000</link>
+          <description>&lt;p&gt;Railsで&lt;code&gt;bundle install&lt;/code&gt;時に&lt;code&gt;--without 環境名&lt;/code&gt;オプションを使うことで、指定した環境のgemをインストールしなくできます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;// 開発環境時にproductionのgemをインストールしない
+$ bundle &lt;span class=&quot;synStatement&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;--without&lt;/span&gt; production
+
+
+// 本番環境時にdevelopmentとtestのgemをインストールしない
+$ bundle &lt;span class=&quot;synStatement&quot;&gt;install&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;--without&lt;/span&gt; development &lt;span class=&quot;synStatement&quot;&gt;test&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;i&gt;&lt;code&gt;--without&lt;/code&gt;オプションは “remembered option” と呼ばれ、このオプションを一度実行すると.bundle/configに設定が保存され、今後&lt;code&gt;bundle install&lt;/code&gt;を実行するときに&lt;code&gt;--without&lt;/code&gt;オプションを追加する必要がなくなります。&lt;/p&gt;
+</description>
+          <pubDate>Sun, 02 Nov 2014 00:00:00 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450086752976</guid>
+          
+            <category>Rails入門</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>RailsのAction Mailerでメール送信</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20140828/1409236436</link>
+          <description>&lt;p&gt;RailsのデフォルトのgemのAction Mailerを使いメールの送信や受信を行うことができます。&lt;br /&gt;
+この記事では、ステップバイステップでRailsアプリケーションでメールの送信ができるようにしていきます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140828/20140828225307.png&quot; alt=&quot;f:id:nipe880324:20140828225307p:plain:w480&quot; title=&quot;f:id:nipe880324:20140828225307p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#basic-mail-create-project&quot;&gt;&lt;/a&gt;Railsプロジェクトの作成&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#basic-mail-create-mailer&quot;&gt;&lt;/a&gt;メーラーの作成（メール送信）&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#basic-mail-configure-gmail-smtp&quot;&gt;&lt;/a&gt;SMTPサーバの設定（Gmailで設定）&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;basic-mail-create-project&quot;&gt;&lt;/a&gt;Railsプロジェクトの作成&lt;/h3&gt;まず、いつも通りRailsプロジェクトを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ rails new mail_basis&lt;/pre&gt;&lt;p&gt;次に、記事(Post)のソース一式をScaffoleを使って作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ cd mail_basis
+$ rails g scaffold Post title:string content:text&lt;/pre&gt;&lt;p&gt;DBマイグレートをします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ rake db:migrate&lt;/pre&gt;&lt;p&gt;これで、記事(Post)の一覧表示、作成、更新、削除ができました。&lt;br /&gt;
+&lt;code&gt;$ rails server&lt;/code&gt;でローカルのサーバを起動していくつかデータを入力してみました。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140828/20140828225333.png&quot; alt=&quot;f:id:nipe880324:20140828225333p:plain:w480&quot; title=&quot;f:id:nipe880324:20140828225333p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;basic-mail-create-mailer&quot;&gt;&lt;/a&gt;メーラーの作成（メール送信）&lt;/h3&gt;それでは、この記事(Post)を作成したときにメールを送信するようにしてみましょう。&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;メーラーをジェネレーターで作成&lt;/h4&gt;
+    &lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ rails g mailer PostMailer
+      create  app/mailers/post_mailer.rb
+      invoke  erb
+      create    app/views/post_mailer
+      invoke  test_unit
+      create    test/mailers/post_mailer_test.rb
+      create    test/mailers/previews/post_mailer_preview.rb&lt;/pre&gt;&lt;p&gt;メーラーは、コントローラーと似ていて、&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;メール処理を記述する&lt;code&gt;xxx_mailer.rb&lt;/code&gt;を&lt;code&gt;app/mailers/&lt;/code&gt;配下に配置&lt;/li&gt;
+&lt;li&gt;メールの表示を記述するファイルを&lt;code&gt;app/views/post_mailer/&lt;/code&gt;配下に配置&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;というように、なっています。&lt;/p&gt;&lt;p&gt;ジェネレーターで作成された&lt;code&gt;app/mailers/post_mailer.rb&lt;/code&gt;を確認してみましょう。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;PostMailer&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActionMailer&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  default &lt;span class=&quot;synConstant&quot;&gt;from&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;from@example.com&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;コントローラーやモデルと同様に、全てのメーラーのクラスは、&lt;code&gt;ActionMailer::Base&lt;/code&gt;を継承する必要があります。&lt;br /&gt;
+このファイルにアクションを記載すると、そのアクション名に対応するメーラービュー(app/views/xxx_mailer/配下のファイル)が表示されます。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;メール送信メソッドを実装&lt;/h4&gt;
+    &lt;p&gt;では、早速、「投稿(Post)を作成したときにメールを送信する&lt;code&gt;post_email&lt;/code&gt;メソッド」を実装してみます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;PostMailer&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActionMailer&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  default &lt;span class=&quot;synConstant&quot;&gt;from&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;from@example.com&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;post_email&lt;/span&gt;(user, post)
+    &lt;span class=&quot;synIdentifier&quot;&gt;@title&lt;/span&gt; = post.title
+    mail &lt;span class=&quot;synConstant&quot;&gt;to&lt;/span&gt;: user.email, &lt;span class=&quot;synConstant&quot;&gt;subject&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;記事を投稿しました&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;default&lt;/code&gt;メソッドは、オプションで指定した値をこのクラス内すべてに適用します。今回の例では、メールのFromヘッダーを全て &quot;from@example.com&quot; に設定しました。もちろん、各アクションで変更することが可能です。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;mail&lt;/code&gt;メソッドは、実際のメールを送信するメソッドです。今回は、メールのToとSubjectヘッダーを設定してメールを送信しました。&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;i&gt;これらのオプションには基本的なメールのヘッダーである、subject, to, from, cc, bcc, reply_to, dateが使えます。&lt;/i&gt;&lt;/p&gt;&lt;p&gt;また、インスタンス変数(@xxx)でメーラービューに値を渡すことができます。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;メーラービューの作成&lt;/h4&gt;
+    &lt;p&gt;では、HTML形式とテキスト形式の2種類のメーラービューを作成します。&lt;br /&gt;
+HTML形式が良いユーザーやテキスト形式が良いユーザーの２パターンのユーザーがいるため両方とも作成するのが良いとされています。&lt;/p&gt;&lt;p&gt;まずは、HTML形式のメーラービューを作成します。&lt;br /&gt;
+&lt;code&gt;app/views/post_mailer/&lt;/code&gt;に&lt;code&gt;post_email.html.erb&lt;/code&gt;を作成して下さい。&lt;br /&gt;
+基本的にはHTMLで記述します。ERB形式なので、Rubyのコードを記述することもできます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!DOCTYPE html&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;html&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;lang&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;ja&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;head&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;    &lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;meta&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;charset&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;UTF-8&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;head&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;新しい記事「&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; @title&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt; 」を投稿しました。&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      投稿しました。&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;br&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; /&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;html&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;次に、テキスト形式のメーラービューを作成します。&lt;br /&gt;
+&lt;code&gt;app/views/post_mailer/&lt;/code&gt;に&lt;code&gt;post_email.text.erb&lt;/code&gt;を作成して下さい。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;===========================================
+  新しい記事「&amp;lt;%= @title %&amp;gt; 」を投稿しました。
+===========================================
+
+  投稿しました。&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;メーラーを呼び出す&lt;/h4&gt;
+    &lt;p&gt;では、投稿(Post)を作成したときに今作成したメーラーを呼び出すようにしてみます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/post_controller.rb&lt;/span&gt;
+
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;PostsController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt;
+  before_action &lt;span class=&quot;synConstant&quot;&gt;:set_post&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;only&lt;/span&gt;: [&lt;span class=&quot;synConstant&quot;&gt;:show&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:edit&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:update&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:destroy&lt;/span&gt;]
+
+  .....
+
+	&lt;span class=&quot;synComment&quot;&gt;# Userクラスを作成していないので、擬似的なUser構造体を作る&lt;/span&gt;
+	&lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Struct&lt;/span&gt;.new(&lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:email&lt;/span&gt;)
+
+
+  &lt;span class=&quot;synComment&quot;&gt;# POST /posts&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# POST /posts.json&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;create&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@post&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Post&lt;/span&gt;.new(post_params)
+
+    respond_to &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;format&lt;/span&gt;|
+      &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;@post&lt;/span&gt;.save
+        &lt;span class=&quot;synComment&quot;&gt;# 擬似的なUser構造体を作成する&lt;/span&gt;
+      	user = &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.new(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;lt;送信したいメールアドレス&amp;gt;&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;)
+
+      	&lt;span class=&quot;synComment&quot;&gt;# deliverメソッドを使って、メールを送信する&lt;/span&gt;
+      	&lt;span class=&quot;synType&quot;&gt;PostMailer&lt;/span&gt;.post_email(user, &lt;span class=&quot;synIdentifier&quot;&gt;@post&lt;/span&gt;).deliver
+
+        format.html { redirect_to &lt;span class=&quot;synIdentifier&quot;&gt;@post&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;notice&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Post was successfully created.&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; }
+        format.json { render &lt;span class=&quot;synConstant&quot;&gt;:show&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;status&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:created&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;location&lt;/span&gt;: &lt;span class=&quot;synIdentifier&quot;&gt;@post&lt;/span&gt; }
+      &lt;span class=&quot;synStatement&quot;&gt;else&lt;/span&gt;
+        format.html { render &lt;span class=&quot;synConstant&quot;&gt;:new&lt;/span&gt; }
+        format.json { render &lt;span class=&quot;synConstant&quot;&gt;json&lt;/span&gt;: &lt;span class=&quot;synIdentifier&quot;&gt;@post&lt;/span&gt;.errors, &lt;span class=&quot;synConstant&quot;&gt;status&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:unprocessable_entity&lt;/span&gt; }
+      &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  .....
+
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;basic-mail-configure-gmail-smtp&quot;&gt;&lt;/a&gt;SMTPサーバの設定（Gmailで設定）&lt;/h3&gt;ここまでで一通りのメーラーを作成することができました。&lt;br /&gt;
+しかし、メールを送信するにはSMTPサーバが必要ですのでそのための設定が必要です。&lt;br /&gt;
+今回は、SMTPサーバを構築したくないので、SMTPサーバにGmailを利用し、その設定を記載します。&lt;/p&gt;&lt;p&gt;&lt;code&gt;config/environments/development.rb&lt;/code&gt;に以下の設定を追加して下さい。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;...
+config.action_mailer.delivery_method = &lt;span class=&quot;synConstant&quot;&gt;:smtp&lt;/span&gt;
+config.action_mailer.smtp_settings = {
+	&lt;span class=&quot;synConstant&quot;&gt;address&lt;/span&gt;:               &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;smtp.gmail.com&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;,
+	&lt;span class=&quot;synConstant&quot;&gt;port&lt;/span&gt;:      	           &lt;span class=&quot;synConstant&quot;&gt;587&lt;/span&gt;,
+	&lt;span class=&quot;synConstant&quot;&gt;domain&lt;/span&gt;:                &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;example.com&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;,
+	&lt;span class=&quot;synConstant&quot;&gt;user_name&lt;/span&gt;:             &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;lt;Gmailのユーザ名&amp;gt;&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;,
+	&lt;span class=&quot;synConstant&quot;&gt;password&lt;/span&gt;:              &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;lt;Gmailのパスワード&amp;gt;&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;,
+	&lt;span class=&quot;synConstant&quot;&gt;authentication&lt;/span&gt;:        &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;plain&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;,
+	&lt;span class=&quot;synConstant&quot;&gt;enable_starttls_auto&lt;/span&gt;:  &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;
+}
+...
+&lt;/pre&gt;&lt;p&gt;&lt;i&gt;Gmailのユーザ名やパスワードを設定ファイルに記載し、それをGitHubなどで公開するとバレてしまいますので、「&lt;a href=&quot;http://yss44.hatenablog.com/entry/2013/11/30/135446&quot; target=&quot;_blank&quot;&gt;Railsで定数設定ファイルをgitから外して管理する&lt;/a&gt;」を参照して、公開しないようにしましょう。また、万が一の場合もありますので、サービスとして展開していく場合は別のGmailアカウントを作ることをおすすめします。&lt;/i&gt;&lt;/p&gt;&lt;p&gt;では、&lt;code&gt;$ rails server&lt;/code&gt;でサーバを再起動しなおし、記事を登録してみます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140828/20140828230057.png&quot; alt=&quot;f:id:nipe880324:20140828230057p:plain:w480&quot; title=&quot;f:id:nipe880324:20140828230057p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140828/20140828230059.png&quot; alt=&quot;f:id:nipe880324:20140828230059p:plain:w480&quot; title=&quot;f:id:nipe880324:20140828230059p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;記事が登録されたので、メールが届いているか確認しましょう。&lt;br /&gt;
+実際に届いていますね。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140828/20140828230335.png&quot; alt=&quot;f:id:nipe880324:20140828230335p:plain:w480&quot; title=&quot;f:id:nipe880324:20140828230335p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;i&gt;Gmailのセキュリティ上、届かない可能性があります。何かしらのメールを受信しているはずなので、その内容を確認して適切な対処をしてください。&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;i&gt;実際に記事を登録すると分かりますが、メール送信が裏で走っているため画面の画面の表示が遅いです。大抵、バックグラウンドジョブにメール送信は任せ、メールが送信完了前に画面遷移をするのが一般的です。&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://guides.rubyonrails.org/action_mailer_basics.html&quot; target=&quot;_blank&quot;&gt;Rails Guides - Action Mailer Basics&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Thu, 28 Aug 2014 23:33:56 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/12921228815731529275</guid>
+          
+            <category>Rails入門</category>
+          
+            <category>Rails Mail</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>Rails ModelのScope（スコープ）の使い方（scopeメソッドとdefault_scopeメソッド）</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20140814/1407994568</link>
+          <description>&lt;p&gt;モデルのスコープ機能とは、共通的に使うクエリをモデルのメソッドのように定義できる機能です。&lt;br /&gt;
+こうすることにより、複雑なSQLを何度も書かなくてよくなり、可読性と保守性を向上させることができます。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#scope-overview&quot;&gt;スコープ(Scope)の概要&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#passing-in-argumetns&quot;&gt;スコープに引数を指定&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#merging-of-scopes&quot;&gt;スコープのマージ&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#applying-a-default-scope&quot;&gt;デフォルトスコープの設定&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;scope-overview&quot;&gt;1. スコープ(Scope)の概要&lt;/h3&gt;以下の2つの方法で「共通的に使うクエリをスコープ」として定義できます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# 定義方法1: scopeメソッドで定義&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Post&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  scope &lt;span class=&quot;synConstant&quot;&gt;:published&lt;/span&gt;, -&amp;gt; { where(&lt;span class=&quot;synConstant&quot;&gt;published&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;) }
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 定義方法2: クラスメソッドのように定義&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Post&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;self&lt;/span&gt;.&lt;span class=&quot;synIdentifier&quot;&gt;published&lt;/span&gt;
+    where(&lt;span class=&quot;synConstant&quot;&gt;published&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;)
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;次のように呼び出すことができます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synType&quot;&gt;Post&lt;/span&gt;.published &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; publishedカラムが&amp;quot;true&amp;quot;のPost達を取得&lt;/span&gt;
+
+category = &lt;span class=&quot;synType&quot;&gt;Category&lt;/span&gt;.first
+category.posts.published &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; カテゴリーに属するpublishedカラムが&amp;quot;true&amp;quot;のPost達を取得&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;passing-in-argumetns&quot;&gt;2. スコープに引数を指定&lt;/h3&gt;&lt;code&gt;scope&lt;/code&gt;メソッドに引数を渡すこともできます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/modes/post.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Post&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  scope &lt;span class=&quot;synConstant&quot;&gt;:created_before&lt;/span&gt;, -&amp;gt;(time) { where(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;created_at &amp;lt; ?&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, time) }
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 使用方法&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Post&lt;/span&gt;.created_before(&lt;span class=&quot;synType&quot;&gt;Time&lt;/span&gt;.local(&lt;span class=&quot;synConstant&quot;&gt;2011&lt;/span&gt;)) &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; 2011年より前に作成されたPostレコードを取得&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;merging-of-scopes&quot;&gt;3. スコープのマージ&lt;/h3&gt;スコープ同士をマージすることにより、&lt;code&gt;where&lt;/code&gt;句の&lt;code&gt;AND&lt;/code&gt;条件を実現することができます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/models/user.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  scope &lt;span class=&quot;synConstant&quot;&gt;:inactive&lt;/span&gt;, -&amp;gt; { where &lt;span class=&quot;synConstant&quot;&gt;state&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;inactive&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; }
+  scope &lt;span class=&quot;synConstant&quot;&gt;:finished&lt;/span&gt;, -&amp;gt; { where &lt;span class=&quot;synConstant&quot;&gt;state&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;finished&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; }
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 使用方法&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.inactive.finished
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; SELECT &amp;quot;users&amp;quot;.* FROM &amp;quot;users&amp;quot; WHERE &amp;quot;users&amp;quot;.&amp;quot;state&amp;quot; = &#39;inactive&#39; AND &amp;quot;users&amp;quot;.&amp;quot;state&amp;quot; = &#39;finished&#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+また、&lt;code&gt;joins&lt;/code&gt;メソッドと一緒につかう為には、&lt;code&gt;merge&lt;/code&gt;メソッドをつかいます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# 定義&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Category&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  has_many &lt;span class=&quot;synConstant&quot;&gt;:posts&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# スコープでjoinsを行い、Postクラスのrecentスコープを利用する方法&lt;/span&gt;
+  scope &lt;span class=&quot;synConstant&quot;&gt;:with_posts&lt;/span&gt;, -&amp;gt; { joins(&lt;span class=&quot;synConstant&quot;&gt;:posts&lt;/span&gt;).merge(&lt;span class=&quot;synType&quot;&gt;Post&lt;/span&gt;.recent) }
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Post&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  belongs_to &lt;span class=&quot;synConstant&quot;&gt;:category&lt;/span&gt;
+  scope &lt;span class=&quot;synConstant&quot;&gt;:recent&lt;/span&gt;, -&amp;gt; { where(&lt;span class=&quot;synConstant&quot;&gt;created_at&lt;/span&gt;: &lt;span class=&quot;synType&quot;&gt;Time&lt;/span&gt;.zone.now..&lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;.days.ago) }
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;# 使い方 &lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Category&lt;/span&gt;.with_posts
+&lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; SELECT &amp;quot;categories&amp;quot;.* FROM &amp;quot;categories&amp;quot; INNER JOIN &amp;quot;posts&amp;quot; ON &amp;quot;posts&amp;quot;.&amp;quot;category_id&amp;quot; = &amp;quot;categories&amp;quot;.&amp;quot;id&amp;quot; WHERE (&amp;quot;posts&amp;quot;.&amp;quot;created_at&amp;quot; BETWEEN &#39;2015-04-20 16:55:08.237023&#39; AND &#39;2015-04-17 16:55:08.237228&#39;)&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;applying-a-default-scope&quot;&gt;デフォルトスコープの設定&lt;/h3&gt;モデルに対する全ての検索クエリでスコープを使いたい場合は、&lt;code&gt;default_scope&lt;/code&gt;メソッドが使えます。&lt;br /&gt;
+この例では、論理削除したデータを意識したくない場合に使っています。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/models/customer.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Customer&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# 退会した顧客では、          removed_atカラムは &amp;quot;削除した日付&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# 退会していない顧客では、removed_atカラムは &amp;quot;NULL&amp;quot;&lt;/span&gt;
+  default_scope { where(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;removed_at IS NULL&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;) } 
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 使用方法&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# 全てのクエリにデフォルトスコープで指定した条件がつけられる&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Customer&lt;/span&gt;.all
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; SELECT &amp;quot;customers&amp;quot;.* FROM &amp;quot;customers&amp;quot; WHERE (removed_at IS NULL)&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+※ &lt;a href=&quot;http://techracho.bpsinc.jp/tsunekawa/2013_10_10/13553&quot;&gt;&amp;#x3088;&amp;#x304F;&amp;#x3042;&amp;#x308B;&amp;#xFF1F;Rails&amp;#x5931;&amp;#x6557;&amp;#x8AC7; default_scope&amp;#x7DE8; | TechRacho&lt;/a&gt; にあるように、安易にdefault_scopeを使うとscopeの削除がしずらいので思わぬエラーになる可能性があるので注意してください。論理削除などのときに限定するなどしたほうが良いと思います。&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    &lt;p&gt;やりたいことの実現方法が分からなかった、もっとAPIを探してみたい場合に参照して下さい。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://guides.rubyonrails.org/active_record_querying.html#scopes&quot; target=&quot;_blank&quot;&gt;Rails Guides - Active Record Quering # Scopes&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://api.rubyonrails.org/&quot; taret=&quot;_blank&quot;&gt;Rails API&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;以上です。&lt;br /&gt;
+よく分からない、間違っていることがありましたら、お気軽に以下のコメント欄に記載ください。&lt;/p&gt;
+
+&lt;/div&gt;</description>
+          <pubDate>Thu, 14 Aug 2014 14:36:08 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/12921228815730167699</guid>
+          
+            <category>Rails入門</category>
+          
+            <category>Rails Model</category>
+          
+        </item>
+      
+    
+  </channel>
+</rss>

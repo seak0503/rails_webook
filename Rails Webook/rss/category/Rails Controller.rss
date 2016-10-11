@@ -1,0 +1,1359 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>Rails Controller - Rails Webook</title>
+    <link>http://ruby-rails.hatenadiary.com/category/Rails%20Controller</link>
+    <description>自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</description>
+    <lastBuildDate>Fri, 18 Dec 2015 02:44:31 +0900</lastBuildDate>
+    <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+    <generator>Hatena::Blog</generator>
+    
+      
+      
+        <item>
+          <title>Railsでaccepts_nested_attributes_forとfields_forを使ってhas_many関連の子レコードを作成/更新するフォームを作成</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20141208/1418018874</link>
+          <description>&lt;p&gt;Railsでは、&lt;code&gt;accepts_nested_attributes_for&lt;/code&gt;を使うことで簡単に1対多のモデルを一度に更新するフォームを作成することできます。&lt;/p&gt;&lt;p&gt;今回のケースは、ユーザー(User)が家、会社など複数の住所(Address)を持っているというという1対多関係のモデルの入れ子状態を説明します。&lt;br /&gt;
+完成イメージは次の通りで、ユーザー情報(User)も作成しながら、住所(Address)も一緒に１フォームで作成できるようになっています。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141127/20141127225732.png&quot; alt=&quot;f:id:nipe880324:20141127225732p:plain:w420&quot; title=&quot;f:id:nipe880324:20141127225732p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#accepts_nested_attributes_for-create&quot;&gt;Railsプロジェクトの作成&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#accepts_nested_attributes_for-form&quot;&gt;accepts_nested_attributes_forによる入れ子のフォームを作成&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#accepts_nested_attributes_for-destroy&quot;&gt;入れ子にしたモデルの削除機能の追加&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#accepts_nested_attributes_for-validation&quot;&gt;親モデルと子モデルにバリデーションを追加する&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#accepts_nested_attributes_for-ajax&quot;&gt;Ajaxで動的に住所の入力項目を追加/削除する&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;accepts_nested_attributes_for-create&quot;&gt;1. Railsプロジェクトの作成&lt;/h3&gt;まずプロジェクトを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rails new accepts_nested_attributes_for_test
+cd accepts_nested_attributes_for_test&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+ユーザーをScaffoldで作成する。&lt;br /&gt;
+コントローラー、ビュー、モデル、マイグレーションファイルといったユーザーの一式が作成されます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rails g scaffold User username age:integer&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+住所モデルを作成する。&lt;br /&gt;
+今回は、１つのフォームでユーザーと住所の作成をするのでモデルとマイグレーションファイルのみ作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rails g model Address zipcode city street tel user_id:integer&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+マイグレートを実行する。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rake db:migrate&lt;/pre&gt;&lt;p&gt;アソシエーションを追加する。ユーザーと住所は、1対N関係なので次のようにします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/models/user.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  has_many &lt;span class=&quot;synConstant&quot;&gt;:addresses&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;# app/models/address.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Address&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  belongs_to &lt;span class=&quot;synConstant&quot;&gt;:user&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;accepts_nested_attributes_for-form&quot;&gt;2. accepts_nested_attributes_forによる入れ子のフォームを作成&lt;/h3&gt;ActiveRecordは入れ子のフォームを取扱うために&lt;code&gt;accepts_nested_attributes_for&lt;/code&gt;メソッドを提供しているので、それを追加します。&lt;br /&gt;
+これを追加することで、&lt;code&gt;addresses_attributes=&lt;/code&gt;が自動的に追加され、それにより、住所(Address)の追加、更新、削除ができるようになります。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/models/user.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  has_many &lt;span class=&quot;synConstant&quot;&gt;:addresses&lt;/span&gt;
+  accepts_nested_attributes_for &lt;span class=&quot;synConstant&quot;&gt;:addresses&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;span style=&quot;color: #ff2600&quot;&gt;注意事項として、次のようにpresence: trueのバリデーションを定義すると保存ができなくなるので注意してください。&lt;/span&gt;&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/models/address.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Address&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  belongs_to &lt;span class=&quot;synConstant&quot;&gt;:user&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# モデルを保存できなくなるのでpresence: trueは記載しない&lt;/span&gt;
+  validates &lt;span class=&quot;synConstant&quot;&gt;:user_id&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;presence&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# or validates :user, presence: true&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+では、フォームで値を入力/更新できるようにします。&lt;br /&gt;
+&lt;code&gt;fields_for&lt;/code&gt;を使うことで入れ子のモデル(Address)を表示させることができます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/users/_form.html.erb
+
+   ...
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;field&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :age %&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;br&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.number_field&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :age %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;field&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :addresses, &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;住所&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;br&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; /&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.fields_for&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :addresses do |addresses_form| %&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; addresses_form.label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :zipcode, &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;郵便番号&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; addresses_form.text_field&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :zipcode %&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;br&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; /&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; addresses_form.label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :city, &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;都道府県&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; addresses_form.text_field&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :city %&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;br&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; /&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; addresses_form.label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :street, &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;市町村番&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; addresses_form.text_field&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :street %&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;br&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; /&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; addresses_form.label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :tel, &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;電話番号&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; addresses_form.text_field&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :tel %&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;br&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; /&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% end %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;actions&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.submit&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% end %&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+次に、コントローラーでnewアクションでAddressをbuild（newのリレーション版）をするようにします。こうすることで、&lt;code&gt;fields_for&lt;/code&gt;内の内容が表示されるようになります。&lt;br /&gt;
+また、StrongParameterも許可するようにします。&lt;code&gt;fields_for&lt;/code&gt;は&lt;code&gt;[引数に与えた名前]_attributes&lt;/code&gt;というname属性でフォームを作成するので、&lt;code&gt;addresses_attributes&lt;/code&gt;を許可する必要があります。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/users_controller.rb&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# GET /users/new&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;new&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@user&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.new
+    &lt;span class=&quot;synIdentifier&quot;&gt;@user&lt;/span&gt;.addresses.build
+
+    &lt;span class=&quot;synComment&quot;&gt;# デフォルトで2つの住所入力欄を作成したい場合は次のようにする&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# 2.times { @user.addresses.build }&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  ...
+
+  &lt;span class=&quot;synStatement&quot;&gt;private&lt;/span&gt;
+
+    &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;user_params&lt;/span&gt;
+      params.require(&lt;span class=&quot;synConstant&quot;&gt;:user&lt;/span&gt;).permit(
+        &lt;span class=&quot;synConstant&quot;&gt;:username&lt;/span&gt;,
+        &lt;span class=&quot;synConstant&quot;&gt;:age&lt;/span&gt;,
+        &lt;span class=&quot;synConstant&quot;&gt;addresses_attributes&lt;/span&gt;: [&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:zipcode&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:city&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:street&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:tel&lt;/span&gt;]
+      )
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+では、動作確認してみましょう。&lt;br /&gt;
+入力画面で次のように値をいれて新規作成します。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141127/20141127220131.png&quot; alt=&quot;f:id:nipe880324:20141127220131p:plain:w380&quot; title=&quot;f:id:nipe880324:20141127220131p:plain:w380&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:380px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;すると、&lt;code&gt;accepts_nested_attributes_for&lt;/code&gt;と&lt;code&gt;fields_for&lt;/code&gt;により、自動的にユーザーと住所モデルが作成されます。&lt;br /&gt;
+そして、編集画面を開くと登録されていることがわかると思います。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141127/20141127220314.png&quot; alt=&quot;f:id:nipe880324:20141127220314p:plain:w380&quot; title=&quot;f:id:nipe880324:20141127220314p:plain:w380&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:380px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;登録時のサーバーのログを確認すると次のようなパラメーターとSQL文が走っています。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# パラメーター（addresses_attributesにより入力パラメーターが渡されている）&lt;/span&gt;
+ {&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;utf8&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;✓&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;authenticity_token&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;3t7C...&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,
+  &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt; {
+    &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;username&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;test1&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;age&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;10&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;addresses_attributes&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; {
+      &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; {
+        &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;zipcode&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;111-1111&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,
+        &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;city&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;東京都&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,
+        &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;street&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;, 
+        &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;tel&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;
+       }
+     }
+   },
+  &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;commit&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Create User&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+ }
+
+&lt;span class=&quot;synComment&quot;&gt;# SQL文（UserとAddressモデルが作成されている） &lt;/span&gt;
+  (&lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;.1ms)  &lt;span class=&quot;synStatement&quot;&gt;begin&lt;/span&gt; transaction
+  SQL (&lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;.5ms)  &lt;span class=&quot;synType&quot;&gt;INSERT&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;INTO&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;users&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; (&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;age&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;created_at&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;updated_at&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;username&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;) VALUES (&lt;span class=&quot;synConstant&quot;&gt;?,&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;?,&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;?,&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;?)&lt;/span&gt;  [[&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;age&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;10&lt;/span&gt;], [&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;created_at&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;2014-11-27 12:56:56.445149&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;], [&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;updated_at&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;2014-11-27 12:56:56.445149&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;], [&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;username&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;test1&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;]]
+  SQL (&lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;.3ms)  &lt;span class=&quot;synType&quot;&gt;INSERT&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;INTO&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;addresses&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; (&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;city&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;created_at&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;street&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;tel&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;updated_at&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;user_id&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;zipcode&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;) VALUES (&lt;span class=&quot;synConstant&quot;&gt;?,&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;?,&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;?,&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;?,&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;?,&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;?,&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;?)&lt;/span&gt;  [[&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;city&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;東京都&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;], [&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;created_at&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;2014-11-27 12:56:56.450941&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;], [&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;street&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;], [&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;tel&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;], [&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;updated_at&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;2014-11-27 12:56:56.450941&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;], [&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;user_id&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;], [&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;zipcode&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;111-1111&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;]]
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;accepts_nested_attributes_for-destroy&quot;&gt;3. 入れ子にしたモデルの削除機能の追加&lt;/h3&gt;&lt;code&gt;accepts_nested_attributes_for&lt;/code&gt;を使っていれば、簡単にユーザーに関連した住所モデルを削除することもできます。&lt;br /&gt;
+削除方法として、フォームに削除チェックボックスを追加し、チェックしたまま更新するとそのモデルを削除されるようにします。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;まず、&lt;code&gt;allow_destroy: true&lt;/code&gt;オプションをユーザーモデルに追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/models/user.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  has_many &lt;span class=&quot;synConstant&quot;&gt;:addresses&lt;/span&gt;
+  accepts_nested_attributes_for &lt;span class=&quot;synConstant&quot;&gt;:addresses&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;allow_destroy&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+次に、削除チェックボックスをフォームに追加します。&lt;br /&gt;
+&lt;code&gt;_destroy&lt;/code&gt;キーである必要があります。&lt;br /&gt;
+&lt;code&gt;accepts_nested_attributes_for&lt;/code&gt;の挙動として、&lt;code&gt;_destroy&lt;/code&gt;が&lt;code&gt;1&lt;/code&gt;か&lt;code&gt;true&lt;/code&gt;の場合に、関連するモデルが削除されるような挙動になっているためです。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/users/_form.html.erb
+  ...
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;field&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.field_for&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :addresses do |addresses_form| %&amp;gt;&lt;/span&gt;
+      ...
+
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; addresses_form.label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :street, &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;市町村番&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; addresses_form.text_field&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :street %&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;br&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; /&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; addresses_form.label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :tel, &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;電話番号&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; addresses_form.text_field&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :tel %&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;br&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; /&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- DBに保存されていない場合のみ表示 = 更新時のみ表示 --&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% if @user.persisted? %&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; addresses_form.check_box&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :_destroy %&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; addresses_form.label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :_destroy, &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;削除&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;br&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; /&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% end %&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% end %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  ...
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+最後に、StrongParameterに&lt;code&gt;_destroy&lt;/code&gt;をpermitするようにします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/users_controller.rb&lt;/span&gt;
+ 
+  &lt;span class=&quot;synStatement&quot;&gt;private&lt;/span&gt;
+
+    &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;user_params&lt;/span&gt;
+      params.require(&lt;span class=&quot;synConstant&quot;&gt;:user&lt;/span&gt;).permit(
+        &lt;span class=&quot;synConstant&quot;&gt;:username&lt;/span&gt;,
+        &lt;span class=&quot;synConstant&quot;&gt;:age&lt;/span&gt;,
+        &lt;span class=&quot;synConstant&quot;&gt;addresses_attributes&lt;/span&gt;: [&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:zipcode&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:city&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:street&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:tel&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:_destroy&lt;/span&gt;]
+      )
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+では、削除できることを確認しましょう。&lt;br /&gt;
+編集画面を開き、「削除」にチェックし、更新ボタンを押します。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141127/20141127221518.png&quot; alt=&quot;f:id:nipe880324:20141127221518p:plain:w380&quot; title=&quot;f:id:nipe880324:20141127221518p:plain:w380&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:380px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;編集画面を開きなおすと、住所が削除されます。Railsにより自動的にレコードが削除されました。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141127/20141127221524.png&quot; alt=&quot;f:id:nipe880324:20141127221524p:plain:w380&quot; title=&quot;f:id:nipe880324:20141127221524p:plain:w380&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:380px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;accepts_nested_attributes_for-validation&quot;&gt;4. 親モデルと子モデルにバリデーションを追加する&lt;/h3&gt;&lt;code&gt;reject_if&lt;/code&gt;で条件を指定して値を更新しないようにすることができますが、画面上にエラーとして表示されないため、バリデーションを定義します。&lt;br /&gt;
+定義方法は通常通りです。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/models/user.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  has_many &lt;span class=&quot;synConstant&quot;&gt;:addresses&lt;/span&gt;
+  accepts_nested_attributes_for &lt;span class=&quot;synConstant&quot;&gt;:addresses&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;allow_destroy&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# presence: true 各項目が存在しない場合バリデーションエラーになる&lt;/span&gt;
+  validates &lt;span class=&quot;synConstant&quot;&gt;:username&lt;/span&gt;,  &lt;span class=&quot;synConstant&quot;&gt;presence&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;
+  validates &lt;span class=&quot;synConstant&quot;&gt;:age&lt;/span&gt;,       &lt;span class=&quot;synConstant&quot;&gt;presence&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;# app/models/address.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Address&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  belongs_to &lt;span class=&quot;synConstant&quot;&gt;:user&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# presence: true 各項目が存在しない場合バリデーションエラーになる&lt;/span&gt;
+  validates &lt;span class=&quot;synConstant&quot;&gt;:zipcode&lt;/span&gt;,  &lt;span class=&quot;synConstant&quot;&gt;presence&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;
+  validates &lt;span class=&quot;synConstant&quot;&gt;:city&lt;/span&gt;,     &lt;span class=&quot;synConstant&quot;&gt;presence&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;
+  validates &lt;span class=&quot;synConstant&quot;&gt;:street&lt;/span&gt;,   &lt;span class=&quot;synConstant&quot;&gt;presence&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;
+  validates &lt;span class=&quot;synConstant&quot;&gt;:tel&lt;/span&gt;,      &lt;span class=&quot;synConstant&quot;&gt;presence&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+では、画面から未入力でユーザーを新規登録すると、バリデーションが適用されていることがわかります。&lt;br /&gt;
+このように、&lt;code&gt;accepts_nested_attributes_for&lt;/code&gt;と&lt;code&gt;fields_for&lt;/code&gt;メソッドによりバリデーションも自動的に行ってくれます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141127/20141127223728.png&quot; alt=&quot;f:id:nipe880324:20141127223728p:plain:w420&quot; title=&quot;f:id:nipe880324:20141127223728p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;ちなみに、今は、住所を入力する気がなくてもバリデーションが実行されてしまいユーザーが登録できません。&lt;br /&gt;
+そういうときに&lt;code&gt;reject_if&lt;/code&gt;オプションが使えます。これがtrueになるときは住所モデルを作成せず、バリデーションも実施しません。&lt;br /&gt;
+条件の指定方法は次のようにProcか&lt;code&gt;all_blank&lt;/code&gt;のどちらかで記述します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# 郵便番号が空の場合のみ、住所モデルを作成しない（バリデーションも実行しない）&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# つまり、郵便番号を入力した場合は、バリデーションが実行されます。&lt;/span&gt;
+accepts_nested_attributes_for &lt;span class=&quot;synConstant&quot;&gt;:addresses&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;allow_destroy&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;reject_if&lt;/span&gt;: &lt;span class=&quot;synStatement&quot;&gt;proc&lt;/span&gt; { |&lt;span class=&quot;synIdentifier&quot;&gt;attributes&lt;/span&gt;| attributes[&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;zipcode&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;].blank? }
+
+&lt;span class=&quot;synComment&quot;&gt;# すべての入力属性が空の場合、住所モデルを作成しない（バリデーションも実行しない）&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# １つでも属性を入力した場合、住所モデルを作成しようとします。（バリデーションも実行される）&lt;/span&gt;
+accepts_nested_attributes_for &lt;span class=&quot;synConstant&quot;&gt;:addresses&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;allow_destroy&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;reject_if&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:all_blank&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+では、Userモデルを次のように修正します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/models/user.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  has_many &lt;span class=&quot;synConstant&quot;&gt;:addresses&lt;/span&gt;
+  accepts_nested_attributes_for &lt;span class=&quot;synConstant&quot;&gt;:addresses&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;allow_destroy&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;reject_if&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:all_blank&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# presence: true 各項目が存在しない場合バリデーションエラーになる&lt;/span&gt;
+  validates &lt;span class=&quot;synConstant&quot;&gt;:username&lt;/span&gt;,  &lt;span class=&quot;synConstant&quot;&gt;presence&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;
+  validates &lt;span class=&quot;synConstant&quot;&gt;:age&lt;/span&gt;,       &lt;span class=&quot;synConstant&quot;&gt;presence&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+では、画面を開いて未入力で作成ボタンを押すと、Userのバリデーションエラーのみ発生します。&lt;br /&gt;
+これは、&lt;code&gt;reject_if: :all_blank&lt;/code&gt;がtrueになったため住所モデルを作成しなくなったため、バリデーションエラーがUserのみになったためです。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141209/20141209202629.png&quot; alt=&quot;f:id:nipe880324:20141209202629p:plain:w420&quot; title=&quot;f:id:nipe880324:20141209202629p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;accepts_nested_attributes_for-ajax&quot;&gt;5. Ajaxで動的に住所の入力項目を追加/削除する&lt;/h3&gt;「追加」、「削除」リンクを押すことで、動的に入力項目を追加/削除するため機能は提供していないので、Ajaxで作る必要があります。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;まずは、jQueryとturbolinkを共存させるために、&lt;code&gt;jquery-turbolinks&lt;/code&gt;をインストールします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;echo &amp;#34;gem &amp;#39;jquery-turbolinks&amp;#39;&amp;#34; &amp;gt;&amp;gt; Gemfile
+bundle install&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;code&gt;jquery.turbolinks&lt;/code&gt;も読み込むようにします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# app/assets/javascripts/application.js
+...
+//= require jquery
+//= require jquery.turbolinks
+//= require jquery_ujs&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+住所入力部分を動的に追加、削除するので、住所入力部分を部分テンプレートをします。&lt;br /&gt;
+ついでに、削除はリンクにし、JSで動的に非表示にするようにします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/users/_address_fields.html.erb
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;fieldset&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :zipcode, &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;郵便番号&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.text_field&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :zipcode %&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;br&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; /&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :city, &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;都道府県&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.text_field&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :city %&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;br&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; /&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :street, &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;市町村番&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.text_field&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :street %&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;br&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; /&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :tel, &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;電話番号&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.text_field&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :tel %&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;br&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; /&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.hidden_field&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :_destroy %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;削除&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;#&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;remove_fields&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;fieldset&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+次に、作成した部分テンプレートを呼び出すようにし、「住所追加」リンクも作ります。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/users/_form.html.erb
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;field&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :addresses, &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;住所&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;br&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; /&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.fields_for&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :addresses do |builder| %&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; render&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;address_fields&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, f: builder %&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% end %&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to_add_fields&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;住所追加&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, f, :addresses %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+次に、&lt;code&gt;link_to_add_fields&lt;/code&gt;ヘルパーを実装します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/helpers/application_helper.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;module&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ApplicationHelper&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;link_to_add_fields&lt;/span&gt;(name, f, association)
+    new_object = f.object.send(association).klass.new
+    id = new_object.object_id
+    fields = f.fields_for(association, new_object, &lt;span class=&quot;synConstant&quot;&gt;child_index&lt;/span&gt;: id) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;builder&lt;/span&gt;|
+      render(association.to_s.singularize + &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;_fields&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;f&lt;/span&gt;: builder)
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+    link_to(name, &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;#&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;add_fields&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;data&lt;/span&gt;: {&lt;span class=&quot;synConstant&quot;&gt;id&lt;/span&gt;: id, &lt;span class=&quot;synConstant&quot;&gt;fields&lt;/span&gt;: fields.gsub(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;\n&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;)})
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+そして、最後はAjax部分をCoffeeScriptで記載します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;# app/assets/javascripts/user.js.coffee
+$ -&amp;gt;
+  $(&lt;span class=&quot;synConstant&quot;&gt;&#39;form&#39;&lt;/span&gt;).on &lt;span class=&quot;synConstant&quot;&gt;&#39;click&#39;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;&#39;.remove_fields&#39;&lt;/span&gt;, (&lt;span class=&quot;synStatement&quot;&gt;event&lt;/span&gt;) -&amp;gt;
+    $(&lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;).prev(&lt;span class=&quot;synConstant&quot;&gt;&#39;input[type=hidden]&#39;&lt;/span&gt;).val(&lt;span class=&quot;synConstant&quot;&gt;&#39;1&#39;&lt;/span&gt;)
+    $(&lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;).closest(&lt;span class=&quot;synConstant&quot;&gt;&#39;fieldset&#39;&lt;/span&gt;).hide()
+    &lt;span class=&quot;synStatement&quot;&gt;event&lt;/span&gt;.preventDefault()
+
+  $(&lt;span class=&quot;synConstant&quot;&gt;&#39;form&#39;&lt;/span&gt;).on &lt;span class=&quot;synConstant&quot;&gt;&#39;click&#39;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;&#39;.add_fields&#39;&lt;/span&gt;, (&lt;span class=&quot;synStatement&quot;&gt;event&lt;/span&gt;) -&amp;gt;
+    time = &lt;span class=&quot;synStatement&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Date&lt;/span&gt;().getTime()
+    regexp = &lt;span class=&quot;synStatement&quot;&gt;new&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;RegExp&lt;/span&gt;($(&lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;).data(&lt;span class=&quot;synConstant&quot;&gt;&#39;id&#39;&lt;/span&gt;), &lt;span class=&quot;synConstant&quot;&gt;&#39;g&#39;&lt;/span&gt;)
+    $(&lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;).before($(&lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;).data(&lt;span class=&quot;synConstant&quot;&gt;&#39;fields&#39;&lt;/span&gt;).replace(regexp, time))
+    &lt;span class=&quot;synStatement&quot;&gt;event&lt;/span&gt;.preventDefault()
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+では、動作を確認してみましょう。&lt;br /&gt;
+「住所追加」や「削除」ができ、また、作成や更新をすると値が更新されます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141127/20141127225732.png&quot; alt=&quot;f:id:nipe880324:20141127225732p:plain:w420&quot; title=&quot;f:id:nipe880324:20141127225732p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;以上です。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://guides.rubyonrails.org/form_helpers.html#building-complex-forms&quot;&gt;Form Helpers &amp;mdash; Ruby on Rails Guides&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://api.rubyonrails.org/&quot;&gt;Ruby on Rails API&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://railscasts.com/episodes/196-nested-model-form-revised&quot;&gt;#196 Nested Model Form (revised) - RailsCasts&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Mon, 08 Dec 2014 15:07:54 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450075499185</guid>
+          
+            <category>Rails中級</category>
+          
+            <category>Rails Controller</category>
+          
+            <category>Rails View</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>Rails4でHTTPリクエストとHTTPレスポンスを取得・設定する方法</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20141201/1417432408</link>
+          <description>&lt;p&gt;Railsでは、コントローラー内で、&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;request&lt;/code&gt;メソッドにより、リクエストから値を取得することができます。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;response&lt;/code&gt;メソッドにより、レスポンスに値を設定することができます。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#ctrl-request-get&quot;&gt;Railsでリクエストヘッダの内容を取得する&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#ctrl-response-set&quot;&gt;Railsでリクエストヘッダの内容を取得する&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;ctrl-request-get&quot;&gt;Railsでリクエストヘッダの内容を取得する&lt;/h3&gt;コントローラー内で&lt;code&gt;requet&lt;/code&gt;メソッドを使うことでリクエストヘッダの情報を取得することができます。&lt;br /&gt;
+よく使うリクエストヘッダには、アクセサメソッドが定義されています。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;request.url
+&lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;http://localhost:3000/products&amp;quot;&lt;/span&gt;
+
+request.method
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;GET&amp;quot;&lt;/span&gt;
+
+request.user_agent
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/38.0.2125.122 Safari/537.36&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+アクセサメソッドがないヘッダに対しては、&lt;code&gt;request.env&lt;/code&gt;に対して、ハッシュのようにアクセス可能です。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;request.env[&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;HTTP_ACCEPT&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;]
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;ctrl-response-set&quot;&gt;Railsでリクエストヘッダの内容を取得する&lt;/h3&gt;コントローラー内で&lt;code&gt;response.headers&lt;/code&gt;にハッシュのようにアクセスすることで、レスポンスヘッダの情報を設定することができます。&lt;br /&gt;
+&lt;code&gt;response.headers&lt;/code&gt;に対して、ハッシュの&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Content-Typeをapplication/jsonにする&lt;/span&gt;
+response.headers[&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Content-Type&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;] = &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;application/json&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+また、&lt;code&gt;response.headers&lt;/code&gt;でレスポンスヘッダの内容を確認できます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;response.headers
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; {&amp;quot;X-Frame-Options&amp;quot;=&amp;gt;&amp;quot;SAMEORIGIN&amp;quot;, &amp;quot;X-XSS-Protection&amp;quot;=&amp;gt;&amp;quot;1; mode=block&amp;quot;, &amp;quot;X-Content-Type-Options&amp;quot;=&amp;gt;&amp;quot;nosniff&amp;quot;, &amp;quot;Content-Type&amp;quot;=&amp;gt;&amp;quot;application/json&amp;quot;}&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+以上です。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails3 レシピブック 190の技&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Mon, 01 Dec 2014 20:13:28 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450074930973</guid>
+          
+            <category>Rails初級</category>
+          
+            <category>Rails Controller</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>Rails4での基本的なセッションの使い方</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20141130/1417334030</link>
+          <description>&lt;p&gt;Rails4では、デフォルトでセッション情報はブラウザのクッキーに保存されます。&lt;br /&gt;
+そして、コントローラーで&lt;code&gt;session&lt;/code&gt;インスタンスを使うことで、セッションに値を設定/取得といったアクセスができます。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#ctrl-session-set&quot;&gt;セッションに値を設定&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#ctrl-session-get&quot;&gt;セッションから値を取得&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#ctrl-session-delete&quot;&gt;セッションを削除する&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#ctrl-session-notices&quot;&gt;セッションを使うときの3つの注意点&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;ctrl-session-set&quot;&gt;1. セッションに値を設定&lt;/h3&gt;次のように、コントローラー内から&lt;code&gt;session&lt;/code&gt;インスタンスにハッシュのようにアクセスすることが可能です。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/logins_controller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;LoginsController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# ログインする&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;create&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; user = &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.authenticate(params[&lt;span class=&quot;synConstant&quot;&gt;:username&lt;/span&gt;], params[&lt;span class=&quot;synConstant&quot;&gt;:password&lt;/span&gt;])
+      &lt;span class=&quot;synComment&quot;&gt;# ユーザーIDをセッションに保存する&lt;/span&gt;
+      session[&lt;span class=&quot;synConstant&quot;&gt;:user_id&lt;/span&gt;] = user.id
+      redirect_to root_url
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+end
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;ctrl-session-get&quot;&gt;2. セッションから値を取得&lt;/h3&gt;次のように、設定した値を、セッションから値を取得することも可能です。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/application_controller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActionController&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+
+  &lt;span class=&quot;synStatement&quot;&gt;private&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# 現在のユーザーを取得する&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# @_current_userが空の場合は、session情報をキーにしてDBから検索する&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;current_user&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;@_current_user&lt;/span&gt; ||= &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.find_by(&lt;span class=&quot;synConstant&quot;&gt;id&lt;/span&gt;: session[&lt;span class=&quot;synConstant&quot;&gt;:user_id&lt;/span&gt;])
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;ctrl-session-delete&quot;&gt;3. セッションを削除する&lt;/h3&gt;設定したセッションから値を削除するには、&lt;code&gt;nil&lt;/code&gt;を設定します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/logins_controller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;LoginsController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# ログアウトする&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;destroy&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# @_current_userとsession[:user_id]の値をnilにする&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@_current_user&lt;/span&gt; = session[&lt;span class=&quot;synConstant&quot;&gt;:user_id&lt;/span&gt;] = &lt;span class=&quot;synConstant&quot;&gt;nil&lt;/span&gt;
+    redirect_to root_url
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+すべてのセッション情報を削除したい場合は、&lt;code&gt;reset_session&lt;/code&gt;を使います。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/logins_controller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;LoginsController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# ログアウトする&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;destroy&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# @_current_userの値をnilにする&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@_current_user&lt;/span&gt; = &lt;span class=&quot;synConstant&quot;&gt;nil&lt;/span&gt;
+    reset_session
+    redirect_to root_url
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;ctrl-session-notices&quot;&gt;4. セッションを使うときの3つの注意点&lt;/h3&gt;&lt;b&gt;1. 秘密情報を保持しない&lt;/b&gt;&lt;br /&gt;
+デフォルトのセッションデータはクッキーに保存されます。そのため、改ざん防止機構はついていますが、内容を確認することができてしまうため、秘密譲歩は表示しないようにしましょう。&lt;/p&gt;&lt;p&gt;&lt;b&gt;2. 巨大なオブジェクトは入れられない&lt;/b&gt;&lt;br /&gt;
+クッキーの制限に、4KB弱という容量制限があります。そのため、巨大なオブジェクトは入れられません。&lt;br /&gt;
+ちなみに、Railsのセッションの使われ方として、セッションに入れるデータはユーザーのIDとflash程度にとどめるのが推奨されています。&lt;/p&gt;&lt;p&gt;&lt;b&gt;3. マージャルできないオブジェクトは入れられない&lt;/b&gt;&lt;br /&gt;
+セッションにデータを格納すると、保存対象のオブジェクトは&lt;code&gt;Marshal#dump&lt;/code&gt;によってシリアライズされて保存されます。&lt;br /&gt;
+これは、IOオブジェクトやProcオブジェクトなど、シリアライズできないオブジェクトはセッションに格納することができないという意味です。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;以上です。&lt;/p&gt;&lt;p&gt;DBにセッション情報を格納したい場合は、&lt;a href=&quot;https://github.com/rails/activerecord-session_store&quot;&gt;rails/activerecord-session_store &amp;middot; GitHub&lt;/a&gt;というgemの利用を検討してください。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails3 レシピブック 190の技&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://guides.rubyonrails.org/action_controller_overview.html&quot;&gt;Action Controller Overview &amp;mdash; Ruby on Rails Guides&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Sun, 30 Nov 2014 16:53:50 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450074930155</guid>
+          
+            <category>Rails初級</category>
+          
+            <category>Rails Controller</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>Rails4でアクションの前後にフィルタ/処理を挟み込む</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20141129/1417223453</link>
+          <description>&lt;p&gt;Rails4ではコントローラーで&lt;code&gt;before_action&lt;/code&gt;、&lt;code&gt;after_action&lt;/code&gt;、&lt;code&gt;around_action&lt;/code&gt;を宣言することでアクションの前後に処理を挟み込むことができます。&lt;/p&gt;&lt;p&gt;&lt;code&gt;before_filter&lt;/code&gt;、&lt;code&gt;after_filter&lt;/code&gt;、&lt;code&gt;around_filter&lt;/code&gt;という記述も可能ですがRails3までの記述のため、Rails4では&lt;code&gt;xxx_action&lt;/code&gt;を使いましょう。&lt;/p&gt;&lt;p&gt;また、&lt;code&gt;prepend_before_action&lt;/code&gt;、&lt;code&gt;preprend_after_action&lt;/code&gt;、&lt;code&gt;prepend_around_action&lt;/code&gt;を宣言することで&lt;code&gt;before_action&lt;/code&gt;などのアクションの前にアクションを挿入することができます。&lt;/p&gt;&lt;p&gt;&lt;i&gt;これは、この宣言がフィルタ以外にも共通の処理を記述するなど多目的に使われるため、&lt;code&gt;xxx_filter&lt;/code&gt;から&lt;code&gt;xxx_action&lt;/code&gt;に変わったという経緯があります。&lt;/i&gt;&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#ctrl-action-before-after&quot;&gt;before_action, after_actionの宣言方法&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#ctrl-action-around&quot;&gt;around_actionの宣言方法&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#ctrl-action-skip-before-after&quot;&gt;before_action, after_action, around_actionをスキップする&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#ctrl-action-multiple&quot;&gt;複数のコントローラーにxxx_actionの処理を追加したい&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#ctrl-action-prepend&quot;&gt;befor_action, after_action, around_actionの前にアクションを挿入するprepend_xxx_action&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;ctrl-action-before-after&quot;&gt;1. before_action, after_actionの宣言方法&lt;/h3&gt;&lt;code&gt;before_action&lt;/code&gt;を使うことで、アクションの前に処理を実施することができます。&lt;br /&gt;
+よく認証に使われます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/users_controller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;UsersController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# アクションの処理を実行する前に、認証の確認を行う&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# 認証に失敗したら、リダイレクトされる&lt;/span&gt;
+  before_action &lt;span class=&quot;synConstant&quot;&gt;:authenticate_user!&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# 次のように、only, exceptを指定することでアクションを絞れる&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# before_action :authenticate_user!, only: [:show, :edit, :update, :destroy]&lt;/span&gt;
+
+  ...
+  &lt;span class=&quot;synStatement&quot;&gt;private&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;authenticate_user!&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;# 認証処理をする&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;# 認証に失敗したらログインページにリダイレクトする&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;ctrl-action-around&quot;&gt;2. around_actionの宣言方法&lt;/h3&gt;次のように、&lt;code&gt;around_action&lt;/code&gt;を使うときは、処理内で明示的に&lt;code&gt;yield&lt;/code&gt;を呼び出す必要がることに注意が必要です。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/users_controller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;UsersController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt;
+  around_action &lt;span class=&quot;synConstant&quot;&gt;:hoge&lt;/span&gt;
+
+  ...
+  &lt;span class=&quot;synStatement&quot;&gt;private&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;hoge&lt;/span&gt;
+      logger.debug &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;アクション前の処理&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+      &lt;span class=&quot;synStatement&quot;&gt;yield&lt;/span&gt;  &lt;span class=&quot;synComment&quot;&gt;# アクションが実行される&lt;/span&gt;
+      logger.debug &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;アクション後の処理&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;ctrl-action-skip-before-after&quot;&gt;3. before_action, after_action, around_actionをスキップする&lt;/h3&gt;&lt;code&gt; skip_before_action&lt;/code&gt;、&lt;code&gt; skip_after_action&lt;/code&gt;、&lt;code&gt; skip_around_action&lt;/code&gt;を使うことでスキップすることが可能です。&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;ctrl-action-multiple&quot;&gt;4. 複数のコントローラーにxxx_actionの処理を追加したい&lt;/h3&gt;複数のコントローラーで同じアクションを指定したい場合は、クラスにすることでDRY原則を守ることが可能です。&lt;br /&gt;
+クラス内では、&lt;code&gt;xxx_action&lt;/code&gt;の&lt;code&gt;xxx&lt;/code&gt;に合った&lt;code&gt;before&lt;/code&gt;、&lt;code&gt;after&lt;/code&gt;、&lt;code&gt;around&lt;/code&gt;メソッドを定義する必要があります。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/concerns/my_action.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;MyAction&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# before_action時に呼び出される&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;before&lt;/span&gt;(controller)
+    controller.logger.debug &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;before: &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;controller.action_name&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# after_action時に呼び出される&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;after&lt;/span&gt;(controller)
+    controller.logger.debug &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;after: &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;controller.action_name&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# around_action時に呼び出される&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;around&lt;/span&gt;(controller)
+    before(controller)
+    &lt;span class=&quot;synStatement&quot;&gt;yield&lt;/span&gt;
+    after(controller)
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;コントローラーからは次のようにして使います。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/users_controller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;UsersController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt;
+  before_aciton &lt;span class=&quot;synType&quot;&gt;MyAction&lt;/span&gt;.new   &lt;span class=&quot;synComment&quot;&gt;# beforeが呼び出される&lt;/span&gt;
+  after_action  &lt;span class=&quot;synType&quot;&gt;MyAction&lt;/span&gt;.new   &lt;span class=&quot;synComment&quot;&gt;# afterが呼び出される&lt;/span&gt;
+  around_action &lt;span class=&quot;synType&quot;&gt;MyAction&lt;/span&gt;.new   &lt;span class=&quot;synComment&quot;&gt;# aroundが呼び出される&lt;/span&gt;
+  ...
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;ctrl-action-prepend&quot;&gt;5. befor_action, after_action, around_actionの前にアクションを挿入するprepend_xxx_action&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;&lt;code&gt;xxx_action&lt;/code&gt;を複数宣言すると、宣言した順に処理が実行されます。&lt;br /&gt;
+継承などをした場合に、親クラスで宣言されたフィルタより先に自分で作成したフィルタを実行したい場合には、&lt;code&gt;prepend_xxx_action(prepend_before_actionなど)&lt;/code&gt;が使えます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;API&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;BaseController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt;
+  before_filter &lt;span class=&quot;synConstant&quot;&gt;:ensure_login&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;API&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;SomethingController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;API&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;BaseController&lt;/span&gt;
+  preprend_before_filter &lt;span class=&quot;synConstant&quot;&gt;:do_something&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;show&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# このアクションが実行される前に&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# do_something、ensure_loginの順で&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# フィルタが実行される&lt;/span&gt;
+    render &lt;span class=&quot;synConstant&quot;&gt;:show&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;以上です。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails3 レシピブック 190の技&lt;/li&gt;
+&lt;li&gt;Rails API&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Sat, 29 Nov 2014 10:10:53 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450074925390</guid>
+          
+            <category>Rails初級</category>
+          
+            <category>Rails Controller</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>Rails4でユーザーに簡易なメッセージをflashで表示する</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20141127/1417086075</link>
+          <description>&lt;p&gt;Railsでは、ログイン時のメッセージや、登録や更新時の成功通知などの簡易な通知のために、&lt;code&gt;flash&lt;/code&gt;という仕組みが用意されています。&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#ctrl-flash-set-and-view&quot;&gt;flashメッセージの設定と表示&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#ctrl-flash-one-requiest&quot;&gt;１リクエスト内のみで有効なflashメッセージ&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#ctrl-flash-with-redirect&quot;&gt;リダイレクト時のflashメッセージ&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;ctrl-flash-set-and-view&quot;&gt;1. flashメッセージの設定と表示&lt;/h3&gt;コントローラー内で&lt;code&gt;flash&lt;/code&gt;オブジェクトがハッシュのように使うことができます。&lt;br /&gt;
+一度表示されるまでflashメッセージは残り、表示されると自動的に削除されるので特に削除処理は必要ありません。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;index&lt;/span&gt;
+  flash[&lt;span class=&quot;synConstant&quot;&gt;:notice&lt;/span&gt;] = &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;ようこそ。本日は&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;Date&lt;/span&gt;.today&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;です。&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+そして、ビューファイルにこのfalshの内容を表示する表示するように記載します。レイアウトファイルに記載しておくとよいでしょう。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/layouts/application.html.erb
+&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!DOCTYPE html&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;html&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;head&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;title&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;ControllerTest&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;title&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; stylesheet_link_tag&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;    &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;application&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;media&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;all&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;data-turbolinks-track&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; =&amp;gt;&lt;/span&gt;&lt;span class=&quot;synPreProc&quot;&gt; true %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; javascript_include_tag&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;application&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;data-turbolinks-track&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; =&amp;gt;&lt;/span&gt;&lt;span class=&quot;synPreProc&quot;&gt; true %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; csrf_meta_tags&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;head&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- 追記部分 開始 --&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% flash.each do |key, &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;| %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; content_tag(:div,&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;#{key}&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;) %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% end %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- 追記部分 終了--&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; yield&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;html&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;ctrl-flash-one-requiest&quot;&gt;2. １リクエスト内のみで有効なflashメッセージ&lt;/h3&gt;通常のflashメッセージは、そのアクション自体か、リダイレクトした次のアクションで利用します。&lt;br /&gt;
+一度表示されるまでflashメッセージは残ってしまうので、予期しないメッセージを表示してしまう箇所もあります。&lt;br /&gt;
+そういうときには、&lt;code&gt;flash.now&lt;/code&gt;を使って設定します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;index&lt;/span&gt;
+  flash.now[&lt;span class=&quot;synConstant&quot;&gt;:notice&lt;/span&gt;] = &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;ようこそ。本日は&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;Date&lt;/span&gt;.today&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;です。&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;ctrl-flash-with-redirect&quot;&gt;3. リダイレクト時のflashメッセージ&lt;/h3&gt;リダイレクト時によくflashを使うので、&lt;code&gt;redirect_to&lt;/code&gt;メソッドのオプションとして&lt;code&gt;notice&lt;/code&gt;と&lt;code&gt;alert&lt;/code&gt;が用意されています。&lt;br /&gt;
+これを利用することで、&lt;code&gt;flash[:notice]&lt;/code&gt;と&lt;code&gt;flash[:error]&lt;/code&gt;と同様の記述となります。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# flash[:notice]にメッセージを設定しながら、リダイレクトをしている
+redirect_to @user, notice: &amp;#39;ログインに成功しました&amp;#39;
+
+# flash[:alert]にメッセージを設定しながら、リダイレクトをしている
+redirect_to login_url, alert: &amp;#39;ログインできませんでした&amp;#39;&lt;/pre&gt;&lt;p&gt;以上です。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails3 レシピブック 190の技&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://api.rubyonrails.org/&quot;&gt;http://api.rubyonrails.org/&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Thu, 27 Nov 2014 20:01:15 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450074928808</guid>
+          
+            <category>Rails初級</category>
+          
+            <category>Rails Controller</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>Rails4でフォームに入力された値を取得するStrongParameters機能</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20141126/1417012848</link>
+          <description>&lt;p&gt;Rails4以降で導入されたフォームで入力された値のマスアサイメントを防ぐためのStrongParametersという機能について説明します。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#ctrl-form-params&quot;&gt;Railsのparamsメソッド&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#ctrl-form-strong-parameter&quot;&gt;StrongParameterのメソッド&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;ctrl-form-params&quot;&gt;1. Railsのparamsメソッド&lt;/h3&gt;Railsではname属性には次のような規約があるため、コントローラー内の&lt;code&gt;params&lt;/code&gt;メソッドで値をネストされたハッシュとして取得できます。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;product[name]&lt;/code&gt;のように、name属性に&lt;code&gt;[名前]&lt;/code&gt;をつけると、ネストしたハッシュとして受け取れる&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;product[category_ids][]&lt;/code&gt;のように、name属性に&lt;code&gt;複数空の[]&lt;/code&gt;をつけると、配列として値を受け取れる。&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;例えば、次のような商品情報を登録するフォームから入力を受け付けたとします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;form&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;/products&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;method&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;post&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;style&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;display:none&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;input&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;utf8&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;hidden&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;✓&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;input&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;authenticity_token&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;hidden&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;gpATAhefgIhzK7cuGsWVuKGZCE4gJeEbrMv+a/wOJ+I=&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;field&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;for&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;product_name&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Name&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;br&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;input&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;product_name&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;product[name]&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;text&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;field&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;for&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;product_description&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Description&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;br&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;textarea&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;product_description&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;product[description]&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;textarea&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;field&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;for&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;product_price&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Price&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;br&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;input&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;product_price&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;product[price]&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;number&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;field&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;for&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;product_category&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Category&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;br&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;input&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;product_category_idx_1&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;product[cateogory_ids][]&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;checkbox&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;1&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt; カテゴリ1
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;input&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;product_category_idx_2&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;product[cateogory_ids][]&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;checkbox&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;2&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt; カテゴリ2
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;input&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;product_category_idx_3&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;product[cateogory_ids][]&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;checkbox&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;3&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt; カテゴリ3
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;actions&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;input&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;commit&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;submit&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;value&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Create Product&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;form&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;このとき、&lt;code&gt;params&lt;/code&gt;は次のような値を返します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;params
+&lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; {&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#     &amp;quot;utf8&amp;quot;=&amp;gt;&amp;quot;✓&amp;quot;,&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#     &amp;quot;authenticity_token&amp;quot;=&amp;gt;&amp;quot;gpATAhefgIhzK7cuGsWVuKGZCE4gJeEbrMv+a/wOJ+I=&amp;quot;,&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#     &amp;quot;product&amp;quot; =&amp;gt; {&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#         &amp;quot;name&amp;quot;=&amp;gt;&amp;quot;オレンジジュース&amp;quot;,&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#         &amp;quot;description&amp;quot;=&amp;gt;&amp;quot;おいしーいオレンジジュース&amp;quot;,&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#         &amp;quot;price&amp;quot;=&amp;gt;&amp;quot;100&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#         &amp;quot;cateogory_ids&amp;quot; =&amp;gt; [&amp;quot;1&amp;quot;, &amp;quot;2&amp;quot;, &amp;quot;3&amp;quot;]&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#     },&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#     &amp;quot;commit&amp;quot;=&amp;gt;&amp;quot;Create Product&amp;quot;,&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#     &amp;quot;action&amp;quot;=&amp;gt;&amp;quot;create&amp;quot;,&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#     &amp;quot;controller&amp;quot;=&amp;gt;&amp;quot;products&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#   }&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;ctrl-form-strong-parameter&quot;&gt;2. StrongParameterのメソッド&lt;/h3&gt;ハッシュで入力パラメーターを受け取れると、モデルの&lt;code&gt;new&lt;/code&gt;、&lt;code&gt;update&lt;/code&gt;などのメソッドにそのまま受け渡すことが可能です。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;params &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; { &amp;quot;name&amp;quot; =&amp;gt; &amp;quot;田中太郎&amp;quot;, &amp;quot;email&amp;quot; =&amp;gt; &amp;quot;taro@test.com&amp;quot;, password&amp;quot; =&amp;gt; &amp;quot;password&amp;quot; }&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.create(params) &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 新しいユーザーが作成される&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;しかし、セキュリティの問題として、悪意あるユーザーが次のように入力パラメーターを付加して送ってきた場合、予期しないデータまで更新されてしまいます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;params &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; { &amp;quot;name&amp;quot; =&amp;gt; &amp;quot;田中太郎&amp;quot;, &amp;quot;email&amp;quot; =&amp;gt; &amp;quot;taro@test.com&amp;quot;, password&amp;quot; =&amp;gt; &amp;quot;password&amp;quot;, &amp;quot;admin&amp;quot; =&amp;gt; &amp;quot;true&amp;quot; }&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.create(params) &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 新しいユーザーが管理者権限でで作成されてしまう&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;このため、Rails3では、モデル内で次のように&lt;code&gt;attr_accessible&lt;/code&gt;を使って明示的に記載することで、&lt;b&gt;更新できる値を制限&lt;/b&gt;していました。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Rails3&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  attr_accessible &lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:email&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:password&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;しかし、書かないと制限できないという性質上、制限し忘れということが有名なサイトなどでも発見されて、デフォルトで許可というのは良くないということになりました。&lt;br /&gt;
+そのため、Rails4からはデフォルトで拒否し、更新したい値を許可するという形になりました。&lt;br /&gt;
+それが、StrongParameterという機構であり、paramsの受け取る値（更新を許可する値）をコントローラー側で明示的に記載するようなりました。&lt;/p&gt;&lt;p&gt;paramsメソッドに&lt;code&gt;require&lt;/code&gt;と&lt;code&gt;permit&lt;/code&gt;を使うことで値を許可することができます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;create&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@product&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.new(product_params)
+
+    &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;@product&lt;/span&gt;.save
+      redirect_to &lt;span class=&quot;synIdentifier&quot;&gt;@product&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;notice&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Product was successfully created.&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;else&lt;/span&gt;
+      render &lt;span class=&quot;synConstant&quot;&gt;:new&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+
+  &lt;span class=&quot;synStatement&quot;&gt;private&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# StrongParameter&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# productのname, description, priceのみ返される(許可する)&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;#&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# paramsの内容&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; {&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;#      &amp;quot;utf8&amp;quot;=&amp;gt;&amp;quot;✓&amp;quot;,&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;#      &amp;quot;authenticity_token&amp;quot; =&amp;gt; &amp;quot;gpATAhefgIhzK7cuGsWVuKGZCE4gJeEbrMv+a/wOJ+I=&amp;quot;,&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;#      &amp;quot;product&amp;quot;=&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;#         { &amp;quot;name&amp;quot;=&amp;gt;&amp;quot;111&amp;quot;,&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;#           &amp;quot;description&amp;quot;=&amp;gt;&amp;quot;22&amp;quot;,&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;#           &amp;quot;price&amp;quot;=&amp;gt;&amp;quot;100&amp;quot;,&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;#           &amp;quot;cateogory_ids&amp;quot;=&amp;gt;[&amp;quot;1&amp;quot;, &amp;quot;2&amp;quot;]&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;#         },&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;#      &amp;quot;commit&amp;quot;=&amp;gt;&amp;quot;Create Product&amp;quot;,&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;#      &amp;quot;action&amp;quot;=&amp;gt;&amp;quot;create&amp;quot;,&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;#      &amp;quot;controller&amp;quot;=&amp;gt;&amp;quot;products&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;#     }&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;#&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# 返り値&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; {&amp;quot;name&amp;quot;=&amp;gt;&amp;quot;商品名&amp;quot;, &amp;quot;description&amp;quot;=&amp;gt;&amp;quot;商品の説明&amp;quot;, &amp;quot;price&amp;quot;=&amp;gt;&amp;quot;100&amp;quot;}&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;product_params&lt;/span&gt;
+      params.require(&lt;span class=&quot;synConstant&quot;&gt;:product&lt;/span&gt;).permit(&lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:description&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:price&lt;/span&gt;)
+
+      &lt;span class=&quot;synComment&quot;&gt;# 配列も取得したい場合は、次のように記載します。&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;# params.require(:product)&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;#       .permit(:name, :description, :price, :cateogory_ids =&amp;gt; [])&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+以上です。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails3 レシピブック 190の技&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/rails/strong_parameters&quot;&gt;rails/strong_parameters &amp;middot; GitHub&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Wed, 26 Nov 2014 23:40:48 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450074927760</guid>
+          
+            <category>Rails初級</category>
+          
+            <category>Rails Controller</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>よく忘れるRailsのコントローラーでのrenderメソッドのレシピ集</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20141125/1416918957</link>
+          <description>&lt;p&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;のコントローラーでの&lt;code&gt;render&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;の使い方について説明します。&lt;br /&gt;
+&lt;code&gt;render&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;は、「コントローラー(Controller)」と「ビュー(View)」のそれぞれにあります。&lt;br /&gt;
+ここではコントローラーのrender&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;の使い方を示します。&lt;br /&gt;
+ビューでのrender&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;の使い方は &lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20140807/1407419013&quot; target=&quot;_blank&quot;&gt;こちら&lt;/a&gt;を参照してください。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt; 4.1&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;#render-ctrl-render-desc&quot;&gt;1. ビューを表示する&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;#render-ctrl-render&quot;&gt;1.1. 暗黙的なビューの表示する&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#render-ctrl-render-action&quot;&gt;1.2. 他のアクションのビューを表示する(actionオプション)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#render-ctrl-render-temp&quot;&gt;1.3. 他のコントローラーのビューを表示する(templateオプション)&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#render-ctrl-json-desc&quot;&gt;2. JSONを返す&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;#render-ctrl-json-render&quot;&gt;2.1. renderメソッド&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#render-ctrl-json-jbuilder&quot;&gt;2.2. jbuilder&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#render-ctrl-json-serializer&quot;&gt;2.3. ActiveModelSerializer&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#render-ctrl-not-view&quot;&gt;3. ビュー以外を表示する&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;#render-ctrl-render-text&quot;&gt;3.1. 文字列を表示する(textオプション)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#render-ctrl-render-xml&quot;&gt;3.2. XMLを返す(xmlオプション)&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#render-ctrl-only-status-code&quot;&gt;4. ステータスコードのみを返す&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#render-ctrl-respond-to&quot;&gt;5. リクエストの種類に応じて、レスポンスのフォーマットを変更する&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#render-ctrl-render-to-string&quot;&gt;6. テンプレートを文字列として取得する(デバッグなどで使える)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#render-ctrl-status-code&quot;&gt;7. よく使うステータスコード&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;render-ctrl-render-desc&quot;&gt;1. ビューを表示する&lt;/h4&gt;&lt;h4 id=&quot;render-ctrl-render&quot;&gt;1.1. 暗黙的なビューの表示する&lt;/h4&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;はコントローラ名と&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;名からrender&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;を記載しなくても自動的に&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%EC%A5%F3%A5%C0%A5%EA%A5%F3%A5%B0&quot;&gt;レンダリング&lt;/a&gt;するビューを特定します。&lt;br /&gt;
+&lt;b&gt;ルールは「app/views/コントローラ名/&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;名.html.erb」を呼び出します。&lt;/b&gt;&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/products_controller.rb&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# GET /products&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# 暗黙的に「app/views/products/index.html.erb」を呼び出す&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;index&lt;/span&gt;  &lt;span class=&quot;synComment&quot;&gt;# indexはアクション名&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;@products&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.all
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4 id=&quot;render-ctrl-render-action&quot;&gt;1.2. 他のアクションのビューを表示する(actionオプション)&lt;/h4&gt;actionオプションを指定することにより、 &lt;b&gt;同じコントローラー内&lt;/b&gt;のビューファイルを明示的に指定することができます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/products_controller.rb&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# GET /products&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# renderメソッドは、「app/views/products/new.html.erb」を呼び出す&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;index&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;@products&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.all
+  render &lt;span class=&quot;synConstant&quot;&gt;action&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:new&lt;/span&gt;  &lt;span class=&quot;synComment&quot;&gt;# 引数は :new のようなシンボルでも、&#39;new&#39; のような文字列でも良い&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;layoutオプションを指定することで、レイアウトファイルを指定することができます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# special_layoutというレイアウトを使用して、new.html.erbテンプレートを表示する&lt;/span&gt;
+render &lt;span class=&quot;synConstant&quot;&gt;action&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:new&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;layout&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:special_layout&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# レイアウトを表示しないで、new.html.erbテンプレートのみを表示する&lt;/span&gt;
+render &lt;span class=&quot;synConstant&quot;&gt;action&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:new&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;layout&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# レイアウトを指定しない場合は、コントローラーのデフォルトのレイアウトが使われて、&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# new.html.erbテンプレートを表示する&lt;/span&gt;
+render &lt;span class=&quot;synConstant&quot;&gt;action&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:new&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4 id=&quot;render-ctrl-render-temp&quot;&gt;1.3. 他のコントローラーのビューを表示する(templateオプション)&lt;/h4&gt;&lt;b&gt;他のコントローラー&lt;/b&gt;のビューファイルを呼び出すためには、&lt;code&gt;template&lt;/code&gt;オプションを利用します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/views/welcome/index.html.erb を表示する&lt;/span&gt;
+render &lt;span class=&quot;synConstant&quot;&gt;template&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;welcome/index&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;render-ctrl-json-desc&quot;&gt;2. &lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/JSON&quot;&gt;JSON&lt;/a&gt;を返す&lt;/h4&gt;&lt;h4 id=&quot;render-ctrl-json-render&quot;&gt;2.1. render&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;&lt;/h4&gt;render&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;に&lt;code&gt;json&lt;/code&gt;オプションを追加すると&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/JSON&quot;&gt;JSON&lt;/a&gt;としてレスポンスを返します。&lt;br /&gt;
+指定したオブジェクトに&lt;code&gt;to_json&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;があれば、自動的に&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/JSON&quot;&gt;JSON&lt;/a&gt;形式に変換して返します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;index&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;@products&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.all
+  render &lt;span class=&quot;synConstant&quot;&gt;json&lt;/span&gt;: &lt;span class=&quot;synIdentifier&quot;&gt;@products&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/JSON&quot;&gt;JSON&lt;/a&gt;形式として次のように返されます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;[
+  {&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;:&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;,&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;:&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;ジュース&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;description&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;:&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;おいしいジュース&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;price&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;:&lt;span class=&quot;synConstant&quot;&gt;100&lt;/span&gt;,&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;created_at&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;:&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;2014-11-23T07:12:19.942Z&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;updated_at&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;:&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;2014-11-23T07:12:19.942Z&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;},
+  {&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;:&lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;,&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;:&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;ハンバーガー&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;description&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;:&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;普通のハンバーガー&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;price&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;:&lt;span class=&quot;synConstant&quot;&gt;120&lt;/span&gt;,&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;created_at&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;:&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;2014-11-23T07:12:31.892Z&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;updated_at&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;:&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;2014-11-23T07:12:31.892Z&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;}
+]
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4 id=&quot;render-ctrl-json-jbuilder&quot;&gt;2.2. &lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/jbuilder&quot;&gt;jbuilder&lt;/a&gt;&lt;/h4&gt;また、Rails4.1には&lt;code&gt;jbuilder&lt;/code&gt;というgemがデフォルトで入っており、テンプレートファイルで&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/JSON&quot;&gt;JSON&lt;/a&gt;を生成することができます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/views/products/index.json.jbuilder&lt;/span&gt;
+
+json.array!(&lt;span class=&quot;synIdentifier&quot;&gt;@products&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;product&lt;/span&gt;|
+  json.extract! product, &lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:description&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:price&lt;/span&gt;
+  json.url product_url(product, &lt;span class=&quot;synConstant&quot;&gt;format&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:json&lt;/span&gt;)
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;code&gt;localhost:3000/products.json&lt;/code&gt;にアクセすると次のように結果が表示されます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;[
+  {&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;:&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;,&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;:&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;ジュース&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;description&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;:&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;おいしいジュース&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;price&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;:&lt;span class=&quot;synConstant&quot;&gt;100&lt;/span&gt;,&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;:&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;http://localhost:3000/products/1.json&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;},
+  {&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;:&lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;,&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;:&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;ハンバーガー&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;description&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;:&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;普通のハンバーガー&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;price&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;:&lt;span class=&quot;synConstant&quot;&gt;120&lt;/span&gt;,&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;:&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;http://localhost:3000/products/2.json&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;}
+]
+&lt;/pre&gt;&lt;p&gt;&lt;h4 id=&quot;render-ctrl-json-serializer&quot;&gt;2.3. ActiveModelSerializer&lt;/h4&gt;&lt;a href=&quot;https://github.com/rails-api/active_model_serializers&quot;&gt;active_model_serializer&lt;/a&gt;というgemによりモデルのように定義することで&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/JSON&quot;&gt;JSON&lt;/a&gt;を返すこともできます。&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;render-ctrl-not-view&quot;&gt;3. ビュー以外を表示する&lt;/h4&gt;&lt;h4 id=&quot;render-ctrl-render-text&quot;&gt;3.1. 文字列を表示する(textオプション)&lt;/h4&gt;render&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;に&lt;code&gt;text&lt;/code&gt;オプションを指定することで、テンプレートではなく、文字列を直接表示することが可能です。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;render &lt;span class=&quot;synConstant&quot;&gt;text&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Hello, world!&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141123/20141123165933.png&quot; alt=&quot;f:id:nipe880324:20141123165933p:plain:w240&quot; title=&quot;f:id:nipe880324:20141123165933p:plain:w240&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:240px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;デフォルトではレイアウトは適用されていません。レイアウトを適用するには、&lt;code&gt;layout: true&lt;/code&gt;を指定します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;render &lt;span class=&quot;synConstant&quot;&gt;text&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Hello, world!&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;layout&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4 id=&quot;render-ctrl-render-xml&quot;&gt;3.2. &lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/XML&quot;&gt;XML&lt;/a&gt;を返す(&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/xml&quot;&gt;xml&lt;/a&gt;オプション)&lt;/h4&gt;render&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;に&lt;code&gt;xml&lt;/code&gt;オプションを指定することで、テンプレートではなく、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/XML&quot;&gt;XML&lt;/a&gt;を返すことが可能です。&lt;br /&gt;
+&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/XML&quot;&gt;XML&lt;/a&gt;の表示には、&lt;code&gt;to_xml&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;が用いられます。また、Content-Typeは&lt;b&gt;application/&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/xml&quot;&gt;xml&lt;/a&gt;; charset=&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/utf-8&quot;&gt;utf-8&lt;/a&gt;&lt;/b&gt;です。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;index&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;@products&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.all
+  render &lt;span class=&quot;synConstant&quot;&gt;xml&lt;/span&gt;: &lt;span class=&quot;synIdentifier&quot;&gt;@products&lt;/span&gt;  &lt;span class=&quot;synComment&quot;&gt;# @products.to_xml の結果が返される&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;次にように&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/XML&quot;&gt;XML&lt;/a&gt;が返されます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141123/20141123165935.png&quot; alt=&quot;f:id:nipe880324:20141123165935p:plain:w480&quot; title=&quot;f:id:nipe880324:20141123165935p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;render-ctrl-only-status-code&quot;&gt;4. &lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B9%A5%C6%A1%BC%A5%BF%A5%B9%A5%B3%A1%BC%A5%C9&quot;&gt;ステータスコード&lt;/a&gt;のみを返す&lt;/h4&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;として動作するアクションなどでは、レスポンスの本文は省略し、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B9%A5%C6%A1%BC%A5%BF%A5%B9%A5%B3%A1%BC%A5%C9&quot;&gt;ステータスコード&lt;/a&gt;のみで成功/失敗を伝えれば良い時があります。&lt;br /&gt;
+そういう場合は、&lt;code&gt;head&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;を使います。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;head &lt;span class=&quot;synConstant&quot;&gt;200&lt;/span&gt;   &lt;span class=&quot;synComment&quot;&gt;# 200を返す&lt;/span&gt;
+head &lt;span class=&quot;synConstant&quot;&gt;:ok&lt;/span&gt;   &lt;span class=&quot;synComment&quot;&gt;# 200を返す&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;第2引数にパラメーターを指定すると、HTTPヘッダの内容を指定できます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# createdは201コード。locationヘッダも指定しリソースが作られたことを伝えるために使われる&lt;/span&gt;
+head &lt;span class=&quot;synConstant&quot;&gt;:created&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;location&lt;/span&gt;: product_path(&lt;span class=&quot;synIdentifier&quot;&gt;@person&lt;/span&gt;)
+&lt;/pre&gt;&lt;p&gt;例外を除去するために、次のようにすることも可能です。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; head(&lt;span class=&quot;synConstant&quot;&gt;:method_not_allowed&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;unless&lt;/span&gt; request.post?
+&lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; head(&lt;span class=&quot;synConstant&quot;&gt;:bad_request&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;unless&lt;/span&gt; valid_request?
+render
+&lt;/pre&gt;&lt;p&gt;&lt;i&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B9%A5%C6%A1%BC%A5%BF%A5%B9%A5%B3%A1%BC%A5%C9&quot;&gt;ステータスコード&lt;/a&gt;については、「&lt;a href=&quot;#&quot;&gt;良く使うステータスコード一覧&lt;/a&gt;」を参照してください。&lt;/i&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;render-ctrl-respond-to&quot;&gt;5. リクエストの種類に応じて、レスポンスのフォーマットを変更する&lt;/h4&gt;&lt;code&gt;resopnd_to&lt;/code&gt;を使うことで、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/JSON&quot;&gt;JSON&lt;/a&gt;形式や&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/XML&quot;&gt;XML&lt;/a&gt;などの形式でデータを返すことができます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/products_controller.rb&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 下記のリクエストに応じて、それぞれの形式でレスポンスを返す&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# GET /products/1&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# GET /products/1.json&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# GET /products/1.xml&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# GET /products/1.yaml&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;show&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;@product&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.find(params[&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;)
+
+  respond_to &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;format&lt;/span&gt;|
+    format.html &lt;span class=&quot;synComment&quot;&gt;# show.html.erb&lt;/span&gt;
+    format.json { render &lt;span class=&quot;synConstant&quot;&gt;json&lt;/span&gt;: &lt;span class=&quot;synIdentifier&quot;&gt;@product&lt;/span&gt; } &lt;span class=&quot;synComment&quot;&gt;# JSON形式&lt;/span&gt;
+    format.xml  { render &lt;span class=&quot;synConstant&quot;&gt;xml&lt;/span&gt;:  &lt;span class=&quot;synIdentifier&quot;&gt;@product&lt;/span&gt; } &lt;span class=&quot;synComment&quot;&gt;# XML形式&lt;/span&gt;
+    format.yaml { render &lt;span class=&quot;synConstant&quot;&gt;text&lt;/span&gt;: &lt;span class=&quot;synIdentifier&quot;&gt;@product&lt;/span&gt;.to_yaml } &lt;span class=&quot;synComment&quot;&gt;# YAML形式&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;render-ctrl-render-to-string&quot;&gt;6. テンプレートを文字列として取得する(&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%C7%A5%D0%A5%C3%A5%B0&quot;&gt;デバッグ&lt;/a&gt;などで使える)&lt;/h4&gt;テンプレートの処理結果を画面に表示せず、文字列として取得したい場合は、&lt;code&gt;render_to_string&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;を使います。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# index.html&lt;/span&gt;
+html_str = render_to_string &lt;span class=&quot;synConstant&quot;&gt;action&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:index&lt;/span&gt;
+p html_str
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;&amp;lt;!DOCTYPE html&amp;gt;\n&amp;lt;html&amp;gt;\n&amp;lt;head&amp;gt;\n  ...&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;render-ctrl-status-code&quot;&gt;7. よく使う&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B9%A5%C6%A1%BC%A5%BF%A5%B9%A5%B3%A1%BC%A5%C9&quot;&gt;ステータスコード&lt;/a&gt;&lt;/h4&gt;&lt;table&gt;
+&lt;thead&gt;
+  &lt;tr&gt;
+    &lt;th&gt;Code&lt;/th&gt;&lt;th&gt;シンボル&lt;/th&gt;&lt;th&gt;説明&lt;/th&gt;
+  &lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+  &lt;tr&gt;
+    &lt;td&gt;200&lt;/td&gt;&lt;td&gt;:ok&lt;/td&gt;&lt;td&gt;レスポンスが正常に終了した&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;201&lt;/td&gt;&lt;td&gt;:created&lt;/td&gt;&lt;td&gt;createなどのアクションの結果などでリソースが正常に作成された。作成されたリソースに対するlocationヘッダも指定する&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;302&lt;/td&gt;&lt;td&gt;:found&lt;/td&gt;&lt;td&gt;他のURLへのリダイレクトを示す。redirect_to&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;が内部的に使っていて明示的に使うことは少ない&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;400&lt;/td&gt;&lt;td&gt;:bad_request&lt;/td&gt;&lt;td&gt;リクエストチェックをした結果、不正だった&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;401&lt;/td&gt;&lt;td&gt;:unauthorized&lt;/td&gt;&lt;td&gt;認証に失敗した&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;403&lt;/td&gt;&lt;td&gt;:forbidden&lt;/td&gt;&lt;td&gt;アクセスが禁止されている&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;404&lt;/td&gt;&lt;td&gt;:not_found&lt;/td&gt;&lt;td&gt;対象のURLやリソースが存在しない&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;406&lt;/td&gt;&lt;td&gt;:not_acceptable&lt;/td&gt;&lt;td&gt;指定されたフォーマットでレスポンスを返せない。respond_toの指定ミスなどで起こる&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;422&lt;/td&gt;&lt;td&gt;:unprocessable_entity&lt;/td&gt;&lt;td&gt;バリデーションエラーなど&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;500&lt;/td&gt;&lt;td&gt;:internal_server_&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/error&quot;&gt;error&lt;/a&gt;&lt;/td&gt;&lt;td&gt;サーバー側が現認のシステムエラーが発生した&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;503&lt;/td&gt;&lt;td&gt;:service_unavailable&lt;/td&gt;&lt;td&gt;メンテナンスや高負荷など&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;以上です。&lt;br /&gt;
+なにかありましたら、コメントいただけると嬉しいです。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails3 レシピブック 190の技&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Tue, 25 Nov 2014 21:35:57 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450074922359</guid>
+          
+            <category>Rails初級</category>
+          
+            <category>Rails Controller</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>Railsでビューのレイアウトを指定する</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20140810/1407603600</link>
+          <description>&lt;p&gt;Railsのレイアウトファイルの使い方について説明します。&lt;/p&gt;&lt;p&gt;ページのヘッダー、ナビゲーションバー、フッターなどの大枠はRailsアプリを通して共通になるのが一般的です。&lt;/p&gt;&lt;p&gt;Railsではこのような共通の枠組みを記載したファイルを「&lt;b&gt;レイアウトファイル&lt;/b&gt;」と呼び、&lt;code&gt;app/views/layouts&lt;/code&gt;配下に配置します。&lt;/p&gt;&lt;p&gt;また、コントローラーやアクションで個別で指定したり、レイアウトファイルを非表示にしたり、レイアウトファイルに動的データを渡すことができます。&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#ctrl-default-layout&quot;&gt;デフォルトのレイアウトファイル&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#ctrl-indicate-layout&quot;&gt;レイアウトファイルを指定&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#ctrl-pass-data&quot;&gt;レイアウトファイルにデータを渡す&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;ctrl-default-layout&quot;&gt;1. デフォルトのレイアウトファイル&lt;/h3&gt;デフォルトでは、「&lt;b&gt;app/views/layouts/application.html.erb&lt;/b&gt;」がレイアウトファイルとして使われます。&lt;br /&gt;
+そして、&lt;code&gt;yield&lt;/code&gt;の箇所が各コントローラーで表示するテンプレートが表示されます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/layouts/application.html.erb
+&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!DOCTYPE html&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;html&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;head&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;title&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;ControllerTest&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;title&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; stylesheet_link_tag&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;    &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;application&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;media&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;all&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;data-turbolinks-track&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; =&amp;gt;&lt;/span&gt;&lt;span class=&quot;synPreProc&quot;&gt; true %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; javascript_include_tag&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;application&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;data-turbolinks-track&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; =&amp;gt;&lt;/span&gt;&lt;span class=&quot;synPreProc&quot;&gt; true %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; csrf_meta_tags&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;head&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; yield&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;html&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;ctrl-indicate-layout&quot;&gt;2. レイアウトファイルを指定&lt;/h3&gt;コントローラーに&lt;code&gt;layout&lt;/code&gt;宣言をすることで、&lt;b&gt;コントローラーが使うレイアウトを指定すること&lt;/b&gt;ができます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/products_controller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ProductsController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# app/views/layouts/special_layout.html.erbをレイアウトファイルとして使う&lt;/span&gt;
+  layout &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;special_layout&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# except(除く)やonly(のみ)を使うことで、レイアウトを指定するアクションを絞ることができる&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# layout &amp;quot;special_layout&amp;quot;, except: [:new, :edit]&lt;/span&gt;
+  ...
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+また、renderメソッドの&lt;code&gt;layout&lt;/code&gt;オプションを指定することで、アクション内でレイアウトを指定できる。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;index&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;@products&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.all
+
+  &lt;span class=&quot;synComment&quot;&gt;# special_layoutで、index.html.erbを表示する&lt;/span&gt;
+  render &lt;span class=&quot;synConstant&quot;&gt;:index&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;layout&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;special_layout&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# レイアウトを使わないで、index.html.erbを表示する&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# render :index, layout: false&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;ctrl-pass-data&quot;&gt;3. レイアウトファイルにデータを渡す&lt;/h3&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;レイアウトファイル内では、テンプレートファイルで使用できるインスタンス変数やセッションデータなどすべてのデータにアクセスできます。&lt;/li&gt;
+&lt;li&gt;さらに、テンプレートファイルで設定されたインスタンス変数にもアクセスすることができます。&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;これを利用することで、ヘッダー、サイドバー、フッターにページ固有のHTMLを表示することができます。&lt;br /&gt;
+よくある例として、「ページ固有のタイトル表示」、「ページ固有のコンテンツ表示」の仕方を説明します。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;ページ固有のタイトルを表示する&lt;/h4&gt;
+    &lt;p&gt;まず、個々のテンプレートファイルで&lt;code&gt;provide&lt;/code&gt;メソッドでタイトルを設定します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# テンプレートファイル
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; provide(:title,&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;個別タイトル&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;) %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;個別タイトル&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+...
+&lt;/pre&gt;&lt;p&gt;レイアウトファイルでは設定された値を&lt;code&gt;yeild&lt;/code&gt;で表示します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# レイアウトファイル
+&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!DOCTYPE html&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;html&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;head&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- 「Sample Application | 個別タイトル」とタイトルに表示される --&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;title&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Sample Application | &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; yield(:title)&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;title&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; stylesheet_link_tag&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;    &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;application&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;media&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;all&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;data-turbolinks-track&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; =&amp;gt;&lt;/span&gt;&lt;span class=&quot;synPreProc&quot;&gt; true %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; javascript_include_tag&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;application&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;data-turbolinks-track&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; =&amp;gt;&lt;/span&gt;&lt;span class=&quot;synPreProc&quot;&gt; true %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; csrf_meta_tags&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;head&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+...
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;ページ固有のコンテンツを表示する&lt;/h4&gt;
+    &lt;p&gt;まず、個々のテンプレートファイルで&lt;code&gt;content_for&lt;/code&gt;メソッドでコンテンツを作成します。&lt;br /&gt;
+ここでは、サイドバーの表示を設定しています。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# テンプレートファイル
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;テンプレートファイル&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; content_for(:sidebar)&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;  do %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;li&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;このリストはこのテンプレートが表示された&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;li&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;li&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;ときだけ表示されます。&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;li&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% end %&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;レイアウトファイルでは設定されたコンテンツを&lt;code&gt;yeild&lt;/code&gt;で表示します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# レイアウトファイル
+...
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;head&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;main&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; yield&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;sidebar&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;ul&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;li&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;全てのページに表示されるリスト項目&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;li&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- テンプレートファイルに定義した sidebar が表示されます。&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;             設定されていない場合はこのli要素は表示されせん --&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; yield(:sidebar)&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;ul&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;html&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+以上です。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;RailsによるアジャイルWebアプリケーション開発 第4版&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Sun, 10 Aug 2014 02:00:00 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/12921228815729872238</guid>
+          
+            <category>Rails初級</category>
+          
+            <category>Rails Controller</category>
+          
+            <category>Rails View</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>Railsでリダイレクトをするredirect_toメソッドの使い方</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20140808/1407427457</link>
+          <description>&lt;p&gt;Railsのコントローラーで他のURLにリダイレクトをするには、&lt;code&gt;redirect_to&lt;/code&gt;メソッドを使います。&lt;br /&gt;
+リダイレクト(redirect_toメソッド)とレンダー(renderメソッド)の使い分け、&lt;code&gt;redirect_to&lt;/code&gt;メソッドの使い方について説明します。&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;リダイレクトとは&lt;/li&gt;
+&lt;li&gt;いつリダイレクト(&lt;code&gt;redirect_to()&lt;/code&gt;)し、いつレンダー(&lt;code&gt;render()&lt;/code&gt;)をするか&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;redirect_to&lt;/code&gt;メソッドの使い方&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;1. リダイレクトとは&lt;/h3&gt;
+    &lt;p&gt;HTTPリダイレクトは、「サーバがブラウザからアクセスされたリクエスト(URL)を処理できないけど、できるURLを教えるからそっちへアクセスして」という挙動です。&lt;br /&gt;
+具体的には、サーバからブラウザにレスポンスとして&lt;b&gt;「リダイレクト先のURL + 永続的（ステータスコード 301）か一時的（ステータスコード 307）かを示すステータス情報」&lt;/b&gt;が返され、ブラウザはそのリダイレクト先のURLに自動でアクセスします。そのため、ユーザからはリダイレクトしているかどうかはほぼ画面表示からだけでは分かりません。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;2. いつリダイレクト(&lt;code&gt;redirect_to&lt;/code&gt;)し、いつレンダー(&lt;code&gt;render&lt;/code&gt;)をするか&lt;/h3&gt;
+    &lt;p&gt;基本的に、&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;データを追加、更新、削除するときは、&lt;b&gt;「リダイレクト」&lt;/b&gt;&lt;/li&gt;
+&lt;li&gt;データの取得して表示するときは、&lt;b&gt;「レンダー」&lt;/b&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;をします。&lt;/p&gt;&lt;p&gt;具体的なソースコードを見てみましょう。&lt;br /&gt;
+下記は商品登録画面で「登録」ボタンを押されたときの処理です。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt; &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;: &lt;span class=&quot;synComment&quot;&gt;# POST /products&lt;/span&gt;
+ &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;: &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;create&lt;/span&gt;
+ &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;:   &lt;span class=&quot;synIdentifier&quot;&gt;@product&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.new(product_params)
+ &lt;span class=&quot;synConstant&quot;&gt;4&lt;/span&gt;: 
+ &lt;span class=&quot;synConstant&quot;&gt;5&lt;/span&gt;:   &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;@product&lt;/span&gt;.save  &lt;span class=&quot;synComment&quot;&gt;# productの保存に成功した場合、商品詳細画面にリダイレクト&lt;/span&gt;
+ &lt;span class=&quot;synConstant&quot;&gt;6&lt;/span&gt;:       redirect_to &lt;span class=&quot;synIdentifier&quot;&gt;@product&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;notice&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;商品を登録しました。&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+ &lt;span class=&quot;synConstant&quot;&gt;7&lt;/span&gt;:   &lt;span class=&quot;synStatement&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# productの保存に失敗した場合、商品登録画面をレンダリング&lt;/span&gt;
+ &lt;span class=&quot;synConstant&quot;&gt;8&lt;/span&gt;:       render &lt;span class=&quot;synConstant&quot;&gt;:new&lt;/span&gt;
+ &lt;span class=&quot;synConstant&quot;&gt;9&lt;/span&gt;:   &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;10&lt;/span&gt;: &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;上記のソースコードでは、６行目でデータの追加（商品の登録）がされたときにリダイレクトしています。&lt;br /&gt;
+もし、ここでリダイレクトの代わりにレンダリング（renderメソッド）だったらどうなるでしょうか。&lt;/p&gt;&lt;p&gt;ユーザが遷移先のページでブラウザの更新ボタン（F5）を押した場合、ブラウザが前回と同様のアクセス（POST /products）を繰り返してしまうので、createアクションが実行され、同じ商品がデータベースに登録されてしまいます。&lt;br /&gt;
+ECサイトの商品購入時にこのようなことが起こったら、余計な代金を払わないといけないことになって大変です。&lt;/p&gt;&lt;p&gt;そのため、リダイレクトをしています。リダイレクトをすることにより、前回のアクセスが商品の詳細画面への遷移（GET /products/:id）になるので、更新ボタンを押しても、商品データが重複してデータベースに登録されてしまうという問題は発生しません。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;3. &lt;code&gt;redirect_to&lt;/code&gt;メソッドの使い方&lt;/h3&gt;
+    
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;URLにリダイレクト&lt;/h4&gt;
+    &lt;p&gt;指定したパスにリダイレクトします。&lt;br /&gt;
+このとき、&lt;code&gt;*_path&lt;/code&gt;ではなく&lt;code&gt;*_url&lt;/code&gt;を使います。&lt;br /&gt;
+さらに、notice, alertというオプションが使え、flash[:notice]、flash[:alert]に値を設定できます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# flash[:notice]にメッセージを設定し、products_urlにリダイレクトする&lt;/span&gt;
+redirect_to products_url, &lt;span class=&quot;synConstant&quot;&gt;notice&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;noticeメッセージ&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# flash[:alert]にメッセージを設定し、products_urlにリダイレクトする&lt;/span&gt;
+redirect_to products_url, &lt;span class=&quot;synConstant&quot;&gt;alert&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;alertメッセージ&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 商品の詳細画面にリダイレクトする&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# Railsは@productを、商品の詳細画面へのURLに自動で変換する&lt;/span&gt;
+redirect_to &lt;span class=&quot;synIdentifier&quot;&gt;@product&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;参照元にリダイレクト&lt;/h4&gt;
+    &lt;p&gt;リクエスト内のRefererヘッダ（HTTP_REFERER）で指定されたURLにリダイレクトします。&lt;br /&gt;
+基本的にはRefererヘッダには前回アクセスしたURLが格納されています。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;redirect_to(&lt;span class=&quot;synConstant&quot;&gt;:back&lt;/span&gt;)
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;永続的なリダイレクト&lt;/h4&gt;
+    &lt;p&gt;デフォルトではすべてのリダイレクトが一時的なもの（ステータスコード 307）です。&lt;br /&gt;
+サイト移動など永続的なリダイレクトを実施したい場合は、ステータスコードを指定する必要があります。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;redirect_to(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;http://new.home&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;status&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;301&lt;/span&gt;)
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+以上です。&lt;br /&gt;
+よくわからない箇所や間違っている箇所がありましたら、コメント頂けると助かります。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;/div&gt;</description>
+          <pubDate>Fri, 08 Aug 2014 01:04:17 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/12921228815729801985</guid>
+          
+            <category>Rails初級</category>
+          
+            <category>Rails Controller</category>
+          
+        </item>
+      
+    
+  </channel>
+</rss>

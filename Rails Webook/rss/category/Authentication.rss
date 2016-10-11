@@ -1,0 +1,533 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>Authentication - Rails Webook</title>
+    <link>http://ruby-rails.hatenadiary.com/category/Authentication</link>
+    <description>自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</description>
+    <lastBuildDate>Fri, 18 Dec 2015 02:44:31 +0900</lastBuildDate>
+    <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+    <generator>Hatena::Blog</generator>
+    
+      
+      
+        <item>
+          <title>Rails4でDeviseを使ってゲスト(Guest)ユーザーを作成する</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20141212/1418380288</link>
+          <description>&lt;p&gt;ユーザーエクスペリエンスを向上させるために、ユーザー情報を登録しなくてもゲストユーザー(Guest)機能を実装し、個人情報を入力しなくてもゲストユーザーとしてアプリを使えるようにしてみます。&lt;br /&gt;
+認証機能には&lt;a href=&quot;https://github.com/plataformatec/devise&quot;&gt;Devise&lt;/a&gt;というgemを使って実装します。&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;li&gt;Devise 3.3.0&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#devise-guest-install-devise&quot;&gt;Deviseでユーザー認証&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#devise-guest-crate-todolist&quot;&gt;簡易なToDoアプリを作成&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#devise-guest-add-guest&quot;&gt;ゲストユーザー機能の作成&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;devise-guest-install-devise&quot;&gt;1. Deviseでユーザー認証&lt;/h3&gt;他の記事でDeviseのインストールについて細かく記載しているので、ここではパパッとDeviseをインストールし、認証機能を追加します。&lt;br /&gt;
+Railsプロジェクトを作成&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rails new guest_with_devise_test
+cd guest_with_devise_test&lt;/pre&gt;&lt;p&gt;welcomeページとコントローラーを作成&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rails g controller welcome index&lt;/pre&gt;&lt;p&gt;deviseをインストール&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;echo &amp;#34;gem &amp;#39;devise&amp;#39;&amp;#34; &amp;gt;&amp;gt; Gemfile
+bundle install
+rails g devise:install&lt;/pre&gt;&lt;p&gt;deviseの設定&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# config/environments/development.rb&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt;.application.configure &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# devise&lt;/span&gt;
+  config.action_mailer.default_url_options = { &lt;span class=&quot;synConstant&quot;&gt;host&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;localhost:3000&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; }
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# config/routes.rb&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt;.application.routes.draw &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  root &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;welcome#index&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# app/views/layouts/application.html.erb&lt;/span&gt;
+...
+&amp;lt;body&amp;gt;
+&amp;lt;p &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt;=&amp;quot;notice&amp;quot;&amp;gt;&amp;lt;%= notice %&amp;gt;&amp;lt;/p&amp;gt;
+&amp;lt;p &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt;=&amp;quot;alert&amp;quot;&amp;gt;&amp;lt;%= alert %&amp;gt;&amp;lt;/p&amp;gt;
+
+&amp;lt;%= &lt;span class=&quot;synStatement&quot;&gt;yield&lt;/span&gt; %&amp;gt;
+
+&amp;lt;/body&amp;gt;
+&amp;lt;/html&amp;gt;
+&lt;/pre&gt;&lt;p&gt;deviseでUserモデルの作成&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rails g devise User username:string
+rake db:migrate&lt;/pre&gt;&lt;p&gt;レイアウトファイルにヘッダーの追加&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/layouts/application.html.erb
+...
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;header&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;nav&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% if user_signed_in? %&amp;gt;&lt;/span&gt;
+      Logged in as &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; current_user.email&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;.
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;プロフィール変更&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, edit_user_registration_path %&amp;gt;&lt;/span&gt; |
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;ログアウト&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, destroy_user_session_path, &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;method&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;: :delete %&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% else %&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;ユーザー登録&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, new_user_registration_path %&amp;gt;&lt;/span&gt; |
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;ログイン&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, new_user_session_path %&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% end %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;nav&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;header&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;notice&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; notice&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;alert&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; alert&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; yield&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;html&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;ユーザ名(username)を表示するようにする。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;rails g devise&lt;span class=&quot;synConstant&quot;&gt;:views&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 下記の2つのファイルにusername入力欄を追加する&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# - app/views/devise/registrations/edit.html.erb&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# - app/views/devise/registrations/new.html.erb&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# username入力欄&lt;/span&gt;
+&amp;lt;div&amp;gt;&amp;lt;%= f.label &lt;span class=&quot;synConstant&quot;&gt;:username&lt;/span&gt; %&amp;gt;&amp;lt;br &lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;&amp;lt;%= f&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;.&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;text_field :username %&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;div&amp;gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;# DeviseのStrongParametersにusernameを許可するように追加する&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActionController&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  ...
+
+  before_action &lt;span class=&quot;synConstant&quot;&gt;:configure_permitted_parameters&lt;/span&gt;, &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:devise_controller?&lt;/span&gt;
+
+  &lt;span class=&quot;synStatement&quot;&gt;protected&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;configure_permitted_parameters&lt;/span&gt;
+      devise_parameter_sanitizer.for(&lt;span class=&quot;synConstant&quot;&gt;:sign_in&lt;/span&gt;) &amp;lt;&amp;lt; &lt;span class=&quot;synConstant&quot;&gt;:username&lt;/span&gt;
+      devise_parameter_sanitizer.for(&lt;span class=&quot;synConstant&quot;&gt;:sign_up&lt;/span&gt;) &amp;lt;&amp;lt; &lt;span class=&quot;synConstant&quot;&gt;:username&lt;/span&gt;
+      devise_parameter_sanitizer.for(&lt;span class=&quot;synConstant&quot;&gt;:account_update&lt;/span&gt;) &amp;lt;&amp;lt; &lt;span class=&quot;synConstant&quot;&gt;:username&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;サーバーを起動して画面を確認する&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rails s&lt;/pre&gt;&lt;p&gt;ユーザー登録を行いログインができました。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141125/20141125010723.png&quot; alt=&quot;f:id:nipe880324:20141125010723p:plain:w380&quot; title=&quot;f:id:nipe880324:20141125010723p:plain:w380&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:380px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;devise-guest-crate-todolist&quot;&gt;2. 簡易なToDoアプリを作成&lt;/h3&gt;ToDo Listアプリケーションの雛形をScaffoldで作成する&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Scaffoldを実行する&lt;/span&gt;
+rails g scaffold task user_id&lt;span class=&quot;synConstant&quot;&gt;:integer&lt;/span&gt; name&lt;span class=&quot;synConstant&quot;&gt;:string&lt;/span&gt; complete&lt;span class=&quot;synConstant&quot;&gt;:boolean&lt;/span&gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;# マイグレーションファイルを修正する&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# db/migrate/20141124105647_create_tasks.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;CreateTasks&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Migration&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;change&lt;/span&gt;
+    create_table &lt;span class=&quot;synConstant&quot;&gt;:tasks&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;t&lt;/span&gt;|
+      t.integer &lt;span class=&quot;synConstant&quot;&gt;:user_id&lt;/span&gt;
+      t.string &lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;# 修正箇所&lt;/span&gt;
+      t.boolean &lt;span class=&quot;synConstant&quot;&gt;:complete&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;default&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;null&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;
+
+      t.timestamps
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;# マイグレートを実施&lt;/span&gt;
+rake db&lt;span class=&quot;synConstant&quot;&gt;:migrate&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;モデルのアソシエーションを追加する&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/models/user.rb&lt;/span&gt;
+has_many &lt;span class=&quot;synConstant&quot;&gt;:tasks&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;dependent&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:destroy&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# app/models/task.rb&lt;/span&gt;
+belongs_to &lt;span class=&quot;synConstant&quot;&gt;:user&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;コントローラーを修正する。全体的にガリガリと書き直す。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/tasks_controller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;TasksController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;index&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; current_user
+      &lt;span class=&quot;synIdentifier&quot;&gt;@incomplete_tasks&lt;/span&gt; = current_user.tasks.where(&lt;span class=&quot;synConstant&quot;&gt;complete&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;)
+      &lt;span class=&quot;synIdentifier&quot;&gt;@complete_tasks&lt;/span&gt; = current_user.tasks.where(&lt;span class=&quot;synConstant&quot;&gt;complete&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;)
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;create&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@task&lt;/span&gt; = current_user.tasks.create!(task_params)
+    redirect_to tasks_url
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;update&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@task&lt;/span&gt; = current_user.tasks.find(params[&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;])
+    &lt;span class=&quot;synIdentifier&quot;&gt;@task&lt;/span&gt;.update!(task_params)
+    respond_to &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;format&lt;/span&gt;|
+      format.html { redirect_to tasks_url }
+      format.js
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;destroy&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@task&lt;/span&gt; = current_user.tasks.find(params[&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;])
+    &lt;span class=&quot;synIdentifier&quot;&gt;@task&lt;/span&gt;.destroy
+    respond_to &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;format&lt;/span&gt;|
+      format.html { redirect_to tasks_url }
+      format.js
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synStatement&quot;&gt;private&lt;/span&gt;
+
+    &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;task_params&lt;/span&gt;
+      params.require(&lt;span class=&quot;synConstant&quot;&gt;:task&lt;/span&gt;).permit(&lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:complete&lt;/span&gt;)
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;Welcomeページにアクセスした場合に、ログインしている場合は、タスク一覧画面にリダイレクトさせるようにする。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/welcome_controller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;WelcomeController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;index&lt;/span&gt;
+    redirect_to tasks_url &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; current_user
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;Welcomeページを作成する&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/welcome/index.html.erb
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;ようこそ ToDo List アプリケーションへ!&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; button_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;無料体験&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, new_user_registration_path, &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;method&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;: :get %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;既にユーザーアカウントを持っている方は &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;ログイン&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, new_user_session_path %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;一覧ページを修正する&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/tasks/index.html.erb
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;ToDo List&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; form_for&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; Task.new do |f| %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.text_field&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :&lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.submit&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;タスクを追加&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% end %&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% if @incomplete_tasks.empty? &amp;amp;&amp;amp; @complete_tasks.empty? %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Currently no tasks. Add one above.&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% else %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h2&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;未完了のタスク&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h2&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;tasks&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;incomplete_tasks&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; render&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; @incomplete_tasks %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h2&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;完了したタスク&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h2&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;tasks&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;complete_tasks&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; render&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; @complete_tasks %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% end %&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;タスクの部分テンプレートを作成する。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/tasks/_task.html.erb
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; form_for&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; task, remote: true do |f| %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.check_box&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :complete %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :complete, task.&lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;(削除)&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, task, &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;method&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;: :delete, &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;: {confirm: &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Are you sure?&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;}, remote: true %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% end %&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;Ajaxの更新処理を実装する。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/assets/javascripts/tasks.js.coffee&lt;/span&gt;
+$ -&amp;gt;
+  &lt;span class=&quot;synError&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;.edit_task input[type=checkbox]&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;).click -&amp;gt;
+    &lt;span class=&quot;synError&quot;&gt;$(&lt;/span&gt;this).parent(&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;form&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;).submit()
+
+
+&lt;span class=&quot;synComment&quot;&gt;# app/views/tasks/update.js.erb&lt;/span&gt;
+&amp;lt;% &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;@task&lt;/span&gt;.complete? %&amp;gt;
+  &lt;span class=&quot;synError&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;#edit_task_&amp;lt;%= @task.id %&amp;gt;&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;).appendTo(&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;#complete_tasks&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;);
+&amp;lt;% &lt;span class=&quot;synStatement&quot;&gt;else&lt;/span&gt; %&amp;gt;
+  &lt;span class=&quot;synError&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;#edit_task_&amp;lt;%= @task.id %&amp;gt;&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;).appendTo(&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;#incomplete_tasks&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;);
+&amp;lt;% &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt; %&amp;gt;
+&lt;/pre&gt;&lt;p&gt;Ajaxで削除処理を実装する。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/views/tasks/destroy.js.erb&lt;/span&gt;
+&lt;span class=&quot;synError&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;#edit_task_&amp;lt;%= @task.id %&amp;gt;&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;).remove();
+&lt;/pre&gt;&lt;p&gt;タスク画面のスタイルを修正する。&lt;/p&gt;
+&lt;pre class=&quot;code lang-css&quot; data-lang=&quot;css&quot; data-unlink&gt;# app/assets/stylesheets/tasks&lt;span class=&quot;synIdentifier&quot;&gt;.css.scss&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;h2&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;synType&quot;&gt;font-size&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;16px&lt;/span&gt;;
+  &lt;span class=&quot;synType&quot;&gt;margin-top&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;20px&lt;/span&gt;;
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;#incomplete_tasks&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;form&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;synType&quot;&gt;margin&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;5px&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;;
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;#complete_tasks&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;form&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;synType&quot;&gt;font-size&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;12px&lt;/span&gt;;
+  &lt;span class=&quot;synType&quot;&gt;color&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;#777&lt;/span&gt;;
+  &lt;span class=&quot;synType&quot;&gt;margin&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;3px&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;;
+  label { &lt;span class=&quot;synType&quot;&gt;text-decoration&lt;/span&gt;: &lt;span class=&quot;synType&quot;&gt;line-through&lt;/span&gt;; &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;synError&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;.edit_task&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  a {
+    &lt;span class=&quot;synType&quot;&gt;color&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;#999&lt;/span&gt;;
+    &lt;span class=&quot;synType&quot;&gt;font-size&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;12px&lt;/span&gt;;
+    &lt;span class=&quot;synType&quot;&gt;text-decoration&lt;/span&gt;: &lt;span class=&quot;synType&quot;&gt;none&lt;/span&gt;;
+    &amp;amp;:hover { &lt;span class=&quot;synType&quot;&gt;text-decoration&lt;/span&gt;: &lt;span class=&quot;synType&quot;&gt;underline&lt;/span&gt;; &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;synError&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;synError&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;.loading&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;synType&quot;&gt;margin-left&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;10px&lt;/span&gt;;
+  &lt;span class=&quot;synType&quot;&gt;color&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;#777&lt;/span&gt;;
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;では、&lt;code&gt;rails s&lt;/code&gt;でサーバーを再起動し、画面を確認してみます。&lt;br /&gt;
+タスク一覧画面でタスクの登録や更新、削除ができます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141125/20141125011515.png&quot; alt=&quot;f:id:nipe880324:20141125011515p:plain:w420&quot; title=&quot;f:id:nipe880324:20141125011515p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;しかし、現状はWelcomeページの「無料体験」ボタンを押すと、ユーザー登録画面(Sing up）に遷移してしまいます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141125/20141125011710.png&quot; alt=&quot;f:id:nipe880324:20141125011710p:plain:w420&quot; title=&quot;f:id:nipe880324:20141125011710p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;これを、ゲストユーザーを作成するようにし、アプリケーションをを使えるようにしましょう。&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;devise-guest-add-guest&quot;&gt;3. ゲストユーザー機能の作成&lt;/h3&gt;まず、Guestユーザーフラグを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# マイグレーションファイルの作成&lt;/span&gt;
+rails g migration add_guest_to_users guest&lt;span class=&quot;synConstant&quot;&gt;:boolean&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# マイグレーションファイルの修正&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# db/migrate/20141124113946_add_guest_to_users.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;AddGuestToUsers&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Migration&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;change&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# defaultはfalse（通常のユーザー）&lt;/span&gt;
+    add_column &lt;span class=&quot;synConstant&quot;&gt;:users&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:guest&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:boolean&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;default&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;# マイグレーションを実施&lt;/span&gt;
+rake db&lt;span class=&quot;synConstant&quot;&gt;:migrate&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;「無料体験」ボタンを押したらゲストユーザーをアクションを呼ぶように変更します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/welcome/index.html.erb
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; button_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;無料体験&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, welcome_guest_path %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;ルートを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# config/routes.rb&lt;/span&gt;
+post &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;welcome/guest&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;welcome#guest&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;そして、コントローラーにアクションを実装します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/welcome_controller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;guest&lt;/span&gt;
+  guest_user &lt;span class=&quot;synComment&quot;&gt;# guest_userを作成する&lt;/span&gt;
+  redirect_to tasks_url
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;さらに、ApplicationControllerにゲストユーザーの作成ロジックを記載します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/application_controller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActionController&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# Prevent CSRF attacks by raising an exception.&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# For APIs, you may want to use :null_session instead.&lt;/span&gt;
+  protect_from_forgery &lt;span class=&quot;synConstant&quot;&gt;with&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:exception&lt;/span&gt;
+
+  before_action &lt;span class=&quot;synConstant&quot;&gt;:configure_permitted_parameters&lt;/span&gt;, &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:devise_controller?&lt;/span&gt;
+
+  helper_method &lt;span class=&quot;synConstant&quot;&gt;:guest_user?&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:current_or_guest_user&lt;/span&gt;
+
+  &lt;span class=&quot;synStatement&quot;&gt;protected&lt;/span&gt;
+
+    &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;configure_permitted_parameters&lt;/span&gt;
+      devise_parameter_sanitizer.for(&lt;span class=&quot;synConstant&quot;&gt;:sign_in&lt;/span&gt;) &amp;lt;&amp;lt; &lt;span class=&quot;synConstant&quot;&gt;:username&lt;/span&gt;
+      devise_parameter_sanitizer.for(&lt;span class=&quot;synConstant&quot;&gt;:sign_up&lt;/span&gt;) &amp;lt;&amp;lt; &lt;span class=&quot;synConstant&quot;&gt;:username&lt;/span&gt;
+      devise_parameter_sanitizer.for(&lt;span class=&quot;synConstant&quot;&gt;:account_update&lt;/span&gt;) &amp;lt;&amp;lt; &lt;span class=&quot;synConstant&quot;&gt;:username&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+    &lt;span class=&quot;synComment&quot;&gt;# ログインしている場合は、 current_userを返す / していない場合は guest_user を返す&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# current_userを置き換えることにより、Guestと通常のユーザーを透過的に扱えるようになる&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;current_or_guest_user&lt;/span&gt;
+      &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; current_user
+        &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; session[&lt;span class=&quot;synConstant&quot;&gt;:guest_user_id&lt;/span&gt;] &amp;amp;&amp;amp; session[&lt;span class=&quot;synConstant&quot;&gt;:guest_user_id&lt;/span&gt;] != current_user.id
+          logging_in
+          guest_user(with_retry = &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;).try(&lt;span class=&quot;synConstant&quot;&gt;:destroy&lt;/span&gt;)
+          session[&lt;span class=&quot;synConstant&quot;&gt;:guest_user_id&lt;/span&gt;] = &lt;span class=&quot;synConstant&quot;&gt;nil&lt;/span&gt;
+        &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+        current_user
+      &lt;span class=&quot;synStatement&quot;&gt;else&lt;/span&gt;
+        guest_user
+      &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+    &lt;span class=&quot;synComment&quot;&gt;# 現在のセッションと関連づく guest_user オブジェクトを探す&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;guest_user&lt;/span&gt;(with_retry = &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;)
+      &lt;span class=&quot;synIdentifier&quot;&gt;@cached_guest_user&lt;/span&gt; ||= &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.find(session[&lt;span class=&quot;synConstant&quot;&gt;:guest_user_id&lt;/span&gt;] ||= create_guest_user.id)
+    &lt;span class=&quot;synPreProc&quot;&gt;rescue&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;RecordNotFound&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# if session[:guest_user_id] invalid&lt;/span&gt;
+       session[&lt;span class=&quot;synConstant&quot;&gt;:guest_user_id&lt;/span&gt;] = &lt;span class=&quot;synConstant&quot;&gt;nil&lt;/span&gt;
+       guest_user &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; with_retry
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+    &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;guest_user?&lt;/span&gt;
+      current_user &amp;amp;&amp;amp; current_user.guest?
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+    &lt;span class=&quot;synComment&quot;&gt;# ログインしていない、もしくは、Guestユーザーの場合、ルートにリダイレクトする&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;authenticate_no_user_or_guest!&lt;/span&gt;
+      redirect_to root_url &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; current_user.nil? || guest_user?
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+    &lt;span class=&quot;synComment&quot;&gt;# ユーザーがログインした際に一度だけ呼ばれる&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# 通常のユーザーが作成され、Guestユーザーは削除されるので、&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# Guest時に作成したデータを通常のユーザーに渡すなどの処理をする&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;logging_in&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;# taskのuser_idをGuestから通常のユーザーに移す&lt;/span&gt;
+      guest_user.move_to(current_user) 
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+    &lt;span class=&quot;synComment&quot;&gt;# Guestユーザーを作成する&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;create_guest_user&lt;/span&gt;
+      guest = &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.new_guest
+      guest.save!(&lt;span class=&quot;synConstant&quot;&gt;:validate&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;)
+      session[&lt;span class=&quot;synConstant&quot;&gt;:guest_user_id&lt;/span&gt;] = guest.id
+      guest
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;そして、UserモデルにApplicationControllerから呼ばれるメソッドを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/models/user.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# Include default devise modules. Others available are:&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# :confirmable, :lockable, :timeoutable and :omniauthable&lt;/span&gt;
+  devise &lt;span class=&quot;synConstant&quot;&gt;:database_authenticatable&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:registerable&lt;/span&gt;,
+         &lt;span class=&quot;synConstant&quot;&gt;:recoverable&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:rememberable&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:trackable&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:validatable&lt;/span&gt;
+
+  has_many &lt;span class=&quot;synConstant&quot;&gt;:tasks&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;dependent&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:destroy&lt;/span&gt;
+
+  validates &lt;span class=&quot;synConstant&quot;&gt;:username&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;presence&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;self&lt;/span&gt;.&lt;span class=&quot;synIdentifier&quot;&gt;new_guest&lt;/span&gt;
+    new &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;u&lt;/span&gt;|
+      u.username = &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Guest&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+      u.email    = &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;guest_&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;Time&lt;/span&gt;.now.to_i&lt;span class=&quot;synSpecial&quot;&gt;}#{&lt;/span&gt;rand(&lt;span class=&quot;synConstant&quot;&gt;100&lt;/span&gt;)&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;@example.com&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+      u.guest    = &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;move_to&lt;/span&gt;(user)
+    tasks.update_all(&lt;span class=&quot;synConstant&quot;&gt;user_id&lt;/span&gt;: user.id)
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;Guestユーザーのときのヘッダーの表示内容を追記します。&lt;br /&gt;
+&lt;code&gt;curret_user&lt;/code&gt;を&lt;code&gt;current_or_guest_user&lt;/code&gt;に変更します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;....
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;header&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;nav&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% if user_signed_in? %&amp;gt;&lt;/span&gt;
+      Logged in as &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; current_or_guest_user.username&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;.
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% if guest_user? %&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;メンバーになる&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, new_user_registration_path %&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% else %&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;プロフィール変更&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, edit_user_registration_path %&amp;gt;&lt;/span&gt; |
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;ログアウト&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, destroy_user_session_path, &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;method&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;: :delete %&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% end %&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% else %&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;ユーザー登録&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, new_user_registration_path %&amp;gt;&lt;/span&gt; |
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;ログイン&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, new_user_session_path %&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% end %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;nav&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;header&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+...
+&lt;/pre&gt;&lt;p&gt;コントローラー内の&lt;code&gt;curret_user&lt;/code&gt;を&lt;code&gt;current_or_guest_user&lt;/code&gt;に変更します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/tasks_controller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;TasksController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;index&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; current_or_guest_user
+      &lt;span class=&quot;synIdentifier&quot;&gt;@incomplete_tasks&lt;/span&gt; = current_or_guest_user.tasks.where(&lt;span class=&quot;synConstant&quot;&gt;complete&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;)
+      &lt;span class=&quot;synIdentifier&quot;&gt;@complete_tasks&lt;/span&gt; = current_or_guest_user.tasks.where(&lt;span class=&quot;synConstant&quot;&gt;complete&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;)
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;create&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@task&lt;/span&gt; = current_or_guest_user.tasks.create!(task_params)
+    redirect_to tasks_url
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;update&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@task&lt;/span&gt; = current_or_guest_user.tasks.find(params[&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;])
+    &lt;span class=&quot;synIdentifier&quot;&gt;@task&lt;/span&gt;.update!(task_params)
+    respond_to &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;format&lt;/span&gt;|
+      format.html { redirect_to tasks_url }
+      format.js
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;destroy&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@task&lt;/span&gt; = current_or_guest_user.tasks.find(params[&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;])
+    &lt;span class=&quot;synIdentifier&quot;&gt;@task&lt;/span&gt;.destroy
+    respond_to &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;format&lt;/span&gt;|
+      format.html { redirect_to tasks_url }
+      format.js
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  ...
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;そして、Guestユーザーでログイン時にユーザー登録画面に遷移しようとすると&lt;code&gt;Devise::RegistrationsController&lt;/code&gt;によりリダイレクトされてしまうので、オーバーライドします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/registrations_controller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;RegistrationsController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;Devise&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;RegistrationsController&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# no_user      -&amp;gt; ok: new, create          / NG: edit, update, cancel&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# guest        -&amp;gt; ok: new, create          / NG: edit, update, cancel&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# current_user -&amp;gt; ok: edit, update, cancel / NG: new, create&lt;/span&gt;
+  before_action &lt;span class=&quot;synConstant&quot;&gt;:authenticate_no_user_or_guest!&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;except&lt;/span&gt;: [&lt;span class=&quot;synConstant&quot;&gt;:new&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:create&lt;/span&gt;]
+  skip_before_filter &lt;span class=&quot;synConstant&quot;&gt;:require_no_authentication&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;only&lt;/span&gt;:   [&lt;span class=&quot;synConstant&quot;&gt;:new&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:create&lt;/span&gt;], &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt;:     &lt;span class=&quot;synConstant&quot;&gt;:guest_user?&lt;/span&gt;
+  before_action      &lt;span class=&quot;synConstant&quot;&gt;:require_no_authentication&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;only&lt;/span&gt;:   [&lt;span class=&quot;synConstant&quot;&gt;:new&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:create&lt;/span&gt;], &lt;span class=&quot;synStatement&quot;&gt;unless&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:guest_user?&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;そして、ルーティングでこの作成したコントローラーを呼ぶように変更します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# config/routes.rb&lt;/span&gt;
+devise_for &lt;span class=&quot;synConstant&quot;&gt;:users&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:controllers&lt;/span&gt; =&amp;gt; { &lt;span class=&quot;synConstant&quot;&gt;registrations&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;registrations&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; }
+&lt;/pre&gt;&lt;p&gt;最後に、DeviseはWardenというRack Middlewareを使っているのですが、&lt;code&gt;authenticate_user!&lt;/code&gt;をGuestユーザーでも使えるようにするために、initializerに下記2つを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# config/initializers/warden_strategies.rb&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Warden&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Strategies&lt;/span&gt;.add(&lt;span class=&quot;synConstant&quot;&gt;:guest_user&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;valid?&lt;/span&gt;
+    session[&lt;span class=&quot;synConstant&quot;&gt;:guest_user_id&lt;/span&gt;].present?
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;authenticate!&lt;/span&gt;
+    guest = &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.find_by(&lt;span class=&quot;synConstant&quot;&gt;id&lt;/span&gt;: session[&lt;span class=&quot;synConstant&quot;&gt;:guest_user_id&lt;/span&gt;])
+    success!(guest) &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; guest.present?
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# config/initializers/devise.rb&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Devise&lt;/span&gt;.setup &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;config&lt;/span&gt;|
+  ...
+  &lt;span class=&quot;synComment&quot;&gt;# ==&amp;gt; Warden configuration&lt;/span&gt;
+  config.warden &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;manager&lt;/span&gt;|
+    manager.default_strategies(&lt;span class=&quot;synConstant&quot;&gt;scope&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:user&lt;/span&gt;).unshift &lt;span class=&quot;synConstant&quot;&gt;:guest_user&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  ...
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;では、&lt;code&gt;rails s&lt;/code&gt;でサーバーを再起動し、ゲストユーザーが使えるか確認してみましょう。&lt;br /&gt;
+「無料体験」ボタンを押すとヘッダー部に&quot;Guest&quot;という名前でログインしていることがわかると思います。また、タスクの追加、更新、削除ができます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141125/20141125013539.png&quot; alt=&quot;f:id:nipe880324:20141125013539p:plain:w420&quot; title=&quot;f:id:nipe880324:20141125013539p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;では、「メンバーになる」リンクからユーザー登録をします。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141125/20141125013547.png&quot; alt=&quot;f:id:nipe880324:20141125013547p:plain:w420&quot; title=&quot;f:id:nipe880324:20141125013547p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;すると、ヘッダー上部にユーザー名が表示され、通常のユーザーとしてログインができました。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141125/20141125013552.png&quot; alt=&quot;f:id:nipe880324:20141125013552p:plain:w420&quot; title=&quot;f:id:nipe880324:20141125013552p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;最後に、ユーザー登録をすればゲストユーザーは削除されるのですが、ユーザー登録をしないというユースケースも充分に考えられます。その場合、DBに使われないゲストユーザーの情報が残ってしまうため、下記のタスクで作成してから1週間以上経過しているゲストユーザーを削除するようにします。&lt;br /&gt;
+クーロンなどで設定し、定期的に実行すると良いです。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# lib/tasks/guests.rake&lt;/span&gt;
+namespace &lt;span class=&quot;synConstant&quot;&gt;:guests&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  desc &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Remove guest accounts more than a week old.&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+  task &lt;span class=&quot;synConstant&quot;&gt;:cleanup&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;:environment&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.where(&lt;span class=&quot;synConstant&quot;&gt;guest&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:true&lt;/span&gt;).where(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;created_at &amp;lt; ?&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;.week.ago).destroy_all
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+以上です。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/plataformatec/devise/wiki/How-To&quot;&gt;Home &amp;middot; plataformatec/devise Wiki &amp;middot; GitHub&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://railscasts.com/episodes/393-guest-user-record?view=asciicast&quot;&gt;#393 Guest User Record - RailsCasts&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Fri, 12 Dec 2014 19:31:28 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450075187508</guid>
+          
+            <category>Rails中級</category>
+          
+            <category>Authentication</category>
+          
+        </item>
+      
+    
+  </channel>
+</rss>

@@ -1,0 +1,446 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>リファクタリング - Rails Webook</title>
+    <link>http://ruby-rails.hatenadiary.com/category/%E3%83%AA%E3%83%95%E3%82%A1%E3%82%AF%E3%82%BF%E3%83%AA%E3%83%B3%E3%82%B0</link>
+    <description>自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</description>
+    <lastBuildDate>Fri, 18 Dec 2015 02:44:31 +0900</lastBuildDate>
+    <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+    <generator>Hatena::Blog</generator>
+    
+      
+      
+        <item>
+          <title>リファクタリング: デメテルの法則(Law of Demeter, LoD)</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20150922/1442923521</link>
+          <description>&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150922/20150922205235.jpg&quot; alt=&quot;f:id:nipe880324:20150922205235j:plain:w320&quot; title=&quot;f:id:nipe880324:20150922205235j:plain:w320&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:320px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+&lt;i&gt;Photo by &lt;a href=&quot;https://www.flickr.com/photos/wonderlane/&quot;&gt;Wonderlane | Flickr - Photo Sharing!&lt;/a&gt;&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%C7%A5%E1%A5%C6%A5%EB&quot;&gt;デメテル&lt;/a&gt;の法則について勉強したのでまとめてみました。間違っているかもしれませんのでコメントいただけると助かります。&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#low-of-demeter-what&quot;&gt;デメテルの法則とは&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#low-of-demeter-violation&quot;&gt;デメテルの法則に反している例&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#low-of-demeter-apply&quot;&gt;デメテルの法則の適用&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#low-of-demeter-conclusion&quot;&gt;まとめ&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;low-of-demeter-what&quot;&gt;1. &lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%C7%A5%E1%A5%C6%A5%EB&quot;&gt;デメテル&lt;/a&gt;の法則とは&lt;/h3&gt;&lt;/p&gt;
+
+    &lt;blockquote&gt;
+        &lt;p&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/wikipedia&quot;&gt;wikipedia&lt;/a&gt;より引用 &lt;br /&gt;
+&lt;a href=&quot;https://ja.wikipedia.org/wiki/%E3%83%87%E3%83%A1%E3%83%86%E3%83%AB%E3%81%AE%E6%B3%95%E5%89%87&quot;&gt;&amp;#x30C7;&amp;#x30E1;&amp;#x30C6;&amp;#x30EB;&amp;#x306E;&amp;#x6CD5;&amp;#x5247; - Wikipedia&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%C7%A5%E1%A5%C6%A5%EB&quot;&gt;デメテル&lt;/a&gt;の法則 、または最小知識の原則とは、ソフトウェアの設計、特に&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%AA%A5%D6%A5%B8%A5%A7%A5%AF%A5%C8%BB%D8%B8%FE&quot;&gt;オブジェクト指向&lt;/a&gt;プログラムの設計における&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%AC%A5%A4%A5%C9%A5%E9%A5%A4%A5%F3&quot;&gt;ガイドライン&lt;/a&gt;である。&lt;br /&gt;
+簡潔に言うと「直接の友達とだけ話すこと」と要約できる。&lt;br /&gt;
+あるオブジェクトAは別のオブジェクトBのサービスを要求してもよい（&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;を呼び出してもよい）が、オブジェクトAがオブジェクトBを「経由して」さらに別のオブジェクトCのサービスを要求してはならない。&lt;br /&gt;
+これが望ましくないのは、オブジェクトAがオブジェクトBに対して、オブジェクトB自身の内部構造以上の知識を要求してしまうためである。&lt;br /&gt;
+このような場合には、クラスBを変更し、クラスAがクラスBに対して行った要求を適切なBのサブ&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;に伝播させるようにすればよい。または、AがCへのリファレンスを持つようにして、AがCを直接呼ぶようにしてもよい。この法則に従えば、オブジェクトBが知っているのは自分自身の内部構造だけになる。&lt;/p&gt;
+
+    &lt;/blockquote&gt;
+&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;low-of-demeter-violation&quot;&gt;2. &lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%C7%A5%E1%A5%C6%A5%EB&quot;&gt;デメテル&lt;/a&gt;の法則に反している例&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;クラス図としては次のような例で考えてみます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;[Result] =1:n=&amp;gt; [Answer] &amp;lt;=1:n= [Question]&lt;/pre&gt;&lt;p&gt;テスト結果(Result)には、回答(&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Answer&quot;&gt;Answer&lt;/a&gt;)が&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%CA%A3%BF%F4&quot;&gt;複数&lt;/a&gt;あります。&lt;br /&gt;
+そして、回答から質問(Question)が辿れるようになっています。&lt;/p&gt;&lt;p&gt;ここで、テスト結果を計算する&lt;code&gt;score&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;を実装してみます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Result&lt;/span&gt;
+  has_many &lt;span class=&quot;synConstant&quot;&gt;:answers&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;score&lt;/span&gt;
+    answers.inject(&lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;result&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;answer&lt;/span&gt;|
+      &lt;span class=&quot;synComment&quot;&gt;# resultからquestionまで辿っているのでデメテルの法則に反している&lt;/span&gt;
+      question = answer.quesiton
+      result + question.score(answer.text)
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Answer&lt;/span&gt;
+  belongs_to &lt;span class=&quot;synConstant&quot;&gt;:question&lt;/span&gt;
+  belongs_to &lt;span class=&quot;synConstant&quot;&gt;:result&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Question&lt;/span&gt;
+  has_many &lt;span class=&quot;synConstant&quot;&gt;:answers&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;score&lt;/span&gt;(text)
+    &lt;span class=&quot;synComment&quot;&gt;# correct_textは正解のtext&lt;/span&gt;
+    text == correct_text ? &lt;span class=&quot;synConstant&quot;&gt;10&lt;/span&gt; : &lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+result = &lt;span class=&quot;synType&quot;&gt;Result&lt;/span&gt;.find(&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;)
+result.score &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; Answerに応じてスコアが算出される&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;ここで、&lt;code&gt;score&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;のブロック内で、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%C7%A5%E1%A5%C6%A5%EB&quot;&gt;デメテル&lt;/a&gt;の法則であったように、&lt;br /&gt;
+&lt;b&gt;「あるオブジェクトA(Result)は別のオブジェクトB(&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Answer&quot;&gt;Answer&lt;/a&gt;)のサービスを要求してもよい（&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;を呼び出してもよい）が、オブジェクトA(Result)がオブジェクトB(&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Answer&quot;&gt;Answer&lt;/a&gt;)を「経由して」さらに別のオブジェクトC(Question)のサービスを要求してはならない。」&lt;/b&gt;に合致しています。&lt;br /&gt;
+つまり、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%C7%A5%E1%A5%C6%A5%EB&quot;&gt;デメテル&lt;/a&gt;の法則に違反しています。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;low-of-demeter-apply&quot;&gt;3. &lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%C7%A5%E1%A5%C6%A5%EB&quot;&gt;デメテル&lt;/a&gt;の法則の適用&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;そのため、&lt;br /&gt;
+&lt;b&gt;「クラスB(&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Answer&quot;&gt;Answer&lt;/a&gt;)を変更し、クラスA(Result)がクラスB(&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Answer&quot;&gt;Answer&lt;/a&gt;)に対して行った要求を適切なBのサブ&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;に伝播させるようにすればよい。」&lt;/b&gt;をしてみます。&lt;/p&gt;&lt;p&gt;具体的には、&lt;code&gt;score&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;内の処理を&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Answer&quot;&gt;Answer&lt;/a&gt;クラスに委託します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Result&lt;/span&gt;
+  has_many &lt;span class=&quot;synConstant&quot;&gt;:answers&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;score&lt;/span&gt;
+    answers.inject(&lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;result&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;answer&lt;/span&gt;|
+      &lt;span class=&quot;synComment&quot;&gt;# answerに委託しているのでQuestionについて知らなくてもよい&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;# つまり、Questionの変更に対して強くなる&lt;/span&gt;
+      result + answer.score
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Answer&lt;/span&gt;
+  belongs_to &lt;span class=&quot;synConstant&quot;&gt;:question&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;score&lt;/span&gt;
+    question.score(text)
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Question&lt;/span&gt;
+  has_many &lt;span class=&quot;synConstant&quot;&gt;:answers&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;score&lt;/span&gt;(text)
+    text == correct_text ? &lt;span class=&quot;synConstant&quot;&gt;10&lt;/span&gt; : &lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+result = &lt;span class=&quot;synType&quot;&gt;Result&lt;/span&gt;.find(&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;)
+result.score &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; Answerに応じてスコアが算出される&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;low-of-demeter-conclusion&quot;&gt;4. まとめ&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;これは、簡単な例なので分かりづらいですが、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%C7%A5%E1%A5%C6%A5%EB&quot;&gt;デメテル&lt;/a&gt;の法則に反した実装をしていると、規模が大きくなるにつれて、クラス同士の余計な依存関係が多くなり、クラス同士の関連が複雑になります。&lt;br /&gt;
+それにより、修正に対する影響範囲が大きくなり、保守が辛い、予想外のバグを生みやすくなってしまうのではと思いました。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://ja.wikipedia.org/wiki/%E3%83%87%E3%83%A1%E3%83%86%E3%83%AB%E3%81%AE%E6%B3%95%E5%89%87&quot;&gt;&amp;#x30C7;&amp;#x30E1;&amp;#x30C6;&amp;#x30EB;&amp;#x306E;&amp;#x6CD5;&amp;#x5247; - Wikipedia&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://thoughtbot.com/books&quot;&gt;Our Books - thoughtbot&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Tue, 22 Sep 2015 21:05:21 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/6653458415122273567</guid>
+          
+            <category>Ruby</category>
+          
+            <category>リファクタリング</category>
+          
+            <category>設計</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>RailsでDraperを使ってプレゼンテーション層（デコレーター）を実装する</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20150415/1429031791</link>
+          <description>&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150415/20150415020650.jpg&quot; alt=&quot;f:id:nipe880324:20150415020650j:plain&quot; title=&quot;f:id:nipe880324:20150415020650j:plain&quot; class=&quot;hatena-fotolife&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+&lt;i&gt;Photo by &lt;a href=&quot;https://www.flickr.com/photos/herry/&quot;&gt;Flickr: HerryLawford&amp;#39;s Photostream&lt;/a&gt;&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/drapergem/draper&quot;&gt;Draper&lt;/a&gt;はRailsのプレゼンテーション層の役割を担うgemです。&lt;br /&gt;
+この記事では、Draperを通し、プレゼンテーション層の必要性や使い方を説明します。&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Ruby   2.2.1&lt;/li&gt;
+&lt;li&gt;Rails  4.2.0&lt;/li&gt;
+&lt;li&gt;Draper 1.4.0&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;0.   &lt;a href=&quot;#draper-why&quot;&gt;プレゼンテーション層の必要性&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;1.   &lt;a href=&quot;#draper-installation&quot;&gt;Draperのインストール方法&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;2.   &lt;a href=&quot;#draper-basic-usage&quot;&gt;Draperの簡単な使い方&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;3.   &lt;a href=&quot;#draper-instanate&quot;&gt;デコレーターインスタンスの作成&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;3.1. &lt;a href=&quot;#draper-single-obj&quot;&gt;単独のオブジェクトのデコレーター&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;3.2. &lt;a href=&quot;#draper-individual-collection&quot;&gt;コレクションの個々のオブジェクトのデコレーター&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;3.3. &lt;a href=&quot;#draper-collection&quot;&gt;コレクション自身のデコレーター&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;3.4. &lt;a href=&quot;#draper-related-object&quot;&gt;関連するオブジェクトのデコレーター&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;4.   &lt;a href=&quot;#draper-create-class&quot;&gt;デコレータークラスの作成&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;4.1. &lt;a href=&quot;#draper-access-helper&quot;&gt;デコレーター内でヘルパーメソッドへのアクセス&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;4.2. &lt;a href=&quot;#draper-access-model&quot;&gt;デコレーター内でモデルオブジェクトへアクセス&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;4.3. &lt;a href=&quot;#draper-render-html&quot;&gt;デコレーターでHTMLをレンダリングする&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;4.4. &lt;a href=&quot;#draper-delegate&quot;&gt;デコレーターのデリゲート（委託）&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;draper-why&quot;&gt;0. プレゼンテーション層の必要性&lt;/h3&gt;Draperはデコレーター（他にはプレゼンター、ビューモデルなどと呼ばれます）であり、ビューとモデルの中間に位置し、モデルやビューに実装されやすい表示ロジック/フォーマットといったプレゼンテーション層の責務を引き受けることで可読性、保守性を向上させることができます。&lt;/p&gt;&lt;p&gt;ビューにif文が多くて見ずらい、モデルに表示用のロジックが多くなってしまった、ビューのロジックをヘルパーに書いているがヘルパーの名前空間の衝突が怖い(※1)などの場合にDraperを導入するとよいと思います。&lt;/p&gt;&lt;p&gt;&lt;i&gt;※1 Railsのヘルパーはグローバルな名前空間にメソッドが定義されるので、異なるヘルパーモジュールに同じメソッド名のメソッドを定義すると名前が衝突します&lt;/i&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;ビューにif文が多くて見ずらい&lt;/h5&gt;
+    &lt;p&gt;ビューからロジックをなくしたい。HTML構造が複雑になり、ビューファイルが見ずらくなる。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# Draper導入前
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dt&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Twitter:&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dt&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dd&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% if @user.twitter_name.present? %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; @user.twitter_name, &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;http://twitter.com/#{@user.twitter_name}&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% else %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;span&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;none&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;None given&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;span&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% end %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dd&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+# Draper導入後
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dt&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Twitter:&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dt&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dd&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; @user.twitter&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dd&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;ヘルパーの名前空間の衝突&lt;/h5&gt;
+    &lt;p&gt;別々のヘルパーでfooメソッドという同じメソッド名のメソッドを定義したので衝突してしまって、思うようにメソッドが動かない。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synPreProc&quot;&gt;module&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ApplicationHelper&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;foo&lt;/span&gt;
+    &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;ApplicationHelper#foo&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synPreProc&quot;&gt;module&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;BooksHelper&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;foo&lt;/span&gt;
+    &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;BooksHelper#foo&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# ApplicationHelper#fooが上書きされてしまう??&lt;/span&gt;
+foo &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &#39;BooksHelper#foo&#39; &lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;モデルに表示用のロジックが多い&lt;/h5&gt;
+    &lt;p&gt;モデルはドメインロジックを記載するべきであり、メソッドが多くやすいので、UIの細かなフォーマットなどはあまり書きたくない。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Draper導入前&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;SomeModel&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;posted_at&lt;/span&gt;
+    created_at.strftime(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;%Y/%m/%d&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;)
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# Draper導入後&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;SomeModel&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# posted_atメソッドはデコレータークラスに移動&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;draper-installation&quot;&gt;1. Draperのインストール方法&lt;/h3&gt;&lt;code&gt;Gemfile&lt;/code&gt;にDraperを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Gemfile&lt;/span&gt;
+gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;draper&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;~&amp;gt; 1.3&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+バンドラーを実行して、Draperをインストールします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;bundle &lt;span class=&quot;synStatement&quot;&gt;install&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;draper-basic-usage&quot;&gt;2. Draperの簡単な使い方&lt;/h3&gt;まず、Scaffoldで作成します。&lt;br /&gt;
+Draperを入れたので、デコレーターも作成されます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;bin/rails g scaffold Article title body:text
+      ...
+      invoke    decorator
+      create      app/decorators/article_decorator.rb
+&lt;/pre&gt;&lt;p&gt;※&lt;code&gt;rails g resource&lt;/code&gt;や&lt;code&gt;rails g decorator&lt;/code&gt;というジェネレーターを実行した場合もデコレーターが作成されます。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;デコレーターにプレゼンテーション層のメソッドを定義します。&lt;br /&gt;
+イメージとしては、ビューやモデルに書くべきではなく、ヘルパーに書くようなメソッドです。例えば、日付のフォーマット、条件分岐でビューの表示が少し変わるなどです。&lt;br /&gt;
+今回は、日付をフォーマットして、spanタグ付きで表示する&lt;code&gt;posted_at&lt;/code&gt;メソッドを追加しました。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/decorators/article_decorator.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ArticleDecorator&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;Draper&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Decorator&lt;/span&gt;
+  delegate_all
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;posted_at&lt;/span&gt;
+    h.content_tag &lt;span class=&quot;synConstant&quot;&gt;:span&lt;/span&gt;, &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      model.created_at.strftime(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;%Y/%m/%d %H:%m&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;)
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;デコレーターはモデルオブジェクトを保持しています。&lt;br /&gt;
+そして、&lt;code&gt;delegate_all&lt;/code&gt;と記載することで、デコレーター内に定義されていないメソッドが呼び出されたい場合、デコレーターが保持しているモデルオブジェクトにメソッド呼び出しを委譲します。&lt;br /&gt;
+そのため、基本的にデコレーターを導入しても、モデルの処理が行われるので従来通り動きます。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;次に、コントローラー内で作成したデコレーターを使いようにします。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;コレクションの個々のオブジェクトをデコレートするには&lt;code&gt;decorate_collection&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;単独のオブジェクトをデコレートするには&lt;code&gt;decorate&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;を使います。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/articles_controller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ArticlesController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt;
+  before_action &lt;span class=&quot;synConstant&quot;&gt;:set_article&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;only&lt;/span&gt;: [&lt;span class=&quot;synConstant&quot;&gt;:show&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:edit&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:update&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:destroy&lt;/span&gt;]
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;index&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@articles&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;ArticleDecorator&lt;/span&gt;.decorate_collection(&lt;span class=&quot;synType&quot;&gt;Article&lt;/span&gt;.all)
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  ...
+
+  &lt;span class=&quot;synStatement&quot;&gt;private&lt;/span&gt;
+
+    &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;set_article&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;@article&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;ArticleDecorator&lt;/span&gt;.decorate(&lt;span class=&quot;synType&quot;&gt;Article&lt;/span&gt;.find(params[&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;]))
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;これで、Articleオブジェクトを保持した、Articleデコレーターインスタンスが作成されました。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;最後に、ビューからデコレーターのメソッドを呼び出します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- app/views/articles/index.html.erb --&amp;gt;&lt;/span&gt;
+
+   &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tbody&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% @articles.each do |article| %&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tr&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; article.title&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; article.body&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- デコレーターのメソッド呼び出し --&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; article.posted_at&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;Show&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, article %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;Edit&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, edit_article_path(article) %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;Destroy&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, article, &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;method&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;: :delete, &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;: { confirm: &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;Are you sure?&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; } %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tr&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% end %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tbody&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;code&gt;title&lt;/code&gt;や&lt;code&gt;body&lt;/code&gt;は、デコレーターの&lt;code&gt;delegate_all&lt;/code&gt;でモデルに委譲させるのでモデルのメソッドが呼び出されます。&lt;br /&gt;
+&lt;code&gt;posted_at&lt;/code&gt;は、デコレーターで定義したメソッドが呼び出されます。&lt;/p&gt;&lt;p&gt;画面は次のようになります。（Posted atの値のスタイリングをしています）&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150415/20150415021453.jpg&quot; alt=&quot;f:id:nipe880324:20150415021453j:plain:w480&quot; title=&quot;f:id:nipe880324:20150415021453j:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;このようにして、Draperを使うことができます。&lt;br /&gt;
+モデルとビューの間にデコレーターを導入することで、モデル内のビジネスロジックと関係ないメソッドを減らせ、ビューから条件分岐を減らせ、ヘルパーメソッドのメソッド名の衝突問題を防ぐことができるようになります。&lt;br /&gt;
+アプリの規模が大きくなってきてこのようなことに困った場合は、導入をお勧めします。&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;draper-instanate&quot;&gt;3. デコレーターインスタンスの作成&lt;/h3&gt;&lt;h3 id=&quot;draper-single-obj&quot;&gt;3.1. 単独のオブジェクトのデコレーター&lt;/h3&gt;単独のオブジェクトの場合、次のように&lt;code&gt;decorate&lt;/code&gt;メソッドやデコレーターの&lt;code&gt;new&lt;/code&gt;メソッドを使います。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# decorateメソッドを使うと、モデルからデコレーターを推測して作成されます&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# Articleの場合、ArticleDecoratorが使われる。&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;@article&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Article&lt;/span&gt;.find(params[&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;]).decorate
+
+
+&lt;span class=&quot;synComment&quot;&gt;# デコレーターを指定したい場合は、デコーレータを作成します&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;@widget&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;ProductDecorator&lt;/span&gt;.new(&lt;span class=&quot;synType&quot;&gt;Widget&lt;/span&gt;.find(params[&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;]))
+&lt;span class=&quot;synComment&quot;&gt;# 以下も同じ&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;@widget&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;ProductDecorator&lt;/span&gt;.decorate(&lt;span class=&quot;synType&quot;&gt;Widget&lt;/span&gt;.find(params[&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;]))
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+また、次のように&lt;code&gt;decorates_finders&lt;/code&gt;メソッドをデコレーターに定義すれば、ActiveRecordのように&lt;code&gt;find&lt;/code&gt;メソッドがつかえるようになります。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/decorators/articl_decorator.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ArticleDecorator&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;Draper&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Decorator&lt;/span&gt;
+  decorates_finders
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# コントローラーなど&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;@article&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;ArticleDecorator&lt;/span&gt;.find(params[&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;])
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;draper-individual-collection&quot;&gt;3.2. コレクションの個々のオブジェクトのデコレーター&lt;/h3&gt;コレクションの場合、次のように&lt;code&gt;decorate_collection&lt;/code&gt;メソッドを使います。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;@articles&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;ArticleDecorator&lt;/span&gt;.decorate_collection(&lt;span class=&quot;synType&quot;&gt;Article&lt;/span&gt;.all)
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;draper-collection&quot;&gt;3.3. コレクション自身のデコレーター&lt;/h3&gt;コレクション自身をデコレートしたい場合は、&lt;code&gt;Draper::CollectionDecorator&lt;/code&gt;のサブクラスのデコレータークラスを定義します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/decorators/articles_decorator.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ArticlesDecorator&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;Draper&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;CollectionDecorator&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;page_number&lt;/span&gt;
+    &lt;span class=&quot;synConstant&quot;&gt;42&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# コントローラーなど&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;@articles&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;ArticlesDecorator&lt;/span&gt;.new(&lt;span class=&quot;synType&quot;&gt;Article&lt;/span&gt;.all)
+&lt;span class=&quot;synComment&quot;&gt;# もしくは、&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;@articles&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;ArticlesDecorator&lt;/span&gt;.decorate(&lt;span class=&quot;synType&quot;&gt;Article&lt;/span&gt;.all)
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;draper-related-object&quot;&gt;3.4. 関連するオブジェクトのデコレーター&lt;/h3&gt;&lt;code&gt;decorates_association&lt;/code&gt;を使うことで、関連するオブジェクトのデコレーターを使うように宣言できます。&lt;br /&gt;
+次の場合、authorモデルに対応するAuthorDecoratorを使うことができます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/decorators/article_decorator.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ArticleDecorator&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;Draper&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Decorator&lt;/span&gt;
+  decorates_association &lt;span class=&quot;synConstant&quot;&gt;:author&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;# app/decorators/author_decorator.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;AuthorDecorator&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;Draper&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Decorator&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;hoge&lt;/span&gt;
+    model.name + &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;hogehoge&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;# ビューでAuthorDecoratorのメソッドを呼び出す&lt;/span&gt;
+article.author.hoge
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;draper-create-class&quot;&gt;4. デコレータークラスの作成&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;draper-access-helper&quot;&gt;4.1. デコレーター内でヘルパーメソッドへのアクセス&lt;/h3&gt;デコレーターからヘルパーメソッドを使うには、&lt;code&gt;h&lt;/code&gt;メソッドを使います。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ArticleDecorator&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;Draper&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Decorator&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;emphatic&lt;/span&gt;
+    h.content_tag(&lt;span class=&quot;synConstant&quot;&gt;:strong&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Awesome&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;)
+    &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;lt;strong&amp;gt;Awesome&amp;lt;/strong&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;draper-access-model&quot;&gt;4.2. デコレーター内でモデルオブジェクトへアクセス&lt;/h3&gt;デコレーター内でデコレーターが保持しているモデルオブジェクトにアクセスするにはモデルには、&lt;code&gt;object&lt;/code&gt;（もしくは、エイリアスの&lt;code&gt;model&lt;/code&gt;）を使います。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ArticleDecorator&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;Draper&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Decorator&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;published_at&lt;/span&gt;
+    object.published_at.strftime(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;%A, %B %e&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;)
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;draper-render-html&quot;&gt;4.3. デコレーターでHTMLをレンダリングする&lt;/h3&gt;条件分岐をビューからデコレーターに移す場合、HTMLの断片が入ってしまうことがあります。&lt;br /&gt;
+デコレーター内に直でHTMLコードを記載するとHTMLコードの断片が散らばり可読性や保守性が下がるので、次のようにするといいかもしれません。&lt;/p&gt;&lt;p&gt;HTMLのレンダリングが&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;1行程度なら&lt;code&gt;content_tag&lt;/code&gt;ヘルパーメソッドを使う&lt;/li&gt;
+&lt;li&gt;複数行の場合は&lt;code&gt;render&lt;/code&gt;メソッドを使って部分テンプレートを表示する&lt;/li&gt;
+&lt;/ul&gt;&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ArticleDecorator&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;Draper&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Decorator&lt;/span&gt;
+  delegate_all
+
+  &lt;span class=&quot;synComment&quot;&gt;# 1行程度なので、content_tagメソッドを使う&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;emphatic&lt;/span&gt;
+    h.content_tag(&lt;span class=&quot;synConstant&quot;&gt;:strong&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Awesome&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;)
+    &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;lt;strong&amp;gt;Awesome&amp;lt;/strong&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# 複数行のため、部分テンプレートを呼び出す&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;sub_view&lt;/span&gt;
+    h.render &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;sub_view&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;title&lt;/span&gt;: model.title
+    &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; articles/sub_view.html.erb　を表示する&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;draper-delegate&quot;&gt;4.4. デコレーターのデリゲート（委託）&lt;/h3&gt;デコレーターオブジェクトへのメソッド呼び出しを、モデルにデリゲート（委託）することができます。&lt;br /&gt;
+&lt;code&gt;delegate_all&lt;/code&gt;で全てのメソッドを委託、&lt;code&gt;delegate&lt;/code&gt;で指定したメソッドを委託するように宣言できます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# デコレーター&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ArticleDecorator&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;Draper&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Decorator&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# 全てのメソッド呼び出しにおいて、デコレーターで定義していないメソッドは、モデルオブジェクトへ委譲される&lt;/span&gt;
+  delegate_all
+
+  &lt;span class=&quot;synComment&quot;&gt;# 特定のメソッドのみ委譲する（toオプションを指定しないとデフォルトでobjectに委譲する）&lt;/span&gt;
+  delegate &lt;span class=&quot;synConstant&quot;&gt;:title&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:body&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# 特定のメソッドを指定したオブジェクトに委譲する&lt;/span&gt;
+  delegate &lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;to&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:author&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;prefix&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;
+
+  ...
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;# 使い方（ビューなど）&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;@article&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;ArticleDecorator&lt;/span&gt;.decorate(&lt;span class=&quot;synType&quot;&gt;Article&lt;/span&gt;.find(params[&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;]))
+&lt;span class=&quot;synIdentifier&quot;&gt;@article&lt;/span&gt;.title  &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; articleのtitle&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;@article&lt;/span&gt;.body   &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; articleのbody&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;@article&lt;/span&gt;.author_name   &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; articleの author.name&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+以上です。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/drapergem/draper&quot;&gt;https://github.com/drapergem/draper&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://morizyun.github.io/blog/draper-ruby-gem-code-clear/&quot;&gt;http://morizyun.github.io/blog/draper-ruby-gem-code-clear/&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://railscasts.com/episodes/286-draper&quot;&gt;http://railscasts.com/episodes/286-draper&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Wed, 15 Apr 2015 02:16:31 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450091528638</guid>
+          
+            <category>設計</category>
+          
+            <category>リファクタリング</category>
+          
+            <category>Rails View</category>
+          
+            <category>Rails中級</category>
+          
+        </item>
+      
+    
+  </channel>
+</rss>

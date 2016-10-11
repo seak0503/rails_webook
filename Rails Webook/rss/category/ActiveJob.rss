@@ -1,0 +1,359 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>ActiveJob - Rails Webook</title>
+    <link>http://ruby-rails.hatenadiary.com/category/ActiveJob</link>
+    <description>自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</description>
+    <lastBuildDate>Fri, 18 Dec 2015 02:44:31 +0900</lastBuildDate>
+    <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+    <generator>Hatena::Blog</generator>
+    
+      
+      
+        <item>
+          <title>RailsでAcitiveJobとDelayedJobを使ってバックグランド処理を行う</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20150304/1425396671</link>
+          <description>&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150115/20150115212630.jpg&quot; alt=&quot;f:id:nipe880324:20150115212630j:plain:w480&quot; title=&quot;f:id:nipe880324:20150115212630j:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+&lt;i&gt;Photo by &lt;a href=&quot;https://www.flickr.com/photos/doug88888/&quot;&gt;Flickr: @Doug88888&amp;#39;s Photostream&lt;/a&gt;&lt;/i&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;メール送信、大量データのインポート/エクスポートなど&lt;b&gt;長い時間がかかる処理&lt;/b&gt;はバックグラウンドで処理するのが一般的です。&lt;br /&gt;
+Railsでバックグラウンド処理を実現するためには、&lt;a href=&quot;https://github.com/mperham/sidekiq&quot; target=&quot;_blank&quot;&gt;Sidekiq&lt;/a&gt;, &lt;a href=&quot;https://github.com/resque/resque&quot; target=&quot;_blank&quot;&gt;Resque&lt;/a&gt;, &lt;a href=&quot;https://github.com/collectiveidea/delayed_job&quot; target=&quot;_blank&quot;&gt;Delayed Job&lt;/a&gt;といったgemが有名です。&lt;/p&gt;&lt;p&gt;また、Rails4.2からActive Jobが追加されました。これは、たくさんあるバックグラウンド処理を行うgemへの共通インターフェースのようなものが追加されました。&lt;br /&gt;
+メリットとして、バックグラウンド処理のgemがどれでも、ソースコードは同じように記述できるようになります。ちなみに、ActiveJobだけではバックグラウンド処理はできないので、バックグラウンド処理のgemを入れる必要があります。&lt;/p&gt;&lt;p&gt;この記事では、DelayedJobでのバックグラウンド処理の実施方法から、ActiveJobとDelayedJobを組み合わせたバックグラウンド処理の実施方法までを説明します。&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails 4.2&lt;/li&gt;
+&lt;li&gt;Active Job 4.2&lt;/li&gt;
+&lt;li&gt;delayed_job 4.0.6&lt;/li&gt;
+&lt;li&gt;delayed_job_active_record 4.0.3&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;&lt;a href=&quot;#delayed_job&quot;&gt;1. Delayed Jobのインストールと使い方&lt;/a&gt;&lt;/h4&gt;
+    
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;&lt;a href=&quot;#delayed_job-install&quot;&gt;1.1. DelayedJobのインストール&lt;/a&gt;&lt;/h5&gt;
+    
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;&lt;a href=&quot;#delayed_job-enqueue&quot;&gt;1.2. ジョブを登録する（エンキュー）&lt;/a&gt;&lt;/h5&gt;
+    
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;&lt;a href=&quot;#delayed_job-worker&quot;&gt;1.3. ジョブを実行する（ワーカーの起動・停止・再起動）&lt;/a&gt;&lt;/h5&gt;
+    
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;&lt;a href=&quot;#delayed_job-aj&quot;&gt;2. ActiveJobとの連携&lt;/a&gt;&lt;/h4&gt;
+    
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;&lt;a href=&quot;#delayed_job-aj-adapter&quot;&gt;2.1. バックグラウンドジョブとのアダプターを設定&lt;/a&gt;&lt;/h5&gt;
+    
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;&lt;a href=&quot;#delayed_job-aj-create-job&quot;&gt;2.2. ジョブを作成&lt;/a&gt;&lt;/h5&gt;
+    
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;&lt;a href=&quot;#delayed_job-aj-exception&quot;&gt;2.3. Active Jobの例外処理&lt;/a&gt;&lt;/h5&gt;
+    
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;&lt;a href=&quot;#delayed_job-ref&quot;&gt;3. リファレンス&lt;/a&gt;&lt;/h4&gt;
+    
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;&lt;a href=&quot;#delayed_job-ref-create&quot;&gt;3.1. ジョブの作成&lt;/a&gt;&lt;/h5&gt;
+    
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;&lt;a href=&quot;#delayed_job-ref-exception&quot;&gt;3.2. ジョブ内の例外処理&lt;/a&gt;&lt;/h5&gt;
+    
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;&lt;a href=&quot;#delayed_job-ref-execution&quot;&gt;3.3. ジョブの実行&lt;/a&gt;&lt;/h5&gt;
+    
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;&lt;a href=&quot;#delayed_job-ref-worker&quot;&gt;3.4. ワーカーの起動/停止&lt;/a&gt;&lt;/h5&gt;
+    
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;&lt;a href=&quot;#delayed_job-ref-callbacks&quot;&gt;3.5. ジョブのコールバックの一覧&lt;/a&gt;&lt;/h5&gt;
+    &lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;delayed_job&quot;&gt;1. Delayed Jobのインストールと使い方&lt;/h3&gt;まずは、Active Jobと連携しない、Delayed Job単体での使い方を見ていきます。&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;delayed_job-install&quot;&gt;1.1. DelayedJobのインストール&lt;/h3&gt;まず、&lt;code&gt;Gemfile&lt;/code&gt;にORM(オブジェクト・リレーション・マッパー)に合わせた&lt;code&gt;delayed_job&lt;/code&gt;のgemを追記します。&lt;br /&gt;
+ORMがActiveRecordの場合、&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;delayed_job_active_record&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+ODM(オブジェクト・ドキュメント・マッパー)がMongoidの場合、&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;delayed_job_mongoid&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+次に、&lt;code&gt;delayed_job&lt;/code&gt;をインストールします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;bundle &lt;span class=&quot;synStatement&quot;&gt;install&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+ActiveRecordの場合、ジョブを管理するテーブルが必要となるので、次のコマンドで作成します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;bin/rails g delayed_job:active_record
+bin/rake db:migrate
+&lt;/pre&gt;&lt;p&gt;&lt;i&gt;今回は、ActiveRecordでの説明を行います。それ以外のORMを利用している場合は、GitHubのページを確認してください。&lt;/i&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;delayed_job-enqueue&quot;&gt;1.2. ジョブを登録する（エンキュー）&lt;/h3&gt;&lt;code&gt;delay&lt;/code&gt;メソッドを呼ぶことにより、バックグラウンドで処理を実行することができます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# フォアグラウンドで実行される&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;@letter&lt;/span&gt;.deliver
+
+&lt;span class=&quot;synComment&quot;&gt;# バックグラウンドで実行される&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;@letter&lt;/span&gt;.delay.deliver
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+たとえば、次のような時間のかかる&lt;code&gt;deliver&lt;/code&gt;メソッドがあったとします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/letters_controller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;LettersController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# POST/letters/1/deliver&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;deliver&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@letter&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Letter&lt;/span&gt;.find(params[&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;])
+    &lt;span class=&quot;synIdentifier&quot;&gt;@letter&lt;/span&gt;.deliver
+    redirect_to letters_url, &lt;span class=&quot;synConstant&quot;&gt;notice&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;手紙を送りました。&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+  ...
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;# app/models/letter.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Letter&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;deliver&lt;/span&gt;
+    sleep &lt;span class=&quot;synConstant&quot;&gt;10&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# 処理に時間がかかることを擬似的に実施&lt;/span&gt;
+    update(&lt;span class=&quot;synConstant&quot;&gt;delivered_at&lt;/span&gt;: &lt;span class=&quot;synType&quot;&gt;Time&lt;/span&gt;.zone.now)
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+次のような画面で&lt;code&gt;Deliver&lt;/code&gt;ボタンを押します。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150115/20150115211836.jpg&quot; alt=&quot;f:id:nipe880324:20150115211836j:plain:w480&quot; title=&quot;f:id:nipe880324:20150115211836j:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;code&gt;deliver&lt;/code&gt;メソッドは時間のかかる処理(sleep 10)なので、&lt;b&gt;10秒後にリダイレクト&lt;/b&gt;されます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150115/20150115211848.jpg&quot; alt=&quot;f:id:nipe880324:20150115211848j:plain:w480&quot; title=&quot;f:id:nipe880324:20150115211848j:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;しかし、次のように&lt;code&gt;delay&lt;/code&gt;をメソッドをチェインさせてみましょう。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/letters_controller.rb&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;@letter&lt;/span&gt;.delay.deliver
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+そして、ジョブを処理するワーカーを起動させます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;bin/rake &lt;span class=&quot;synStatement&quot;&gt;jobs&lt;/span&gt;:work
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+そして、また&lt;code&gt;Deliver&lt;/code&gt;ボタンを押すと、すぐにリダイレクトされます。&lt;br /&gt;
+バックグラウンドで処理されるため、&lt;code&gt;deliverd_at&lt;/code&gt;がまだ設定されていません。&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150115/20150115212009.jpg&quot; alt=&quot;f:id:nipe880324:20150115212009j:plain:w480&quot; title=&quot;f:id:nipe880324:20150115212009j:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;バックグラウンドで処理が走っているので、10秒後にブラウザをリロードすればちゃんと設定されています。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150115/20150115212030.jpg&quot; alt=&quot;f:id:nipe880324:20150115212030j:plain:w480&quot; title=&quot;f:id:nipe880324:20150115212030j:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;delayed_job-worker&quot;&gt;1.3. ジョブを実行する（ワーカーの起動・停止・再起動）&lt;/h3&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;開発時&lt;/h4&gt;
+    &lt;p&gt;rakeタスクでフォアグラウンドでワーカーを走らせ、ジョブを処理します。&lt;br /&gt;
+&lt;code&gt;Ctrl+C&lt;/code&gt;でワーカーを終了できます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;bin/rake &lt;span class=&quot;synStatement&quot;&gt;jobs&lt;/span&gt;:work
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;本番時&lt;/h4&gt;
+    &lt;p&gt;デーモンでワーカーを走らせ、ジョブを処理します。&lt;br /&gt;
+デーモンで動かすので、&lt;code&gt;daemons&lt;/code&gt;というgemを&lt;code&gt;Gemfile&lt;/code&gt;に追加し、&lt;code&gt;bundle install&lt;/code&gt;を実施しておく必要があります。&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# 別々のプロセス内で2つのワーカーを走らせる&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;RAILS_ENV&lt;/span&gt;=production bin/delayed_job &lt;span class=&quot;synSpecial&quot;&gt;-n&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;start&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# ワーカーを停止させる&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;RAILS_ENV&lt;/span&gt;=production bin/delayed_job &lt;span class=&quot;synStatement&quot;&gt;stop&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# ワーカーを再起動させる(ワーカー数は2つ)&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;RAILS_ENV&lt;/span&gt;=production bin/delayed_job &lt;span class=&quot;synSpecial&quot;&gt;-n&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;restart&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;delayed_job-aj&quot;&gt;2. ActiveJobとの連携&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;ActiveJobの目的は、Railsにジョブのインフラを追加することで、&lt;a href=&quot;https://github.com/mperham/sidekiq&quot; target=&quot;_blank&quot;&gt;Sidekiq&lt;/a&gt;, &lt;a href=&quot;https://github.com/resque/resque&quot; target=&quot;_blank&quot;&gt;Resque&lt;/a&gt;, &lt;a href=&quot;https://github.com/collectiveidea/delayed_job&quot; target=&quot;_blank&quot;&gt;Delayed Job&lt;/a&gt;といった実際にバックグラウンドでジョブを実行するgemの差分をほぼ意識しないでジョブを扱えるようにすることです。&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;delayed_job-aj-adapter&quot;&gt;2.1. バックグラウンドジョブとのアダプターを設定&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/mperham/sidekiq&quot; target=&quot;_blank&quot;&gt;Sidekiq&lt;/a&gt;, &lt;a href=&quot;https://github.com/resque/resque&quot; target=&quot;_blank&quot;&gt;Resque&lt;/a&gt;, &lt;a href=&quot;https://github.com/collectiveidea/delayed_job&quot; target=&quot;_blank&quot;&gt;Delayed Job&lt;/a&gt;に応じて、&lt;code&gt;application.rb&lt;/code&gt;に設定を追加する必要が有ります。&lt;/p&gt;&lt;p&gt;実際に指定する値は、&lt;a href=&quot;http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html&quot; target=&quot;_blank&quot;&gt;Active Job adapters&lt;/a&gt;を参照してください。&lt;/p&gt;&lt;p&gt;Delayed Jobの場合は、&lt;code&gt;:delayed_job&lt;/code&gt;を指定します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# config/application.rb&lt;/span&gt;
+module DelayedJobTestApp
+  class Application &lt;span class=&quot;synStatement&quot;&gt;&amp;lt;&lt;/span&gt; Rails::Application
+    ...
+
+    &lt;span class=&quot;synComment&quot;&gt;# Gemfileにアダプターのgemを記載されており、gemがインストール済みであり、&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# アダプターのインストール方法を既に実施しているようにしてください。&lt;/span&gt;
+    config.active_job.queue_adapter &lt;span class=&quot;synStatement&quot;&gt;=&lt;/span&gt; :delayed_job
+  end
+end
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;delayed_job-aj-create-job&quot;&gt;2.2. ジョブを作成&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;次のコマンドでジョブを作成できます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;bin/rails g job news_deliver
+      invoke  test_unit
+      create    &lt;span class=&quot;synStatement&quot;&gt;test&lt;/span&gt;/&lt;span class=&quot;synStatement&quot;&gt;jobs&lt;/span&gt;/news_deliver_job_test.rb
+      create  app/&lt;span class=&quot;synStatement&quot;&gt;jobs&lt;/span&gt;/news_deliver_job.rb
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+ジョブファイルの規約として、&lt;code&gt;app/jobs&lt;/code&gt;配下に配置し、&lt;code&gt;ActiveJob::Base&lt;/code&gt;を継承している必要があります。&lt;br /&gt;
+Rakeタスクで作成された値は次のようになっています。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/jobs/news_deliver_job.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;NewsDeliverJob&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveJob&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  queue_as &lt;span class=&quot;synConstant&quot;&gt;:default&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;perform&lt;/span&gt;(*args)
+    &lt;span class=&quot;synComment&quot;&gt;# Do something later&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;code&gt;queue_as&lt;/code&gt;で、どのキューでジョブを走らせるかをを設定できます。デフォルト値は&lt;code&gt;:default&lt;/code&gt;。&lt;br /&gt;
+そして、&lt;code&gt;perform&lt;/code&gt;メソッドにジョブに行わせたい処理を記載します。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;では、コントローラーの&lt;code&gt;deliver&lt;/code&gt;メソッドの時間がかかる処理を&lt;code&gt;perform&lt;/code&gt;メソッド内に移動させます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/jobs/news_deliver_job.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;NewsDeliverJob&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveJob&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  queue_as &lt;span class=&quot;synConstant&quot;&gt;:default&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;perform&lt;/span&gt;(letter_id)
+    &lt;span class=&quot;synType&quot;&gt;Letter&lt;/span&gt;.find(letter_id).deliver
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+そして、コントローラーで、ジョブを呼び出します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/letters_controller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;LettersController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# POST/letters/1/deliver&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;deliver&lt;/span&gt;
+    &lt;span class=&quot;synType&quot;&gt;NewsDeliverJob&lt;/span&gt;.perform_later(params[&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;])
+    redirect_to letters_url, &lt;span class=&quot;synConstant&quot;&gt;notice&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;手紙を送りました。&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+  ...
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+ジョブの呼び出し方には次のように時間を指定して呼び出すこともできます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# 明日の午後に実行される&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;NewsDeliverJob&lt;/span&gt;.set(&lt;span class=&quot;synConstant&quot;&gt;wait_until&lt;/span&gt;: &lt;span class=&quot;synType&quot;&gt;Date&lt;/span&gt;.tomorrow.noon).perform_later(params[&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;])
+
+&lt;span class=&quot;synComment&quot;&gt;# 1週間後に実行される&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;NewsDeliverJob&lt;/span&gt;.set(&lt;span class=&quot;synConstant&quot;&gt;wait&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;.week).perform_later(params[&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;])
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+ワーカーを起動します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;bin/rake &lt;span class=&quot;synStatement&quot;&gt;jobs&lt;/span&gt;:work
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+画面から「Deliver」ボタンを押してみると、先ほどと同じようにすぐに画面遷移します。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150115/20150115212009.jpg&quot; alt=&quot;f:id:nipe880324:20150115212009j:plain:w480&quot; title=&quot;f:id:nipe880324:20150115212009j:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;そして、数秒後に画面をリロードすると、Delivered atの値が設定されています。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150115/20150115212030.jpg&quot; alt=&quot;f:id:nipe880324:20150115212030j:plain:w480&quot; title=&quot;f:id:nipe880324:20150115212030j:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;delayed_job-aj-exception&quot;&gt;2.3. Active Jobの例外処理&lt;/h3&gt;ジョブ内でエラーが発生した時のエラーハンドリングには、&lt;code&gt;rescue_from&lt;/code&gt;を使います。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/letters_controller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;NewsDeliverJob&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveJob&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  queue_as &lt;span class=&quot;synConstant&quot;&gt;:default&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# performメソッド内でActiveRecord::RecordNotFoundが発生した場合、&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# ログに出力する&lt;/span&gt;
+  rescue_from(&lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;RecordNotFound&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;exception&lt;/span&gt;|
+    &lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt;.logger.error &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Letterレコードは見つかりませんでした。&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;perform&lt;/span&gt;(letter_id)
+    &lt;span class=&quot;synComment&quot;&gt;# 例外処理のハンドリングのために無理やり例外を発生させる&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;raise&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;RecordNotFound&lt;/span&gt;
+    &lt;span class=&quot;synType&quot;&gt;Letter&lt;/span&gt;.find(letter_id).deliver
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+画面から「Deliver」ボタンを押すと、次のようにログにエラーメッセージが表示されます。もちろん、画面の値は更新されません。&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# log/development.log&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;2015-01&lt;/span&gt;-15T20:&lt;span class=&quot;synConstant&quot;&gt;55&lt;/span&gt;:&lt;span class=&quot;synConstant&quot;&gt;20&lt;/span&gt;+&lt;span class=&quot;synConstant&quot;&gt;0900&lt;/span&gt;: &lt;span class=&quot;synStatement&quot;&gt;[&lt;/span&gt;Worker(host:nac.local pid:&lt;span class=&quot;synConstant&quot;&gt;51669&lt;/span&gt;)&lt;span class=&quot;synStatement&quot;&gt;]&lt;/span&gt; Job ActiveJob::QueueAdapters::DelayedJobAdapter::JobWrapper &lt;span class=&quot;synPreProc&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;id&lt;/span&gt;=&lt;span class=&quot;synConstant&quot;&gt;7&lt;/span&gt;&lt;span class=&quot;synPreProc&quot;&gt;)&lt;/span&gt; RUNNING
+&lt;span class=&quot;synStatement&quot;&gt;[&lt;/span&gt;ActiveJob&lt;span class=&quot;synStatement&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;[&lt;/span&gt;NewsDeliverJob&lt;span class=&quot;synStatement&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;[&lt;/span&gt;ecf4386f-5d10-4bc2-bfb3-994a45633070&lt;span class=&quot;synStatement&quot;&gt;]&lt;/span&gt; Performing NewsDeliverJob from DelayedJob&lt;span class=&quot;synPreProc&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;default&lt;/span&gt;&lt;span class=&quot;synPreProc&quot;&gt;)&lt;/span&gt; with arguments: &lt;span class=&quot;synStatement&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;[&lt;/span&gt;ActiveJob&lt;span class=&quot;synStatement&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;[&lt;/span&gt;NewsDeliverJob&lt;span class=&quot;synStatement&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;[&lt;/span&gt;ecf4386f-5d10-4bc2-bfb3-994a45633070&lt;span class=&quot;synStatement&quot;&gt;]&lt;/span&gt; Performed NewsDeliverJob from DelayedJob&lt;span class=&quot;synPreProc&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;default&lt;/span&gt;&lt;span class=&quot;synPreProc&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;synError&quot;&gt;in&lt;/span&gt; 0.53ms
+Letterレコードは見つかりませんでした。
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;delayed_job-ref&quot;&gt;3. リファレンス&lt;/h3&gt;&lt;h3 id=&quot;delayed_job-ref-create&quot;&gt;3.1. ジョブファイルの作成&lt;/h3&gt;次のコマンドでジョブを作成するか、&lt;code&gt;app/jobs&lt;/code&gt;配下に&lt;code&gt;ActiveJob::Base&lt;/code&gt;を継承したジョブクラスを作成する方法でジョブファイルを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;bin/rails g job news_deliver
+      invoke  test_unit
+      create    &lt;span class=&quot;synStatement&quot;&gt;test&lt;/span&gt;/&lt;span class=&quot;synStatement&quot;&gt;jobs&lt;/span&gt;/news_deliver_job_test.rb
+      create  app/&lt;span class=&quot;synStatement&quot;&gt;jobs&lt;/span&gt;/news_deliver_job.rb
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;code&gt;perform&lt;/code&gt;メソッドにジョブで実行したい処理を記述します。&lt;br /&gt;
+&lt;code&gt;queue_as&lt;/code&gt;で、どのキューでジョブを走らせるかをを設定できます。デフォルト値は&lt;code&gt;:default&lt;/code&gt;。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/jobs/news_deliver_job.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;NewsDeliverJob&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveJob&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  queue_as &lt;span class=&quot;synConstant&quot;&gt;:default&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;perform&lt;/span&gt;(letter_id)
+    &lt;span class=&quot;synType&quot;&gt;Letter&lt;/span&gt;.find(letter_id).deliver
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;delayed_job-ref-exception&quot;&gt;3.2. ジョブ内の例外処理&lt;/h3&gt;ジョブ内でエラーが発生した時のエラーハンドリングには、&lt;code&gt;rescue_from&lt;/code&gt;を使います。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/letters_controller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;NewsDeliverJob&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveJob&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  queue_as &lt;span class=&quot;synConstant&quot;&gt;:default&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# performメソッド内でActiveRecord::RecordNotFoundが発生した場合、&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# ログに出力する&lt;/span&gt;
+  rescue_from(&lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;RecordNotFound&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;exception&lt;/span&gt;|
+    &lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt;.logger.error &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Letterレコードは見つかりませんでした。&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;perform&lt;/span&gt;(letter_id)
+    &lt;span class=&quot;synComment&quot;&gt;# 例外処理のハンドリングのために無理やり例外を発生させる&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;raise&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;RecordNotFound&lt;/span&gt;
+    &lt;span class=&quot;synType&quot;&gt;Letter&lt;/span&gt;.find(letter_id).deliver
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;delayed_job-ref-execution&quot;&gt;3.3. ジョブの実行&lt;/h3&gt;ジョブの呼び出し方には次のように時間を指定して呼び出すこともできます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# すぐにバックグラウンドで実行さえっる&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;NewsDeliverJob&lt;/span&gt;.perform_later(params[&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;])
+
+&lt;span class=&quot;synComment&quot;&gt;# 明日の午後にバックグラウンドで実行される&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;NewsDeliverJob&lt;/span&gt;.set(&lt;span class=&quot;synConstant&quot;&gt;wait_until&lt;/span&gt;: &lt;span class=&quot;synType&quot;&gt;Date&lt;/span&gt;.tomorrow.noon).perform_later(params[&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;])
+
+&lt;span class=&quot;synComment&quot;&gt;# 1週間後にバックグラウンドで実行される&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;NewsDeliverJob&lt;/span&gt;.set(&lt;span class=&quot;synConstant&quot;&gt;wait&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;.week).perform_later(params[&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;])
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;delayed_job-ref-worker&quot;&gt;3.4. ワーカーの起動/停止&lt;/h3&gt;ジョブ関連のRakeタスクが使えます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;rake jobs&lt;span class=&quot;synConstant&quot;&gt;:check&lt;/span&gt;[max_age]  &lt;span class=&quot;synComment&quot;&gt;# Exit with error status if any jobs older than max_age seconds haven&#39;t been attempted yet&lt;/span&gt;
+rake jobs&lt;span class=&quot;synConstant&quot;&gt;:clear&lt;/span&gt;           &lt;span class=&quot;synComment&quot;&gt;# Delayed Job のキューをクリアな状態にする&lt;/span&gt;
+rake jobs&lt;span class=&quot;synConstant&quot;&gt;:work&lt;/span&gt;            &lt;span class=&quot;synComment&quot;&gt;# Delayed Job ワーカーを起動させる&lt;/span&gt;
+rake jobs&lt;span class=&quot;synConstant&quot;&gt;:workoff&lt;/span&gt;         &lt;span class=&quot;synComment&quot;&gt;# Delayed Job ワーカーを起動させ、すべてのジョブが完了したら終了する&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;delayed_job-ref-callbacks&quot;&gt;3.5. ジョブのコールバックの一覧&lt;/h3&gt;Active Jobは、ジョブのライフサイクルで次のコールバックを定義しています。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;before_enqueue&lt;/li&gt;
+&lt;li&gt;around_enqueue&lt;/li&gt;
+&lt;li&gt;after_enqueue&lt;/li&gt;
+&lt;li&gt;before_perform&lt;/li&gt;
+&lt;li&gt;around_perform&lt;/li&gt;
+&lt;li&gt;after_perform&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;br /&gt;
+以上です。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/collectiveidea/delayed_job&quot;&gt;collectiveidea/delayed_job &amp;middot; GitHub&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/collectiveidea/delayed_job_active_record&quot;&gt;collectiveidea/delayed_job_active_record &amp;middot; GitHub&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://guides.rubyonrails.org/active_job_basics.html&quot;&gt;Active Job Basics &amp;mdash; Ruby on Rails Guides&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Wed, 04 Mar 2015 00:31:11 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450080332093</guid>
+          
+            <category>ActiveJob</category>
+          
+            <category>Rails中級</category>
+          
+            <category>リファレンス</category>
+          
+        </item>
+      
+    
+  </channel>
+</rss>

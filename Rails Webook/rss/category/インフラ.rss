@@ -1,0 +1,664 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>インフラ - Rails Webook</title>
+    <link>http://ruby-rails.hatenadiary.com/category/%E3%82%A4%E3%83%B3%E3%83%95%E3%83%A9</link>
+    <description>自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</description>
+    <lastBuildDate>Fri, 18 Dec 2015 02:44:31 +0900</lastBuildDate>
+    <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+    <generator>Hatena::Blog</generator>
+    
+      
+      
+        <item>
+          <title>ChefでRails環境を構築(Ruby+Nginx+Unicorn+PostgreSQL+Redis+Fluentd)</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20150721/1437404524</link>
+          <description>&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150720/20150720234335.png&quot; alt=&quot;f:id:nipe880324:20150720234335p:plain&quot; title=&quot;f:id:nipe880324:20150720234335p:plain&quot; class=&quot;hatena-fotolife&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;ローカルの仮想マシンにChefでRails環境を構築する方法を説明します。&lt;br /&gt;
+Chefで構築しているので、AWSやVPSなどのsshやrubyがインストールできる環境であれば同じ環境を構築できます。&lt;/p&gt;&lt;p&gt;具体的には、次のようなものを使用するようにしています。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;CentOS 6.6&lt;/li&gt;
+&lt;li&gt;Ruby(rbenv)&lt;/li&gt;
+&lt;li&gt;Nginx&lt;/li&gt;
+&lt;li&gt;Unicorn&lt;/li&gt;
+&lt;li&gt;PostgreSQL&lt;/li&gt;
+&lt;li&gt;Redis&lt;/li&gt;
+&lt;li&gt;Fluentd(td-agent)&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;Chefのソースは&lt;a href=&quot;https://github.com/nipe0324/rails_samples/tree/master/chef_test&quot; target=&quot;_blank&quot;&gt;nipe0324/chef - GitHub&lt;/a&gt;に配置しています。&lt;br /&gt;
+また、インストール方法は&lt;a href=&quot;https://github.com/nipe0324/rails_samples/tree/master/chef_test#install-process&quot; target=&quot;_blank&quot;&gt;README - install process&lt;/a&gt;に記載しています。&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Ruby 2.2.2&lt;/li&gt;
+&lt;li&gt;Vagrant 1.7.2&lt;/li&gt;
+&lt;li&gt;Chef 12.4.1&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    &lt;p&gt;1. &lt;a href=&quot;#chef-basic&quot;&gt;Chefのあれこれ基本&lt;/a&gt;&lt;br /&gt;
+2. &lt;a href=&quot;#chef-install&quot;&gt;Chefのインストール&lt;/a&gt;&lt;br /&gt;
+3. &lt;a href=&quot;#chef-repository&quot;&gt;chefリポジトリを作成&lt;/a&gt;&lt;br /&gt;
+4. &lt;a href=&quot;#chef-cookbook&quot;&gt;クックブックを作成&lt;/a&gt;&lt;br /&gt;
+4.1. &lt;a href=&quot;#chef-cookbook-time-zone&quot;&gt;サーバーのタイムゾーンのクックブック&lt;/a&gt;&lt;br /&gt;
+4.2. &lt;a href=&quot;#chef-cookbook-user&quot;&gt;ユーザーのクックブック&lt;/a&gt;&lt;br /&gt;
+4.3. &lt;a href=&quot;#chef-cookbook-nginx&quot;&gt;Nginxの設定ファイルのクックブック&lt;/a&gt;&lt;br /&gt;
+4.4. &lt;a href=&quot;#chef-cookbook-ruby&quot;&gt;Rubyのクックブック&lt;/a&gt;&lt;br /&gt;
+5. &lt;a href=&quot;#chef-community-cookbook&quot;&gt;コミュニティクックブックのダウンロード&lt;/a&gt;&lt;br /&gt;
+6. &lt;a href=&quot;#chef-role&quot;&gt;ロールを設定&lt;/a&gt;&lt;br /&gt;
+7. &lt;a href=&quot;#chef-environments&quot;&gt;environmentsを設定&lt;/a&gt;&lt;br /&gt;
+8. &lt;a href=&quot;#chef-node&quot;&gt;ノードを設定&lt;/a&gt;&lt;br /&gt;
+9. &lt;a href=&quot;#chef-vagrant&quot;&gt;仮想マシンの作成&lt;/a&gt;&lt;br /&gt;
+10. &lt;a href=&quot;#chef-vagrant-chef&quot;&gt;仮想マシンにChefの適用&lt;/a&gt;&lt;br /&gt;
+11. &lt;a href=&quot;#chef-test&quot;&gt;動作確認テスト&lt;/a&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;chef-basic&quot;&gt;1. Chefのあれこれ基本&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;Chefを少し使ったことがある人を前提にあれこれ基本をメモ的に記載します。&lt;/p&gt;&lt;p&gt;&lt;h5&gt;・Chefのリポジトリ、クックブック、レシピの関係&lt;/h5&gt;&lt;b&gt;「リポジトリ(キッチン) &gt; クックブック &gt; レシピ」&lt;/b&gt;の順に階層構造のような関係になっています。&lt;br /&gt;
+&lt;b&gt;リポジトリ&lt;/b&gt;があり、&lt;br /&gt;
+そこにapacheやrubyなどの&lt;b&gt;クックブック&lt;/b&gt;やリポジトリの属性設定ファイルなどがあって、&lt;br /&gt;
+クックブックの中に&lt;b&gt;レシピ&lt;/b&gt;やクックブックの属性設定ファイルなどがあります。&lt;/p&gt;&lt;p&gt;&lt;h5&gt;リポジトリ(キッチン)のファイル説明&lt;/h5&gt;&lt;ul&gt;
+  &lt;li&gt;Berksfile ... 他の人が公開しているクックブック（コミュニティクックブック）の依存関係を管理する設定ファイル&lt;/li&gt;
+  &lt;li&gt;Vagrantfile ... Vagrantで仮想サーバを起動するためのVagrantの設定ファイル&lt;/li&gt;
+  &lt;li&gt;cookbooks ... コミュニティクックブックの配置場所&lt;/li&gt;
+  &lt;li&gt;data_bags ... クックブック単位ではなく、リポジトリ全体に設定したい変数をJSONファイルで格納する場所&lt;/li&gt;
+  &lt;li&gt;environments ... 開発用・本番用で設定を分けたい場合に各種変数などを格納する場所&lt;/li&gt;
+  &lt;li&gt;nodes ... Nodeオブジェクトを記述したJSONファイルの格納する場所。ノードとはChefで管理するサーバーのこと&lt;/li&gt;
+  &lt;li&gt;roles ... ロールの設定ファイルを格納する場所。ロールとはWebサーバとDBサーバといったような役割の違うサーバを扱いたい場合に使う&lt;/li&gt;
+  &lt;li&gt;site-cookbooks ...自分で作ったクックブックの配置場所&lt;/li&gt;
+&lt;/ul&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h5&gt;クックブック&lt;/h5&gt;&lt;ul&gt;
+  &lt;li&gt;attributes ... 変数の初期値を定義したファイルを格納する（特定のノードだけ変更したい場合、Nodeオブジェクトで上書きする）&lt;/li&gt;
+  &lt;li&gt;definitions ...リソースを自分で拡張したい場合に、拡張定義スクリプトを格納する場所&lt;/li&gt;
+  &lt;li&gt;files ... &lt;code&gt;cookbook_file&lt;/code&gt;リソースで扱う静的ファイルを格納する場所&lt;/li&gt;
+  &lt;li&gt;recipes ... レシピの置き場所&lt;/li&gt;
+  &lt;li&gt;templates ... 設定のテンプレートの置き場所&lt;/li&gt;
+  &lt;li&gt;etc ...&lt;/li&gt;
+&lt;/ul&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h5&gt;レシピ&lt;/h5&gt;&lt;code&gt;package&lt;/code&gt;や&lt;code&gt;service&lt;/code&gt;リソースを記載し、パッケージのインストールやサービスの起動などの状態を記載&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h5&gt;attributeの優先度&lt;/h5&gt;「クックブック内のattributeファイル &gt; レシピ内で定義されたattribute &gt; environments &gt; roles &gt; nodes」&lt;/p&gt;&lt;p&gt;&lt;h5&gt;Chefの実行順序&lt;/h5&gt;1. &lt;code&gt;chef solo cook [node名]&lt;/code&gt;などで&lt;b&gt;nodeを実行&lt;/b&gt;&lt;br /&gt;
+2. nodeのJSONに記載されている環境名でenvironments内の環境設定JSONが呼ばれる&lt;br /&gt;
+3. node内の&lt;code&gt;run_list&lt;/code&gt;に記載されている、roleやrecipeが実行される&lt;br /&gt;
+4. role内の&lt;code&gt;run_list&lt;/code&gt;に記載されている、recipeが実行される&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;chef-install&quot;&gt;2. Chefのインストール&lt;/h3&gt;bundlerをインストールします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# rubyのバージョン
+$ ruby -v
+ruby 2.2.2p95
+
+# bundlerのインストール
+$ gem install bundler --no-ri --no-rdoc&lt;/pre&gt;&lt;p&gt;&lt;code&gt;Gemfile&lt;/code&gt;を作成します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Gemfile&lt;/span&gt;
+source &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;https://rubygems.org&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+
+gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;chef&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;knife-solo&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;  &lt;span class=&quot;synComment&quot;&gt;# ローカルからリモートのchef-soloを実行できるツール&lt;/span&gt;
+gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;berkshelf&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;   &lt;span class=&quot;synComment&quot;&gt;# コミュニティクックブックの依存関係の管理ツール&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;gemをインストールします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ bundle install&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;chef-repository&quot;&gt;3. chefリポジトリを作成&lt;/h3&gt;chef solo用のリポジトリを作成します。&lt;br /&gt;
+&lt;code&gt;rails new&lt;/code&gt;のようなものです。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ bundle exec knife solo init .
+Creating kitchen...
+Creating knife.rb in kitchen...
+Creating cupboards...
+Setting up Berkshelf...&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;chef-cookbook&quot;&gt;4. クックブックを作成&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;chef-cookbook-time-zone&quot;&gt;4.1. サーバーのタイムゾーンのクックブック&lt;/h3&gt;クックブックのテンプレートを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ bundle exec knife cookbook create time-zone -o site-cookbooks&lt;/pre&gt;&lt;p&gt;タイムゾーンを設定するレシピを記載します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# site-cookbooks/time-zone/recipes/default.rb&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# タイムゾーン変更&lt;/span&gt;
+execute &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;change-server-localtime&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  user &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;root&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+  command &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;cp -p /usr/share/zoneinfo/UTC /etc/localtime&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+  action &lt;span class=&quot;synConstant&quot;&gt;:run&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# clockをUTCに固定&lt;/span&gt;
+cookbook_file &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;/etc/sysconfig/clock&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  owner &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;root&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+  group &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;root&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+  mode &lt;span class=&quot;synConstant&quot;&gt;0755&lt;/span&gt;
+  source &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;clock-utc&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;レシピ内で使用している静的ファイルを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# site-cookbooks/time-zone/files/default/clock-utc
+ZONE=&amp;#34;UTC&amp;#34;&lt;/pre&gt;&lt;p&gt;&lt;code&gt;time-zone&lt;/code&gt;ディレクトリ配下の&lt;code&gt;attributes&lt;/code&gt;や&lt;code&gt;definitions&lt;/code&gt;などの使用していないディレクトリは削除しておきます。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;chef-cookbook-user&quot;&gt;4.2. ユーザーのクックブック&lt;/h3&gt;&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ bundle exec knife cookbook create user -o site-cookbooks&lt;/pre&gt;&lt;p&gt;レシピを作成&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# site-cookbooks/user/recipes/defaut.rb&lt;/span&gt;
+
+group node[&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;] &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  group_name node[&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;]
+  action     [&lt;span class=&quot;synConstant&quot;&gt;:create&lt;/span&gt;]
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+user node[&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;] &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  comment  &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;#{&lt;/span&gt;node[&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;]&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; user&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+  group    node[&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;]
+  home     &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;/home/&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;node[&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;]&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt;
+  supports &lt;span class=&quot;synConstant&quot;&gt;:manage_home&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;
+  action   [&lt;span class=&quot;synConstant&quot;&gt;:create&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:manage&lt;/span&gt;]
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;code&gt;user&lt;/code&gt;ディレクトリ配下の&lt;code&gt;attributes&lt;/code&gt;や&lt;code&gt;definitions&lt;/code&gt;などの使用していないディレクトリは削除しておきます。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;chef-cookbook-nginx&quot;&gt;4.3. Nginxの設定ファイルのクックブック&lt;/h3&gt;&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ bundle exec knife cookbook create nginx-conf -o site-cookbooks&lt;/pre&gt;&lt;p&gt;レシピの作成&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# site-cookbooks/nginx-conf/recipes/default.rb&lt;/span&gt;
+template &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;nginx.conf&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  path &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;/etc/nginx/nginx.conf&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+  source &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;nginx.conf.erb&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+  owner &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;root&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+  group &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;root&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+  mode  &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;0644&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+  notifies &lt;span class=&quot;synConstant&quot;&gt;:reload&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;service[nginx]&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;code&gt;nginx.conf&lt;/code&gt;の設定を実施する。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# site-cookbooks/nginx-conf/templates/default/nginx.conf.erb
+user nginx;
+worker_processes 1;
+
+error_log /var/log/nginx/error.log warn;
+pid       /var/run/nginx.pid;
+
+events {
+  worker_connections 1024;
+}
+
+http {
+  include       /etc/nginx/mime.types;
+  default_type  application/octet-stream;
+  log_format main &amp;#39;$remote_addr - $remote_user [$time_local] &amp;#34;$request&amp;#34; &amp;#39;
+                  &amp;#39;$status $body_bytes_sent &amp;#34;$http_referer&amp;#34; &amp;#39;
+                  &amp;#39;&amp;#34;$http_user_agent&amp;#34; &amp;#34;$http_x_forwarded_for&amp;#34;&amp;#39;;
+  access_log    /var/log/nginx/access.log main;
+  sendfile      on;
+  keepalive_timeout 65;
+
+  &amp;lt;% if node[&amp;#39;nginx&amp;#39;][&amp;#39;env&amp;#39;].include?(&amp;#39;ruby&amp;#39;) %&amp;gt;
+  upstream unicorn {
+    server unix:/tmp/unicorn.sock;
+  }
+  &amp;lt;% end %&amp;gt;
+
+  server {
+    listen    80 default_server;
+    server_name _;
+
+    location / {
+      root  /usr/share/nginx/html;
+      index index.html index.htm;
+    }
+
+    error_page 404  /404.html;
+    location = /404.html {
+      root  /usr/share/nginx/html;
+    }
+
+    # redirect server error pages to the static page /50x.html
+    error_page 500 502 503 504 /50x.html;
+    location = /50x.html {
+      root /usr/share/nginx/html;
+    }
+
+    &amp;lt;% if node[&amp;#39;nginx&amp;#39;][&amp;#39;env&amp;#39;].include?(&amp;#39;ruby&amp;#39;) %&amp;gt;
+    location /unicorn {
+      rewrite ^/unicorn/(.+) /$1 break;
+      proxy_pass http://unicorn/$1;
+    }
+    &amp;lt;% end %&amp;gt;
+  }
+}&lt;/pre&gt;&lt;p&gt;&lt;code&gt;nginx-conf&lt;/code&gt;ディレクトリ配下の&lt;code&gt;attributes&lt;/code&gt;や&lt;code&gt;definitions&lt;/code&gt;などの使用していないディレクトリは削除しておきます。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;chef-cookbook-ruby&quot;&gt;4.4. Rubyのクックブック&lt;/h3&gt;&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ bundle exec knife cookbook create ruby-env -o site-cookbooks&lt;/pre&gt;&lt;p&gt;レシピの作成をします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# site-cookbooks/ruby-env/recipes/default.rb
+
+# install openssl-devel and sqlite-devel
+%w{openssl-devel sqlite-devel}.each do |pkg|
+  package pkg do
+    action :install
+  end
+end
+
+# rbenv
+git &amp;#34;/home/#{node[&amp;#39;ruby-env&amp;#39;][&amp;#39;user&amp;#39;]}/.rbenv&amp;#34; do
+  repository node[&amp;#39;ruby-env&amp;#39;][&amp;#39;rbenv_url&amp;#39;]
+  action :sync
+  user  node[&amp;#39;ruby-env&amp;#39;][&amp;#39;user&amp;#39;]
+  group node[&amp;#39;ruby-env&amp;#39;][&amp;#39;group&amp;#39;]
+end
+
+template &amp;#34;.bash_profile&amp;#34; do
+  source &amp;#34;.bash_profile.erb&amp;#34;
+  path   &amp;#34;/home/#{node[&amp;#39;ruby-env&amp;#39;][&amp;#39;user&amp;#39;]}/.bash_profile&amp;#34;
+  mode   0655
+  owner  node[&amp;#39;ruby-env&amp;#39;][&amp;#39;user&amp;#39;]
+  group  node[&amp;#39;ruby-env&amp;#39;][&amp;#39;group&amp;#39;]
+  not_if &amp;#34;grep rbenv ~/.bash_profile&amp;#34;, environment: { :&amp;#39;HOME&amp;#39; =&amp;gt; &amp;#34;/home/#{node[&amp;#39;ruby-env&amp;#39;][&amp;#39;user&amp;#39;]}&amp;#34; }
+end
+
+# ruby
+directory &amp;#34;/home/#{node[&amp;#39;ruby-env&amp;#39;][&amp;#39;user&amp;#39;]}/.rbenv/plugins&amp;#34; do
+  mode   0755
+  owner  node[&amp;#39;ruby-env&amp;#39;][&amp;#39;user&amp;#39;]
+  group  node[&amp;#39;ruby-env&amp;#39;][&amp;#39;group&amp;#39;]
+  action :create
+end
+
+git &amp;#34;/home/#{node[&amp;#39;ruby-env&amp;#39;][&amp;#39;user&amp;#39;]}/.rbenv/plugins/ruby-build&amp;#34; do
+  repository node[&amp;#39;ruby-env&amp;#39;][&amp;#39;ruby-build_url&amp;#39;]
+  action :sync
+  user   node[&amp;#39;ruby-env&amp;#39;][&amp;#39;user&amp;#39;]
+  group  node[&amp;#39;ruby-env&amp;#39;][&amp;#39;group&amp;#39;]
+end
+
+# install ruby
+execute &amp;#34;rbenv install #{node[&amp;#39;ruby-env&amp;#39;][&amp;#39;version&amp;#39;]}&amp;#34; do
+  command &amp;#34;/home/#{node[&amp;#39;ruby-env&amp;#39;][&amp;#39;user&amp;#39;]}/.rbenv/bin/rbenv install #{node[&amp;#39;ruby-env&amp;#39;][&amp;#39;version&amp;#39;]}&amp;#34;
+  user   node[&amp;#39;ruby-env&amp;#39;][&amp;#39;user&amp;#39;]
+  group  node[&amp;#39;ruby-env&amp;#39;][&amp;#39;group&amp;#39;]
+  environment &amp;#39;HOME&amp;#39; =&amp;gt; &amp;#34;/home/#{node[&amp;#39;ruby-env&amp;#39;][&amp;#39;user&amp;#39;]}&amp;#34;
+  not_if { File.exists?(&amp;#34;/home/#{node[&amp;#39;ruby-env&amp;#39;][&amp;#39;user&amp;#39;]}/.rbenv/versions/#{node[&amp;#39;ruby-env&amp;#39;][&amp;#39;version&amp;#39;]}&amp;#34;) }
+end
+
+# set rbenv global
+execute &amp;#34;rbenv global #{node[&amp;#39;ruby-env&amp;#39;][&amp;#39;version&amp;#39;]}&amp;#34; do
+  command &amp;#34;/home/#{node[&amp;#39;ruby-env&amp;#39;][&amp;#39;user&amp;#39;]}/.rbenv/bin/rbenv global #{node[&amp;#39;ruby-env&amp;#39;][&amp;#39;version&amp;#39;]}&amp;#34;
+  user   node[&amp;#39;ruby-env&amp;#39;][&amp;#39;user&amp;#39;]
+  group  node[&amp;#39;ruby-env&amp;#39;][&amp;#39;group&amp;#39;]
+  environment &amp;#39;HOME&amp;#39; =&amp;gt; &amp;#34;/home/#{node[&amp;#39;ruby-env&amp;#39;][&amp;#39;user&amp;#39;]}&amp;#34;
+end
+
+# install rbenv-rehash and bundler gem
+%w{rbenv-rehash bundler}.each do |gem_name|
+  execute &amp;#34;gem install #{gem_name}&amp;#34; do
+    command &amp;#34;/home/#{node[&amp;#39;ruby-env&amp;#39;][&amp;#39;user&amp;#39;]}/.rbenv/shims/gem install #{gem_name}&amp;#34;
+    user   node[&amp;#39;ruby-env&amp;#39;][&amp;#39;user&amp;#39;]
+    group  node[&amp;#39;ruby-env&amp;#39;][&amp;#39;group&amp;#39;]
+    environment &amp;#39;HOME&amp;#39; =&amp;gt; &amp;#34;/home/#{node[&amp;#39;ruby-env&amp;#39;][&amp;#39;user&amp;#39;]}&amp;#34;
+    not_if &amp;#34;/home/#{node[&amp;#39;ruby-env&amp;#39;][&amp;#39;user&amp;#39;]}/.rbenv/shims/gem list | grep #{gem_name}&amp;#34;
+  end
+end&lt;/pre&gt;&lt;p&gt;テンプレートのファイルを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# site-cookbooks/ruby-env/templates/default/.bash_profile.erb
+
+# Get the aliases and functions
+if [ -f ~/.bashrc ]; then
+  ~/.bashrc
+fi
+
+# User specific environment and startup programs
+PATH=$PATH:$HOME/bin
+export PATH=&amp;#34;$HOME/.rbenv/bin:$PATH&amp;#34;
+eval &amp;#34;$(rbenv init -)&amp;#34;&lt;/pre&gt;&lt;p&gt;&lt;code&gt;ruby-env&lt;/code&gt;ディレクトリ配下の&lt;code&gt;attributes&lt;/code&gt;や&lt;code&gt;definitions&lt;/code&gt;などの使用していないディレクトリは削除しておきます。&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;chef-community-cookbook&quot;&gt;5. コミュニティクックブックのダウンロード&lt;/h3&gt;&lt;code&gt;Berksfile&lt;/code&gt;にコミュニティクックブックを記載します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Berksfile&lt;/span&gt;
+source &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;https://supermarket.chef.io&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+
+cookbook &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;selinux&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+cookbook &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;sudo&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+cookbook &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;git&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+cookbook &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;ruby_build&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+cookbook &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;ruby-env&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;path&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;./site-cookbooks/ruby-env&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+cookbook &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;nodejs&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+cookbook &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;nginx&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+cookbook &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;postgresql&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+cookbook &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;redis&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+cookbook &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;imagemagick&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+cookbook &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;td-agent&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;code&gt;berks&lt;/code&gt;コマンドでBerksfileに記載したコミュニティクックブックをダウンロードします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ bundle exec berks vendor ./cookbooks&lt;/pre&gt;&lt;p&gt;&lt;code&gt;cookbooks&lt;/code&gt;配下にコミュニティクックブックがダウンロードされます。&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;chef-role&quot;&gt;6. ロールを設定&lt;/h3&gt;ロールはWebサーバ、DBサーバなどのサーバの役割に応じた単位で作成します。&lt;/p&gt;&lt;p&gt;サーバ共通用ロール(roles/base.json)&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;name&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;base&amp;quot;&lt;/span&gt;,
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;chef_type&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;role&amp;quot;&lt;/span&gt;,
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;json_class&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Chef::Role&amp;quot;&lt;/span&gt;,
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;run_list&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synIdentifier&quot;&gt;[&lt;/span&gt;
+    &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;recipe[selinux::disabled]&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;recipe[time-zone]&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;recipe[user]&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;recipe[git]&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;recipe[td-agent]&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+Webサーバ用ロール(roles/web.json)&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;name&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;web&amp;quot;&lt;/span&gt;,
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;chef_type&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;role&amp;quot;&lt;/span&gt;,
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;json_class&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Chef::Role&amp;quot;&lt;/span&gt;,
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;default_attributes&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;nginx&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;env&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synIdentifier&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;ruby&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;]&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;,
+    &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;ruby-env&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;version&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;2.2.2&amp;quot;&lt;/span&gt;,
+      &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;rbenv_url&amp;quot;&lt;/span&gt;:      &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;https://github.com/sstephenson/rbenv&amp;quot;&lt;/span&gt;,
+      &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;ruby-build_url&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;https://github.com/sstephenson/ruby-build&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;,
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;run_list&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synIdentifier&quot;&gt;[&lt;/span&gt;
+    &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;recipe[yum-epel]&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;recipe[nginx]&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;recipe[nginx-conf]&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;recipe[nodejs]&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;recipe[ruby-env]&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;recipe[postgresql]&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;recipe[imagemagick]&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;code&gt;default_attributes&lt;/code&gt;は、ロールのデフォルト値を設定します。&lt;br /&gt;
+environments配下の方が優先度が高いので、開発や本番環境などで設定を変えたいときは、この値を上書きできます。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;DBサーバ用ロール(roles/db.json)&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;name&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;db&amp;quot;&lt;/span&gt;,
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;chef_type&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;role&amp;quot;&lt;/span&gt;,
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;json_class&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Chef::Role&amp;quot;&lt;/span&gt;,
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;run_list&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synIdentifier&quot;&gt;[&lt;/span&gt;
+    &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;recipe[postgresql]&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+キャッシュサーバ用ロール(roles/cache.rb)&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;name&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;cache&amp;quot;&lt;/span&gt;,
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;chef_type&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;role&amp;quot;&lt;/span&gt;,
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;json_class&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Chef::Role&amp;quot;&lt;/span&gt;,
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;run_list&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synIdentifier&quot;&gt;[&lt;/span&gt;
+    &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;recipe[redis]&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;chef-environments&quot;&gt;7. environmentsを設定&lt;/h3&gt;environmentsを使えば、開発、ステージング、本番環境など環境ごとに変数を設定できる。&lt;/p&gt;&lt;p&gt;ローカル開発環境用の設定(environments/local-development.json)&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;name&amp;quot;&lt;/span&gt;:        &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;local-development&amp;quot;&lt;/span&gt;,
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;description&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;local virtual machine development environment&amp;quot;&lt;/span&gt;,
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;chef_type&amp;quot;&lt;/span&gt;:   &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;environment&amp;quot;&lt;/span&gt;,
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;json_class&amp;quot;&lt;/span&gt;:  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Chef::Environment&amp;quot;&lt;/span&gt;,
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;default_attributes&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;user&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;vagrant&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;ruby-env&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;user&amp;quot;&lt;/span&gt;:    &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;vagrant&amp;quot;&lt;/span&gt;,
+      &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;group&amp;quot;&lt;/span&gt;:   &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;vagrant&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;,
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;override_attributes&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synIdentifier&quot;&gt;{}&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;chef-node&quot;&gt;8. ノードを設定&lt;/h3&gt;ノードはChefではサーバを表し、サーバに適用するレシピやロールを記載します。&lt;/p&gt;&lt;p&gt;ローカル環境のWebサーバ用(nodes/local-development.json)&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;environment&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;local-development&amp;quot;&lt;/span&gt;,
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;run_list&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synIdentifier&quot;&gt;[&lt;/span&gt;
+    &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;role[base]&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;role[web]&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;role[db]&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;role[cache]&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;]&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;chef-vagrant&quot;&gt;9. 仮想マシンの作成&lt;/h3&gt;&lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20150719/1437249020&quot; target=&quot;&quot;&gt;Vagrant入門&lt;/a&gt;を参考に、ローカルに仮想マシンを作成します。&lt;br /&gt;
+途中の手順で、&lt;code&gt;vagrant ssh-config --host web &gt;&gt; ~/.ssh/config&lt;/code&gt;を&lt;code&gt;vagrant ssh-config --host local-development &gt;&gt; ~/.ssh/config&lt;/code&gt;で実行しておいてください。&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;chef-vagrant-chef&quot;&gt;10. 仮想マシンにChefの適用&lt;/h3&gt;&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# リモートサーバー(仮想マシン)にchef-soloのインストール
+$ bundle exec knife solo prepare local-development
+
+# リモートサーバーにレシピを適用する
+$ bundle exec knife solo cook local-development&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;chef-test&quot;&gt;11. 動作確認テスト&lt;/h3&gt;&lt;code&gt;chef/samples&lt;/code&gt;に動作確認用のrailsアプリ(unicornの設定もあり)を作成していますので、それを使ってRailsの画面が開けるか確認します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;cp -rp samples/sample_rails synced_folder/.
+vagrant ssh
+&amp;gt; cd synced_folder/sample_rails
+&amp;gt; bundle install
+&amp;gt; bundle exec rake db:migrate
+&amp;gt; bundle exec unicorn -c config/unicorn.rb&lt;/pre&gt;&lt;p&gt;ローカルマシンからブラウザで`&lt;a href=&quot;http://192.168.33.10/unicorn&quot;&gt;http://192.168.33.10/unicorn&lt;/a&gt;`にアクセスすると、Railsの画面が表示されます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150720/20150720235203.png&quot; alt=&quot;f:id:nipe880324:20150720235203p:plain&quot; title=&quot;f:id:nipe880324:20150720235203p:plain&quot; class=&quot;hatena-fotolife&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;以上です。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考資料&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Chef実践入門&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Tue, 21 Jul 2015 00:02:04 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450102328597</guid>
+          
+            <category>インフラ</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>Vagrant入門。簡単にローカル環境に仮想マシン(VM)を作る</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20150719/1437249020</link>
+          <description>&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150719/20150719044527.png&quot; alt=&quot;f:id:nipe880324:20150719044527p:plain&quot; title=&quot;f:id:nipe880324:20150719044527p:plain&quot; class=&quot;hatena-fotolife&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Vagrantを使うことで&lt;b&gt;本当に簡単に仮想マシン(VM)をローカル環境&lt;/b&gt;に作成できます。&lt;/p&gt;&lt;p&gt;主な利用用途としては、開発用マシンをVagrantで作成できるようにしておくことで、同じ構成（OS、ミドルウェア、バージョンなど）の開発マシンを開発メンバーに配布することができます。そのため、&lt;b&gt;環境構築の手間が省け、バージョンが違うなどといった問題も起こりません。&lt;/b&gt;&lt;/p&gt;&lt;p&gt;デメリットとしては、VM上で動かすので動作が遅くなりがちや、ホスト(PC)との連携に工夫が必要といったわずらわしさもあります。&lt;/p&gt;&lt;p&gt;しかし、仮想マシンなのでサーバー環境を作成、削除が簡単にできるので、ローカル環境では行いづらいマシンの環境系のテストが簡単に行えるのも魅力ですのでVagrantは必須の知識だと思います。&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#vagrant-install&quot;&gt;VagrantとVirtualBoxのインストール&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#vagrant-init&quot;&gt;Vagrantfileを作成&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#vagrant-box-add&quot;&gt;Vagrantにボックスを追加&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#vagrant-box-list&quot;&gt;ボックス一覧の確認&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#vagrant-setting&quot;&gt;Vagrantfileの設定&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#vagrant-sync-folder&quot;&gt;ホストとVMの共有フォルダ作成&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#vagrant-up&quot;&gt;仮想マシンの起動&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#vagrant-ssh&quot;&gt;仮想マシンにログイン&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#vagrant-ssh-config&quot;&gt;sshコマンドでログイン&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#vagrant-halt&quot;&gt;仮想マシンの停止&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#vagrant-commands&quot;&gt;Vagrantコマンド一覧(よく使うやつ)&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;MacOS 10&lt;/li&gt;
+&lt;li&gt;Vagrant 1.7.2&lt;/li&gt;
+&lt;li&gt;VirtualBox 4.2.38&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;vagrant-install&quot;&gt;1. VagrantとVirtualBoxのインストール&lt;/h3&gt;以下のサイトからダウンロードか、brewコマンドでインストールします。&lt;/p&gt;&lt;p&gt;サイトからダウンロードしてくる場合&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://www.vagrantup.com/downloads.html&quot; target=&quot;_blank&quot;&gt;Vagrant&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://www.virtualbox.org/&quot; target=&quot;_blank&quot;&gt;VitualBox&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;brewコマンドの場合(brewがインストールされている必要がある)&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ brew tap caskroom/cask
+$ brew install brew-cask
+$ brew cask install virtualbox
+$ brew cask install vagrant&lt;/pre&gt;&lt;p&gt;VitualBoxは仮想マシンを管理できるソフトです。&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;vagrant-init&quot;&gt;2. Vagrantfileを作成&lt;/h3&gt;Vagrantを使っていくホームディレクトリ(project)を作成し、Vagrantの設定ファイル(Vagrantfile)を作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ mkdir project &amp;amp;&amp;amp; cd project
+$ vagrant init&lt;/pre&gt;&lt;p&gt;Vagrantfileはデフォルトで多くの設定がコメントアウトされています。&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;vagrant-box-add&quot;&gt;3. Vagrantにボックスを追加&lt;/h3&gt;CentOS 6.6 x64 のボックスを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ vagrant box add chef/centos-6.6
+
+# 次のような質問がでてくるので、virtualboxの1を選びます
+1) virtualbox
+3) vmware_desktop
+
+Enter your choice: 1&lt;/pre&gt;&lt;p&gt;Vagrantでは簡単にOSを作成できるようにOSのベースイメージ（&lt;b&gt;ボックス&lt;/b&gt;と呼ばれる）が用意されています。&lt;br /&gt;
+&lt;a href=&quot;https://atlas.hashicorp.com/boxes/search&quot;&gt;Discover Vagrant Boxes | Atlas by HashiCorp&lt;/a&gt;に様々なボックスが公開されています。&lt;br /&gt;
+&lt;code&gt;chef/centos-6.6&lt;/code&gt;もここから探したもので、CentOS 6.6 x64 のボックスです。&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;vagrant-box-list&quot;&gt;4. ボックス一覧の確認&lt;/h3&gt;ボックスが追加されているか確認します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ vagrant box list
+chef/centos-6.6 (virtualbox, 1.0.0)&lt;/pre&gt;&lt;p&gt;ちなみに、&lt;code&gt;vagrant box list [ボックス名(chef/centos-6.6 など)]&lt;/code&gt;でボックスを削除できます。&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;vagrant-setting&quot;&gt;5. Vagrantfileの設定&lt;/h3&gt;インストールしたボックスを使うように設定します。また、超基本的な設定をします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Vagrantfile&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Vagrant&lt;/span&gt;.configure(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;config&lt;/span&gt;|
+  &lt;span class=&quot;synComment&quot;&gt;# ボックス名を設定。設定したボックスのOSがインストールされる&lt;/span&gt;
+  config.vm.box = &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;chef/centos-6.6&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# ホスト(PC)からVMにアクセスできるプライベートIPを設定&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# VM上でアプリを作ったときに、PCのブラウザからこのIPアドレス(192.168.33.10)を使ってアクセスできる&lt;/span&gt;
+  config.vm.network &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;private_network&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;ip&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;192.168.33.10&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# 共有フォルダの設定（PCとVMでファイルを共有できる)&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# ホストのsync_folderとVMの/home/vagrant/sync_folderをNFSで共有する&lt;/span&gt;
+  config.vm.synced_folder &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;./sync_folder&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;/home/vagrant/sync_folder&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;type&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;nfs&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;もし設定を変更した場合、&lt;code&gt;vagrant reload&lt;/code&gt;を行うことで反映できます。&lt;br /&gt;
+設定は他にもでき、詳細は&lt;a href=&quot;https://docs.vagrantup.com/v2/&quot; target=&quot;_blank&quot;&gt;Vagrant公式ドキュメント&lt;/a&gt;を見てください&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;vagrant-sync-folder&quot;&gt;6. ホストとVMの共有フォルダ作成&lt;/h3&gt;&lt;code&gt;vm.synced_folder&lt;/code&gt;で設定した&lt;code&gt;sync_folder&lt;/code&gt;をホスト(PC)側に作成しておきます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ mkdir sync_folder&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;vagrant-up&quot;&gt;7. 仮想マシンの起動&lt;/h3&gt;仮想マシンの作成、起動、ボックス（OS）のインストールを行います。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ vagrant up&lt;/pre&gt;&lt;p&gt;&lt;code&gt;Vagrantfile&lt;/code&gt;の設定内容が読み込まれて、VirtualBoxに仮想マシンが作成され、その上にボックスのOS(CentOS 6.4)がインストールされます。&lt;br /&gt;
+ちなみに、&lt;code&gt;vagrant destroy&lt;/code&gt;で作成したVMを削除することができます。&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;vagrant-ssh&quot;&gt;8. 仮想マシンにログイン&lt;/h3&gt;作成したOS(CentOS 6.4)にログインします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ vagrant ssh
+
+[vagrant@localhost ~]$ ls
+sync_folder  # 共有フォルダが表示されている
+[vagrant@localhost ~]$ exit
+logout&lt;/pre&gt;&lt;p&gt;ユーザーは&lt;code&gt;Vagrant&lt;/code&gt;でログインし、ホームフォルダは&lt;code&gt;/home/vagrant&lt;/code&gt;です。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;vagrant-ssh-config&quot;&gt;9. sshでログインする&lt;/h3&gt;&lt;code&gt;vagrant ssh-config&lt;/code&gt;コマンドによりsshでVagrantで作成した仮想マシンにログインできるようになります。sshでログインしたいときのために設定しておきます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ touch ~/.ssh/config
+$ vagrant ssh-config --host web &amp;gt;&amp;gt; ~/.ssh/config
+
+# ssh webでログインできるようになる
+$ ssh web
+[vagrant@localhost ~]$ &lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;vagrant-halt&quot;&gt;10. 仮想マシンの停止&lt;/h3&gt;最後にVagrantのVMを使わないときはCPUやメモリの消費を抑えるために留めておきます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;vagrant halt&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;vagrant-commands&quot;&gt;11. Vagrantコマンド一覧(よく使うやつ)&lt;/h3&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;vagrant up ... VMの作成/起動&lt;/li&gt;
+&lt;li&gt;vagrant suspend ... VMの一時停止&lt;/li&gt;
+&lt;li&gt;vagrant halt ... VMの電源OFF&lt;/li&gt;
+&lt;li&gt;vagrant ssh ... VMにログイン&lt;/li&gt;
+&lt;li&gt;vagrant reload ... VMの設定変更(Vagrantfileを変更したときに呼ぶ)&lt;/li&gt;
+&lt;li&gt;vagrant destroy ... VMの削除&lt;/li&gt;
+&lt;li&gt;vagrant list-commands ... コマンド一覧を表示&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;以上です。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://docs.vagrantup.com/v2/&quot;&gt;Vagrant Documentation&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Sun, 19 Jul 2015 04:50:20 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450102115852</guid>
+          
+            <category>インフラ</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>無料枠内でのHerokuの準備とデプロイ（Mac 10 + Rails 4.2 + MySQL 5.6）</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20150314/1426332751</link>
+          <description>&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150314/20150314010758.jpg&quot; alt=&quot;f:id:nipe880324:20150314010758j:plain&quot; title=&quot;f:id:nipe880324:20150314010758j:plain&quot; class=&quot;hatena-fotolife&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;無料枠内でのHerokuの使うための準備とデプロイの流れについて簡単にまとめました。&lt;br /&gt;
+環境は次の通りです。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Mac OS X 10 Yosemite&lt;/li&gt;
+&lt;li&gt;Ruby 2.2.1&lt;/li&gt;
+&lt;li&gt;Rails 4.2&lt;/li&gt;
+&lt;li&gt;MySQL 5.6&lt;/li&gt;
+&lt;li&gt;heroku-toolbelt 3.40.6&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#heroku-preparation&quot;&gt;Herokuの準備&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#heroku-deploy&quot;&gt;Herokuへデプロイ&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;heroku-preparation&quot;&gt;1. Herokuの準備&lt;/h3&gt;Herokuアカウントを作成する&lt;br /&gt;
+&lt;a href=&quot;https://www.heroku.com/&quot;&gt;Heroku | Cloud Application Platform&lt;/a&gt;&lt;/p&gt;&lt;p&gt;Heroku Toolbeltをインストール&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ brew install heroku-toolbelt&lt;/pre&gt;&lt;p&gt;Herokuにローカルの公開鍵(~/.ssh/id_ras.pub)を登録&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ heroku keys:add&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;heroku-deploy&quot;&gt;2. Herokuへデプロイ&lt;/h3&gt;既にRailsのアプリがあることが前提です。&lt;br /&gt;
+また、&lt;code&gt;database.yml&lt;/code&gt;を下記のようにしておくことで、環境変数で値を設定できる世にしておきます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# config/database.yml
+
+production:
+  adapter:  mysql2   # postgresの場合はadapterをpostgresql
+  encoding: utf8
+  database: &amp;lt;%= ENV[&amp;#39;DB_NAME&amp;#39;] %&amp;gt;
+  username: &amp;lt;%= ENV[&amp;#39;DB_USERNAME&amp;#39;] %&amp;gt;
+  password: &amp;lt;%= ENV[&amp;#39;DB_PASSWORD&amp;#39;] %&amp;gt;
+  host:     &amp;lt;%= ENV[&amp;#39;DB_HOSTNAME&amp;#39;] %&amp;gt;
+  port:     &amp;lt;%= ENV[&amp;#39;DB_PORT&amp;#39;] %&amp;gt;&lt;/pre&gt;&lt;p&gt;Herokuにコマンドライン上でログイン&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ heroku login&lt;/pre&gt;&lt;p&gt;Herokuアプリを作成&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ cd my-project/
+$ heroku apps:create [app_name]
+# ※ app_nameは小文字で始まり、小文字、数字、-のみしかつかえません&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+Herokuのリモートリポジトリを確認&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ git remote -v
+heroku https://git.heroku.com/mysterious-crag-1792.git (fetch)
+heroku  https://git.heroku.com/mysterious-crag-1792.git (push)
+origin  git@github.com:nipe0324/trough.git (fetch)
+origin  git@github.com:nipe0324/trough.git (push)&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+Herokuのリモートリポジトリが適切でない場合は、下記コマンドで設定&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ heroku git:remote -a [APP_NAME]&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+無料のDB(※)を追加する&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# MySQLの場合
+$ heroku addons:create cleardb:ignite
+
+# PostgreSQLの場合
+$ heroku addons:create heroku-postgresql&lt;/pre&gt;&lt;p&gt;&lt;i&gt;※ 無料ですが、クレジットカードの登録が必要です。また、5MB以上で自動でデータが消える？らしいです。&lt;/i&gt;&lt;/p&gt;&lt;p&gt;HerokuのアプリにDB情報の環境変数を設定する&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# 設定を確認する
+$ heroku config
+# DB接続の書式 mysql://[username]:[password]@[hostname]/[db_name]?reconnect=true
+
+# 環境変数を設定する
+$ heroku config:add DB_NAME=&amp;#34;[db_name]&amp;#34;
+$ heroku config:add DB_USERNAME=&amp;#34;[username]&amp;#34;
+$ heroku config:add DB_PASSWORD=&amp;#34;[password]&amp;#34;
+$ heroku config:add DB_HOSTNAME=&amp;#34;[hostname]&amp;#34;
+$ heroku config:add DB_PORT=&amp;#34;3306&amp;#34;
+# postgresの場合DB_PORTは5432
+
+# 設定できたことを確認する
+$ heroku config&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+ローカルリポジトリをHeorkuへプッシュ（デプロイ）&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ git push heroku master&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+Heroku上でコマンドの実行(Railsの場合は以下の通り)&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ heroku run rake db:migrate
+
+# 必要ならシードデータもいれておく
+$ heroku run rake db:seed&lt;/pre&gt;&lt;p&gt;デプロイしたアプリをブラウザで開く&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ heroku open&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+デプロイしたアプリのログ確認&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ heroku logs&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+以上です。&lt;/p&gt;
+
+&lt;/div&gt;</description>
+          <pubDate>Sat, 14 Mar 2015 20:32:31 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450088022039</guid>
+          
+            <category>インフラ</category>
+          
+            <category>Heroku</category>
+          
+        </item>
+      
+    
+  </channel>
+</rss>

@@ -1,0 +1,260 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>ツール - Rails Webook</title>
+    <link>http://ruby-rails.hatenadiary.com/category/%E3%83%84%E3%83%BC%E3%83%AB</link>
+    <description>自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</description>
+    <lastBuildDate>Fri, 18 Dec 2015 02:44:31 +0900</lastBuildDate>
+    <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+    <generator>Hatena::Blog</generator>
+    
+      
+      
+        <item>
+          <title>Railsでデバッグをする</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20150108/1420721205</link>
+          <description>&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150108/20150108215106.png&quot; alt=&quot;f:id:nipe880324:20150108215106p:plain:w420&quot; title=&quot;f:id:nipe880324:20150108215106p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+&lt;i&gt;Photo by &lt;a href=&quot;https://www.flickr.com/photos/mloskot/&quot;&gt;Flickr: Pantera and Mateusz&amp;#39;s Photostream&lt;/a&gt;&lt;/i&gt;&lt;/p&gt;&lt;p&gt;Railsで「変数の値を表示」から「ブレイクポイントを設定し、挙動を１ステップずつ確認するデバッグ」までのやり方を説明します。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Ruby 2.1&lt;/li&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;li&gt;pry-rails&lt;/li&gt;
+&lt;li&gt;pry-byebug&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#debugging-in-view&quot;&gt;ビューファイルでのデバッグ&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#debugging-in-controller-or-model&quot;&gt;モデルとコントローラーでのデバッグ&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#debugging-with-breakpoint&quot;&gt;ブレイクポイントを設定した本格的なデバッグ&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;debugging-in-view&quot;&gt;1. ビューファイルのデバッグ&lt;/h3&gt;ビュー内では、次のように&lt;code&gt;debug&lt;/code&gt;メソッドを使うことで、変数の値や、パラメーターの値を表示することができます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# ビューファイル
+
+&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- インスタンス変数(@products)の値を表示する --&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; debug&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; @products %&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- paramsの内容を画面に表示する。--&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; debug&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; params %&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- 他にも、session、headers、params、flash、request、responseなどの値も表示できます --&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+よくある開発中のみ表示したい場合は、&lt;code&gt;if Rails.env.development?&lt;/code&gt;をつけることで、&lt;code&gt;development&lt;/code&gt;環境の場合のみデバッグ情報が表示されます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# ビューファイル
+
+&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!--  develompent環境のときにデバッグ情報を表示する --&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; debug&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;  if Rails.env.development? %&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;debugging-in-controller-or-model&quot;&gt;2. モデルとコントローラーでのデバッグ&lt;/h3&gt;モデルとコントローラーではビューと違って画面表示がないので、&lt;code&gt;logger.debug&lt;/code&gt;メソッドを使い、ログファイルに情報を出力します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# コントローラーかモデル&lt;/span&gt;
+
+logger.debug &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;出力したいデバッグ情報&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;debugging-with-breakpoint&quot;&gt;ブレイクポイントを設定した本格的なデバッグ&lt;/h3&gt;まず、&lt;code&gt;pry-byebug&lt;/code&gt;というデバッグを実行できるようにするGemを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Gemfile&lt;/span&gt;
+group &lt;span class=&quot;synConstant&quot;&gt;:development&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:test&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;pry-rails&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;  &lt;span class=&quot;synComment&quot;&gt;# rails console(もしくは、rails c)でirbの代わりにpryを使われる&lt;/span&gt;
+  gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;pry-doc&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;    &lt;span class=&quot;synComment&quot;&gt;# methodを表示&lt;/span&gt;
+  gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;pry-byebug&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# デバッグを実施(Ruby 2.0以降で動作する)&lt;/span&gt;
+  gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;pry-stack_explorer&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# スタックをたどれる&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+Bundlerでインストールします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;bundle &lt;span class=&quot;synStatement&quot;&gt;install&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+あとは、ビュー、コントローラー、モデルなど詳細にデバッグを行いたい箇所に&lt;code&gt;binding.pry&lt;/code&gt;と記載するとそこがブレイクポイントになります。&lt;/p&gt;&lt;p&gt;あとは、実際にそこの箇所になれば、サーバーが停止し、interactiveなモードになります。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synConstant&quot;&gt;From&lt;/span&gt;: /&lt;span class=&quot;synType&quot;&gt;Users&lt;/span&gt;/nipe0324/codes/rails_samples/debug_test/app/views/users/show.html.erb @ line &lt;span class=&quot;synConstant&quot;&gt;7&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ActionView&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;CompiledTemplates&lt;/span&gt;&lt;span class=&quot;synComment&quot;&gt;#_app_views_users_show_html_erb__1221253090899921858_70168087519620:&lt;/span&gt;
+
+     &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;:
+     &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;: &amp;lt;p&amp;gt;
+     &lt;span class=&quot;synConstant&quot;&gt;4&lt;/span&gt;:   &amp;lt;strong&amp;gt;&lt;span class=&quot;synType&quot;&gt;Username&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;:&amp;lt;&lt;/span&gt;/strong&amp;gt;
+     &lt;span class=&quot;synConstant&quot;&gt;5&lt;/span&gt;:   &amp;lt;%= &lt;span class=&quot;synIdentifier&quot;&gt;@user&lt;/span&gt;.username %&amp;gt;
+     &lt;span class=&quot;synConstant&quot;&gt;6&lt;/span&gt;:   &amp;lt;% binding.pry %&amp;gt;
+ =&amp;gt;  &lt;span class=&quot;synConstant&quot;&gt;7&lt;/span&gt;: &amp;lt;/p&amp;gt;
+     &lt;span class=&quot;synConstant&quot;&gt;8&lt;/span&gt;:
+     &lt;span class=&quot;synConstant&quot;&gt;9&lt;/span&gt;: &amp;lt;p&amp;gt;
+    &lt;span class=&quot;synConstant&quot;&gt;10&lt;/span&gt;:   &amp;lt;strong&amp;gt;&lt;span class=&quot;synType&quot;&gt;Email&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;:&amp;lt;&lt;/span&gt;/strong&amp;gt;
+    &lt;span class=&quot;synConstant&quot;&gt;11&lt;/span&gt;:   &amp;lt;%= &lt;span class=&quot;synIdentifier&quot;&gt;@user&lt;/span&gt;.email %&amp;gt;
+    &lt;span class=&quot;synConstant&quot;&gt;12&lt;/span&gt;: &amp;lt;/p&amp;gt;
+[&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;] pry(&lt;span class=&quot;synComment&quot;&gt;#&amp;lt;#&amp;lt;Class:0x007fa2918b37e8&amp;gt;&amp;gt;)&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+そこで、変数の内容を表示したり、変数定義やコマンドを試すことができます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;[&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;] pry(&lt;span class=&quot;synComment&quot;&gt;#&amp;lt;#&amp;lt;Class:0x007fa2918b37e8&amp;gt;&amp;gt;)&amp;gt; @user.username&lt;/span&gt;
+=&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;testuser&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+
+[&lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;] pry(&lt;span class=&quot;synComment&quot;&gt;#&amp;lt;#&amp;lt;Class:0x007fa2918b37e8&amp;gt;&amp;gt;)&amp;gt; params&lt;/span&gt;
+=&amp;gt; {&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;controller&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;users&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;}
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+また、次の4つのコマンドでソース内を移動できます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synStatement&quot;&gt;next&lt;/span&gt;   &lt;span class=&quot;synComment&quot;&gt;# 次の行に移動する&lt;/span&gt;
+step   &lt;span class=&quot;synComment&quot;&gt;# 次の行か、メソッド内の行に移動する&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;exit&lt;/span&gt;     &lt;span class=&quot;synComment&quot;&gt;# 次のブレークポイントまで実行する&lt;/span&gt;
+finish  &lt;span class=&quot;synComment&quot;&gt;# 現在のスタックトレース(画面に表示されているメソッド)が終わるまで実行する&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;code&gt;next&lt;/code&gt;で次の行に移動する。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;[&lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;] pry(&lt;span class=&quot;synComment&quot;&gt;#&amp;lt;#&amp;lt;Class:0x007fa2918b37e8&amp;gt;&amp;gt;)&amp;gt; next&lt;/span&gt;
+
+&lt;span class=&quot;synConstant&quot;&gt;From&lt;/span&gt;: /&lt;span class=&quot;synType&quot;&gt;Users&lt;/span&gt;/nipe0324/codes/rails_samples/debug_test/app/views/users/show.html.erb @ line &lt;span class=&quot;synConstant&quot;&gt;11&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ActionView&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;CompiledTemplates&lt;/span&gt;&lt;span class=&quot;synComment&quot;&gt;#_app_views_users_show_html_erb__1221253090899921858_70168087519620:&lt;/span&gt;
+
+     &lt;span class=&quot;synConstant&quot;&gt;6&lt;/span&gt;:   &amp;lt;% binding.pry %&amp;gt;
+     &lt;span class=&quot;synConstant&quot;&gt;7&lt;/span&gt;: &amp;lt;/p&amp;gt;
+     &lt;span class=&quot;synConstant&quot;&gt;8&lt;/span&gt;: 
+     &lt;span class=&quot;synConstant&quot;&gt;9&lt;/span&gt;: &amp;lt;p&amp;gt;
+    &lt;span class=&quot;synConstant&quot;&gt;10&lt;/span&gt;:   &amp;lt;strong&amp;gt;&lt;span class=&quot;synType&quot;&gt;Email&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;:&amp;lt;&lt;/span&gt;/strong&amp;gt;
+ =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;11&lt;/span&gt;:   &amp;lt;%= &lt;span class=&quot;synIdentifier&quot;&gt;@user&lt;/span&gt;.email %&amp;gt;
+    &lt;span class=&quot;synConstant&quot;&gt;12&lt;/span&gt;: &amp;lt;/p&amp;gt;
+    &lt;span class=&quot;synConstant&quot;&gt;13&lt;/span&gt;: 
+    &lt;span class=&quot;synConstant&quot;&gt;14&lt;/span&gt;: &amp;lt;%= link_to &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Edit&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, edit_user_path(&lt;span class=&quot;synIdentifier&quot;&gt;@user&lt;/span&gt;) %&amp;gt; |
+    &lt;span class=&quot;synConstant&quot;&gt;15&lt;/span&gt;: &amp;lt;%= link_to &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Back&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, users_path %&amp;gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+以上です。&lt;br /&gt;
+開発中に思った通りに動かないといったときは是非デバッグを行い、効率的に開発を進めていってください。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://guides.rubyonrails.org/debugging_rails_applications.html&quot; target=&quot;_blank&quot;&gt;Rails Guids - Debugging Rails Applications&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Thu, 08 Jan 2015 21:46:45 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450079467349</guid>
+          
+            <category>Rails初級</category>
+          
+            <category>ツール</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>Railsの開発でSublime Text 3を使うなら知っておきたい便利なコマンドとプラグイン</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20140724/1406137504</link>
+          <description>&lt;p&gt;軽量で&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%D7%A5%E9%A5%B0%A5%A4%A5%F3&quot;&gt;プラグイン&lt;/a&gt;により拡張性に優れた&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Sublime&quot;&gt;Sublime&lt;/a&gt; Text 3（一応有料※1）について、「よく使う便利なコマンドや操作」や「&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;で開発をするときの便利な&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%D7%A5%E9%A5%B0%A5%A4%A5%F3&quot;&gt;プラグイン&lt;/a&gt;」について説明します。&lt;/p&gt;&lt;p&gt;&lt;i&gt;※1 購入しなくても購入するか否かのダイアログでNoを押し続ければ購入しなくても機能制限がなく使える。&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#sublime-commands&quot;&gt;Sublime Text 3 の便利コマンドや操作&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#sublime-pluguins&quot;&gt;Sublime Text3 のRails用の有用なプラグイン&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#sublime-settings&quot;&gt;Sublime Text3 の設定&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;sublime-commands&quot;&gt;1. &lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Sublime&quot;&gt;Sublime&lt;/a&gt; Text 3 の便利コマンドや操作&lt;/h2&gt;タブ操作&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;新規タブを開く Command + n
+タブを閉じる    Command + w
+タブを左右に移動   Ctrl + Tab / Ctrl + Shift + Tab もしくは、Shift + Cmd + [ / Shift + Cmd + ]&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+レイアウトの変更&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;左サイドバーの表示/非表示 Cmd + k -&amp;gt; Cmd + b
+シングルレイアウト Option + Cmd + 1
+２カラムレイアウト Option + Cmd + 2
+３カラムレイアウト Option + Cmd + 3&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+検索&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;ファイル内の検索 Cmd  + f
+プロジェクト内の全てのファイル内を検索 Cmd + Shift + f
+
+Goto Anything（プロジェクト内のファイルに移動。ファイル名は曖昧でも検索できる）
+Cmd + P
+
+コマンド検索
+Cmd + Shift + P&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+編集&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;同時編集
+Cmdを押しながら、複数箇所を同時に選択することで、編集が可能
+選択済みで Cmd + d で同じ次の箇所を選択
+選択済みで Cmd + Ctrl + G で同じすべての箇所を選択
+
+コメントアウトをつける、はずす
+Command + /
+
+Soft Undo（選択やカーソル位置など戻る）
+Cmd + U&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+コマンドパレットを開く&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;Command + Shift + P
+
+その後、set syntax と打ち、適切なsyntax(ruby, javascriptなど)を選択すれば、現在開いているファイルのプログラム言語を選択できる。
+
+また、install packageと打ち、「Package Control: Install Package」を選択すれば、新しいパッケージをインストールするリストを開ける。&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+サイドバーに移動&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;Ctrl + 0 ...サイドバーにカーソルが移動し、十字キーで移動できる。enterキーでメインウインドウにカーソルが戻る&lt;/pre&gt;&lt;p&gt;文字を大きくする&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;Cmd + k =&amp;gt; u  ... カーソルの文字列が大文字になる。Constとかの時に便利かも。&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;sublime-pluguins&quot;&gt;2. 有用な&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%D7%A5%E9%A5%B0%A5%A4%A5%F3&quot;&gt;プラグイン&lt;/a&gt;&lt;/h2&gt;&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%D7%A5%E9%A5%B0%A5%A4%A5%F3&quot;&gt;プラグイン&lt;/a&gt;の管理（インストール、アンインストールなど）&lt;/h4&gt;
+    &lt;p&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%D7%A5%E9%A5%B0%A5%A4%A5%F3&quot;&gt;プラグイン&lt;/a&gt;の管理は&lt;code&gt;Package Control&lt;/code&gt;という&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%D7%A5%E9%A5%B0%A5%A4%A5%F3&quot;&gt;プラグイン&lt;/a&gt;を使います。&lt;br /&gt;
+インストール方法は&lt;a href=&quot;https://sublime.wbond.net/installation&quot; target=&quot;_blank&quot;&gt;こちら&lt;/a&gt;を見てください。&lt;br /&gt;
+英語ですが、要約すると、&lt;code&gt;View &gt; Show Console&lt;/code&gt;で&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Sublime&quot;&gt;Sublime&lt;/a&gt; Text 3の下にコンソールを表示し、その中にリンク先の値をコピーしてEnterで実行するだけです。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;パッケージをインストール
+Command + Shift + P =&amp;gt; install packageと入力し、「Package Control: Install Package」を選択 =&amp;gt; 追加したいパッケージを選択するとインストールされる
+
+パッケージを削除
+Command + Shift + P =&amp;gt; remove packageと入力し、「Package Control: Remove Package」を選択 =&amp;gt; 削除したいパッケージを選択するとアンインストールされる&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;有用な&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%D7%A5%E9%A5%B0%A5%A4%A5%F3&quot;&gt;プラグイン&lt;/a&gt;&lt;/h4&gt;
+    &lt;p&gt;上記のパッケージ管理を使い、パッケージを探し、インストールしてください。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&quot;Emmet&quot; =&gt; HTMLを簡易に記載できる（例えば、&lt;code&gt;ul&gt;li*3&lt;/code&gt;と記載し、&lt;code&gt;Tab&lt;/code&gt;を押すとHTMLをつくってくれる）&lt;/li&gt;
+&lt;li&gt;&quot;GitGutter&quot; =&gt; gitを使っている場合、ソースの追加/変更/削除した列がわかる&lt;/li&gt;
+&lt;/ul&gt;
+&lt;ul&gt;
+&lt;li&gt;&quot;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Ruby%20on%20Rails&quot;&gt;Ruby on Rails&lt;/a&gt; snippets&quot; =&gt; &lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;のハイライトと&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B9%A5%CB%A5%DA%A5%C3%A5%C8&quot;&gt;スニペット&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&quot;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Ruby&quot;&gt;Ruby&lt;/a&gt; Slim&quot; =&gt; Slimのハイライトと&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B9%A5%CB%A5%DA%A5%C3%A5%C8&quot;&gt;スニペット&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&quot;Better &lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/CoffeeScript&quot;&gt;CoffeeScript&lt;/a&gt;&quot; =&gt; &lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/CoffeeScript&quot;&gt;CoffeeScript&lt;/a&gt;のハイライトと&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B9%A5%CB%A5%DA%A5%C3%A5%C8&quot;&gt;スニペット&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&quot;SCSS&quot;, &quot;SCSS Snippets&quot; =&gt; SCSSのハイライトと&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B9%A5%CB%A5%DA%A5%C3%A5%C8&quot;&gt;スニペット&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;Linterは構文チェックを行う&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%D7%A5%E9%A5%B0%A5%A4%A5%F3&quot;&gt;プラグイン&lt;/a&gt;です。&lt;br /&gt;
+構文が誤っている場合、左側の行数が記載されている横に赤丸が表示されるのでとても便利です。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&quot;SublimeLinter&quot; =&gt; 他のLinter（Linter-xxx）を使うために必要な必須のもの&lt;/li&gt;
+&lt;li&gt;&quot;SublimeLinter-&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/ruby&quot;&gt;ruby&lt;/a&gt;&quot; =&gt; &lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Ruby&quot;&gt;Ruby&lt;/a&gt;用のLinter&lt;/li&gt;
+&lt;/ul&gt;
+&lt;ul&gt;
+&lt;li&gt;CTag - &lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;のジャンプと戻る。コードリーディングを効率的にできる。インストール方法:&lt;a href=&quot;http://ntcncp.net/2012/12/21/sublime-useful-tips&quot;&gt;http://ntcncp.net/2012/12/21/sublime-useful-tips&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;sublime-settings&quot;&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Sublime&quot;&gt;Sublime&lt;/a&gt; Text3 の設定&lt;/h3&gt;&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+	&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;color_scheme&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Packages/User/SublimeLinter/Monokai (SL).tmTheme&amp;quot;&lt;/span&gt;,
+	&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;ensure_newline_at_eof_on_save&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;,
+	&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;font_size&amp;quot;&lt;/span&gt;: 12,
+	&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;highlight_line&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;,
+	&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;ignored_packages&amp;quot;&lt;/span&gt;:
+	&lt;span class=&quot;synIdentifier&quot;&gt;[&lt;/span&gt;
+		&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Vintage&amp;quot;&lt;/span&gt;
+	&lt;span class=&quot;synIdentifier&quot;&gt;]&lt;/span&gt;,
+	&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;tab_size&amp;quot;&lt;/span&gt;: 2,
+	&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;translate_tabs_to_spaces&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;,
+	&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;trim_trailing_white_space_on_save&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;,
+	&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;wrap_width&amp;quot;&lt;/span&gt;: 120
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# sublime (subl . でSublimeTextを開けます)&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;export&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; PATH=&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;/Applications/Sublime Text.app/Contents/SharedSupport/bin&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;&amp;quot;&lt;/span&gt;:&lt;span class=&quot;synPreProc&quot;&gt;$PATH&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+以上です。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;/div&gt;</description>
+          <pubDate>Thu, 24 Jul 2014 02:45:04 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/12921228815728749273</guid>
+          
+            <category>ツール</category>
+          
+            <category>リファレンス</category>
+          
+        </item>
+      
+    
+  </channel>
+</rss>

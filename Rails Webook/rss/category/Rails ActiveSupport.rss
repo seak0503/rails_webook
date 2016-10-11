@@ -1,0 +1,698 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>Rails ActiveSupport - Rails Webook</title>
+    <link>http://ruby-rails.hatenadiary.com/category/Rails%20ActiveSupport</link>
+    <description>自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</description>
+    <lastBuildDate>Fri, 18 Dec 2015 02:44:31 +0900</lastBuildDate>
+    <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+    <generator>Hatena::Blog</generator>
+    
+      
+      
+        <item>
+          <title>Rails4でJSON, XML, YAMLの読み込みと出力</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20141230/1419936984</link>
+          <description>&lt;p&gt;Railsでは、ActiveSupportにより、Array, Hash, ActiveModel(ActiveRecord)とJSON, XML, YAMLのフォーマットを変換するメソッドが拡張されています。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;li&gt;ActiveSupport 4.1.7&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#activesupport-format-parse-json&quot;&gt;JSONの読み込み(ActiveSupport::JSON.decode)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#activesupport-format-to_json&quot;&gt;JSONの出力(to_json)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#activesupport-format-from_xml&quot;&gt;XMLの読み込み(from_xml)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#activesupport-format-to_xml&quot;&gt;XMLの出力(to_xml)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#activesupport-format-yaml-load&quot;&gt;YAMLの読み込み(YAML.load)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#activesupport-format-to_yaml&quot;&gt;YAMLの出力(to_yaml)&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;activesupport-format-parse-json&quot;&gt;JSONの読み込み(ActiveSupport::JSON.decode)&lt;/h3&gt;&lt;code&gt;ActiveSupport::JSON.decode&lt;/code&gt;メソッドを使うことで、JSON形式の文字列を解析し、Hashに変換します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synType&quot;&gt;ActiveSupport&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;JSON&lt;/span&gt;.decode(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;{\&amp;quot;id\&amp;quot;:2,\&amp;quot;name\&amp;quot;:\&amp;quot;田中\&amp;quot;,\&amp;quot;created_at\&amp;quot;:\&amp;quot;2014-11-29T03:02:30.449-06:00\&amp;quot;,\&amp;quot;updated_at\&amp;quot;:\&amp;quot;2014-11-29T03:02:30.449-06:00\&amp;quot;}&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;)
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; {&amp;quot;id&amp;quot;=&amp;gt;2, &amp;quot;name&amp;quot;=&amp;gt;&amp;quot;田中&amp;quot;, &amp;quot;created_at&amp;quot;=&amp;gt;&amp;quot;2014-11-29T03:02:30.449-06:00&amp;quot;, &amp;quot;updated_at&amp;quot;=&amp;gt;&amp;quot;2014-11-29T03:02:30.449-06:00&amp;quot;}&lt;/span&gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;# パースの例外処理&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;begin&lt;/span&gt;
+  obj = &lt;span class=&quot;synType&quot;&gt;ActiveSupport&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;JSON&lt;/span&gt;.decode(json_string)
+&lt;span class=&quot;synStatement&quot;&gt;rescue&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ActiveSupport&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;JSON&lt;/span&gt;.parse_error
+  &lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt;.logger.warn(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;妥当でないJSON文字列です: &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;json_string&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt;)
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;activesupport-format-to_json&quot;&gt;JSONの出力(to_json)&lt;/h3&gt;Railsでは&lt;code&gt;Object#to_json&lt;/code&gt;メソッドが定義されているので、Array, Hash, ActiveRecordなどからJSON形式の出力をすることが可能です。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# 配列からJSONへ&lt;/span&gt;
+[&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;].to_json
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;[1,2,3]&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# ハッシュからJSONへ&lt;/span&gt;
+{ &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;hash&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; { &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;foo&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;bar&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt; } }.to_json
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;{\&amp;quot;hash\&amp;quot;:{\&amp;quot;foo\&amp;quot;:1,\&amp;quot;bar\&amp;quot;:2}}&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# ActiveRecordからJSONへ&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.last.to_json
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;{\&amp;quot;id\&amp;quot;:2,\&amp;quot;name\&amp;quot;:\&amp;quot;田中\&amp;quot;,\&amp;quot;created_at\&amp;quot;:\&amp;quot;2014-11-29T03:02:30.449-06:00\&amp;quot;,\&amp;quot;updated_at\&amp;quot;:\&amp;quot;2014-11-29T03:02:30.449-06:00\&amp;quot;}&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;activesupport-format-from_xml&quot;&gt;XMLの読み込み(from_xml)&lt;/h3&gt;&lt;code&gt;Hash.from_xml&lt;/code&gt;を使うことで、XMLをハッシュに変換することができます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;xml = &amp;lt;&amp;lt;-&lt;span class=&quot;synSpecial&quot;&gt;XML&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;  &amp;lt;?xml version=&amp;quot;1.0&amp;quot; encoding=&amp;quot;UTF-8&amp;quot;?&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;    &amp;lt;hash&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;      &amp;lt;foo type=&amp;quot;integer&amp;quot;&amp;gt;1&amp;lt;/foo&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;      &amp;lt;bar type=&amp;quot;integer&amp;quot;&amp;gt;2&amp;lt;/bar&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;    &amp;lt;/hash&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;XML&lt;/span&gt;
+
+hash = &lt;span class=&quot;synType&quot;&gt;Hash&lt;/span&gt;.from_xml(xml)
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; {&amp;quot;hash&amp;quot;=&amp;gt;{&amp;quot;foo&amp;quot;=&amp;gt;1, &amp;quot;bar&amp;quot;=&amp;gt;2}}&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;activesupport-format-to_xml&quot;&gt;XMLの出力(to_xml)&lt;/h3&gt;Array, Hash, ActiveModel(ActiveRecord)には&lt;code&gt;to_xml&lt;/code&gt;というXMLに変換して出力するメソッドがあります。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# 配列からXMLへ&lt;/span&gt;
+[&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;].to_xml
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;&amp;lt;?xml version=\&amp;quot;1.0\&amp;quot; encoding=\&amp;quot;UTF-8\&amp;quot;?&amp;gt;\n&amp;lt;fixnums type=\&amp;quot;array\&amp;quot;&amp;gt;\n  &amp;lt;fixnum type=\&amp;quot;integer\&amp;quot;&amp;gt;1&amp;lt;/fixnum&amp;gt;\n  &amp;lt;fixnum type=\&amp;quot;integer\&amp;quot;&amp;gt;2&amp;lt;/fixnum&amp;gt;\n  &amp;lt;fixnum type=\&amp;quot;integer\&amp;quot;&amp;gt;3&amp;lt;/fixnum&amp;gt;\n&amp;lt;/fixnums&amp;gt;\n&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# ハッシュからXMLへ&lt;/span&gt;
+{ &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;hash&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; { &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;foo&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;bar&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt; } }.to_xml
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;&amp;lt;?xml version=\&amp;quot;1.0\&amp;quot; encoding=\&amp;quot;UTF-8\&amp;quot;?&amp;gt;\n&amp;lt;hash&amp;gt;\n  &amp;lt;hash&amp;gt;\n    &amp;lt;foo type=\&amp;quot;integer\&amp;quot;&amp;gt;1&amp;lt;/foo&amp;gt;\n    &amp;lt;bar type=\&amp;quot;integer\&amp;quot;&amp;gt;2&amp;lt;/bar&amp;gt;\n  &amp;lt;/hash&amp;gt;\n&amp;lt;/hash&amp;gt;\n&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# ActiveRecordからXMLへ&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.last.to_xml
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;&amp;lt;?xml version=\&amp;quot;1.0\&amp;quot; encoding=\&amp;quot;UTF-8\&amp;quot;?&amp;gt;\n&amp;lt;user&amp;gt;\n  &amp;lt;id type=\&amp;quot;integer\&amp;quot;&amp;gt;2&amp;lt;/id&amp;gt;\n  &amp;lt;name&amp;gt;田中&amp;lt;/name&amp;gt;\n  &amp;lt;created-at type=\&amp;quot;dateTime\&amp;quot;&amp;gt;2014-11-29T03:02:30-06:00&amp;lt;/created-at&amp;gt;\n  &amp;lt;updated-at type=\&amp;quot;dateTime\&amp;quot;&amp;gt;2014-11-29T03:02:30-06:00&amp;lt;/updated-at&amp;gt;\n&amp;lt;/user&amp;gt;\n&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;activesupport-format-yaml-load&quot;&gt;YAMLの読み込み(YAML.load)&lt;/h3&gt;Railsでは&lt;code&gt;YAML.load&lt;/code&gt;により、YAmLファイルを読み込むことが可能です。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;yaml = &amp;lt;&amp;lt;&lt;span class=&quot;synSpecial&quot;&gt;TEXT&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;---&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;:id: 3&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;:username: \&amp;quot;太郎\&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;:age: 30&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;TEXT&lt;/span&gt;
+
+&lt;span class=&quot;synType&quot;&gt;YAML&lt;/span&gt;.load(yaml)
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; {:id=&amp;gt;3, :username=&amp;gt;&amp;quot;太郎&amp;quot;, :age=&amp;gt;30}&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# もちろん、ファイルからも読み込める&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;YAML&lt;/span&gt;.load(&lt;span class=&quot;synType&quot;&gt;File&lt;/span&gt;.open(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;test.yml&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;))
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;activesupport-format-to_yaml&quot;&gt;YAMLの出力(to_yaml)&lt;/h3&gt;Railsでは&lt;code&gt;Object#to_yaml&lt;/code&gt;メソッドが定義されているので、Array, Hash, ActiveRecordなどからYAML形式の出力をすることが可能です。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# ArrayをYAMLへ&lt;/span&gt;
+[&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;abc&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;def&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;zxy&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;].to_yaml
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;---\n- abc\n- def\n- zxy\n&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# HashをYAMLへ&lt;/span&gt;
+{ &lt;span class=&quot;synConstant&quot;&gt;id&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;username&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;太郎&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;age&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;30&lt;/span&gt; }.to_yaml
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;---\n:id: 3\n:username: \&amp;quot;太郎\&amp;quot;\n:age: 30\n&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# ActiveRecordをYAMLへ&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.last.to_yaml
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;--- !ruby/object:User\nattributes:\n  id: 2\n  name: \&amp;quot;田中\&amp;quot;\n  created_at: 2014-11-29 09:02:30.449449000 Z\n  updated_at: 2014-11-29 09:02:30.449449000 Z\n&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+以上です。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails3 レシピブック 190の技&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://api.rubyonrails.org/&quot;&gt;Ruby on Rails API&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Tue, 30 Dec 2014 19:56:24 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450075642985</guid>
+          
+            <category>Rails ActiveSupport</category>
+          
+            <category>Rails初級</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>Railsで日付/時刻のフォーマットを設定するTips</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20141226/1419600679</link>
+          <description>&lt;p&gt;Railsのデフォルトの日付や日時のフォーマットを追加する方法を説明します。&lt;br /&gt;
+Railsで日付や日時を表示すると、デフォルトでは次のように&lt;code&gt;2014-10-01 09:00:00 +0900&lt;/code&gt;のように表示されてしまいます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141206/20141206171216.png&quot; alt=&quot;f:id:nipe880324:20141206171216p:plain:w420&quot; title=&quot;f:id:nipe880324:20141206171216p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;そのため、&lt;code&gt;strftime&lt;/code&gt;メソッドを使って表示を変えている人もいると思います。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&amp;lt;%= product.published_on.strftime(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;%Y年%m月%d日 %H時%M分&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;) %&amp;gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+しかし、このようにすると、各出力で個別にフォーマットを記載しないといけないのでめんどくさく、アプリケーションを通してフォーマットがバラバラになってしまうと可能性があります。&lt;br /&gt;
+そのため、&lt;code&gt;config/initierlizers/time_formats.rb&lt;/code&gt;のような名前でファイルを作成し、フォーマットを一覧にしておいて、アプリから簡単に使えるようにします。&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;1. フォーマットを作成する&lt;/h3&gt;
+    &lt;p&gt;&lt;code&gt;config/initierlizers/time_formats.rb&lt;/code&gt;ファイルを作成し、カスタムフォーマットを定義します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# config/initierlizers/time_formats.rb&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# 既に定義されているフォーマット&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# default =&amp;gt; &amp;quot;2014-10-01 09:00:00 +0900&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# long    =&amp;gt; &amp;quot;October 01, 2014 09:00&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# short   =&amp;gt; &amp;quot;01 Oct 09:00&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# db      =&amp;gt; &amp;quot;2014-10-01 00:00:00&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# カスタムフォーマットを定義&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Time&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;DATE_FORMATS&lt;/span&gt;[&lt;span class=&quot;synConstant&quot;&gt;:published_on&lt;/span&gt;] = &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;%Y年%m月%d日 %H時%M分&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Date&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;DATE_FORMATS&lt;/span&gt;[&lt;span class=&quot;synConstant&quot;&gt;:default&lt;/span&gt;]      = &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;%Y年%m月d日&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;2. ビューなどから日時のフォーマットを使う&lt;/h3&gt;
+    &lt;p&gt;ビューなどから&lt;code&gt;to_s&lt;/code&gt;の引数とシンボルを渡すと、フォーマットされます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# Viewファイル
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; product.published_on.to_s(:published_on)&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+サーバーを再起動して確認すると指定したフォーマットで作成されています。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141206/20141206172156.png&quot; alt=&quot;f:id:nipe880324:20141206172156p:plain:w420&quot; title=&quot;f:id:nipe880324:20141206172156p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;3. 日付/日時のフォーマットで使える文字列一覧&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://docs.ruby-lang.org/ja/2.1.0/class/Time.html#I_STRFTIME&quot;&gt;class Time&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://qiita.com/Vit-Symty/items/399c77d1fd681b77d593&quot;&gt;Rails - &amp;#x65E5;&amp;#x4ED8;/&amp;#x6642;&amp;#x9593;&amp;#x30D5;&amp;#x30A9;&amp;#x30FC;&amp;#x30DE;&amp;#x30C3;&amp;#x30C8;&amp;#x306E;&amp;#x30C7;&amp;#x30D5;&amp;#x30A9;&amp;#x30EB;&amp;#x30C8;&amp;#x3092;&amp;#x8A2D;&amp;#x5B9A; - Qiita&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;br /&gt;
+以上です。&lt;/p&gt;
+
+&lt;/div&gt;</description>
+          <pubDate>Fri, 26 Dec 2014 22:31:19 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450076293960</guid>
+          
+            <category>Rails Tips</category>
+          
+            <category>Rails ActiveSupport</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>RailsでTimecopを使って日付/時間のテストをする</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20141218/1418901424</link>
+          <description>&lt;p&gt;&lt;a href=&quot;https://github.com/travisjeffery/timecop&quot;&gt;Timecop&lt;/a&gt;というGemを使うことで、好きな時刻に移動(&lt;code&gt;Timecop.travel&lt;/code&gt;)させたり、時刻を止めたり(&lt;code&gt;Timecop.freeze&lt;/code&gt;)といったことができ、日付/時間に関するテストをやるときに必須といっていいほど便利なGemです。&lt;br /&gt;
+具体的な「日付/時間が関係するテスト例」として、うるう歳のテスト、税率変更のテスト、有効期限のテストなどがあります。&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails 4.1.7&lt;/li&gt;
+&lt;li&gt;Timecop 0.7.1&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#timecop-install&quot;&gt;Timecopのインストール方法&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#timecop-travel&quot;&gt;時間の移動方法(travel)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#timecop-freeze&quot;&gt;時間の停止方法(freeze)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#timecop-scale&quot;&gt;時間の進みを加速させる(scale)&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;timecop-install&quot;&gt;Timecopのインストール方法&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;&lt;code&gt;Gemfile&lt;/code&gt;に&lt;code&gt;timecop&lt;/code&gt;を追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Gemfile&lt;/span&gt;
+group &lt;span class=&quot;synConstant&quot;&gt;:test&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;timecop&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+Bundlerを実行します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;bundle &lt;span class=&quot;synStatement&quot;&gt;install&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;timecop-travel&quot;&gt;時間の移動方法(travel)&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;&lt;code&gt;Timcecop.travel&lt;/code&gt;は、&lt;code&gt;Timecop.return&lt;/code&gt;が呼ばれるまで、「指定した時間に移動させておく」ことができます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# 現在の日付&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# 2014-12-17 12:30:30 UTC&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 10日前の日付に移動する&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Timecop&lt;/span&gt;.travel(&lt;span class=&quot;synConstant&quot;&gt;10&lt;/span&gt;.days.ago)
+
+&lt;span class=&quot;synComment&quot;&gt;# 10日前の日付になる&lt;/span&gt;
+puts &lt;span class=&quot;synType&quot;&gt;Time&lt;/span&gt;.zone.now &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; 2014-12-07 12:30:30 UTC&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# テストしたい処理を記載する ...&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 時間が戻る&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Timecop&lt;/span&gt;.return
+
+&lt;span class=&quot;synComment&quot;&gt;# 現在の日付に戻っている&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; 2014-12-17 12:30:30 UTC&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+また、&lt;code&gt;Timcecop.travel&lt;/code&gt;にブロック引数を指定することで、ブロック内のみで指定した時間に移動します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# 現在の日付&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# 2014-12-17 12:30:30 UTC&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# ブロック内のみ指定した日付(1日後に移動する)&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Timecop&lt;/span&gt;.travel(&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;.day.from_now) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# 1日後の日付になる&lt;/span&gt;
+  puts &lt;span class=&quot;synType&quot;&gt;Time&lt;/span&gt;.zone.now &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; 2014-12-18 12:30:30 UTC&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# ブロックを抜けると時間が戻っている&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# 2014-12-17 12:30:30 UTC&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;timecop-freeze&quot;&gt;時間の停止方法(freeze)&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;&lt;code&gt;Timcecop.freeze&lt;/code&gt;は、&lt;code&gt;Timecop.return&lt;/code&gt;が呼ばれるまで、「指定した時間に停止させておく」ことができます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# 10日前の日付で時間を止める&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Timecop&lt;/span&gt;.freeze(&lt;span class=&quot;synConstant&quot;&gt;10&lt;/span&gt;.days.ago)
+
+&lt;span class=&quot;synComment&quot;&gt;# 10日前の日付になる&lt;/span&gt;
+puts &lt;span class=&quot;synType&quot;&gt;Time&lt;/span&gt;.zone.now &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; 2014-12-07 12:37:30 UTC&lt;/span&gt;
+
+sleep &lt;span class=&quot;synConstant&quot;&gt;10&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# 10秒経過させる&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 10秒経過させたが同じ秒数。時間が止まっている&lt;/span&gt;
+puts &lt;span class=&quot;synType&quot;&gt;Time&lt;/span&gt;.zone.now &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; 2014-12-07 12:37:30 UTC&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 時間が戻る&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Timecop&lt;/span&gt;.return
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+また、&lt;code&gt;Timcecop.freeze&lt;/code&gt;にブロック引数を指定することで、ブロック内の処理のみで指定した時間に停止します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# ブロック内のみ指定した日付(1日後に移動する)&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Timecop&lt;/span&gt;.freeze(&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;.day.from_now) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# 1日後の日付になる&lt;/span&gt;
+  puts &lt;span class=&quot;synType&quot;&gt;Time&lt;/span&gt;.zone.now &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; 2014-12-18 12:40:40 UTC&lt;/span&gt;
+  sleep &lt;span class=&quot;synConstant&quot;&gt;10&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# 10秒経過させる&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# 10秒たっても同じ時刻&lt;/span&gt;
+  puts &lt;span class=&quot;synType&quot;&gt;Time&lt;/span&gt;.zone.now &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; 2014-12-18 12:40:40 UTC&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# ブロックを抜けると時間が戻っている&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# 2014-12-17 12:40:50 UTC&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;timecop-scale&quot;&gt;時間の進みを加速させる(scale)&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;&lt;code&gt;Timcecop.scale(秒数)&lt;/code&gt;は、&lt;code&gt;Timecop.return&lt;/code&gt;が呼ばれるまで、「1秒の時間を指定した時間（単位：秒）の進み」にさせることができます。&lt;br /&gt;
+たとえば、&lt;code&gt;Timecop.scale(60)&lt;/code&gt;なら、1秒経過すると時間が60秒進みます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# 1秒を60秒(1分)にする&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Timecop&lt;/span&gt;.scale(&lt;span class=&quot;synConstant&quot;&gt;60&lt;/span&gt;)
+
+&lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; 2014-12-17 12:44:30 UTC&lt;/span&gt;
+sleep &lt;span class=&quot;synConstant&quot;&gt;5&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# scaleで1秒を1分の時間の進みにしているので、5秒経過は5分経過になる&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; 2014-12-17 12:49:30 UTC&lt;/span&gt;
+sleep &lt;span class=&quot;synConstant&quot;&gt;5&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# また5分経過になる&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; 2014-12-17 12:54:30 UTC&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 時間を戻す&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Timecop&lt;/span&gt;.return
+
+sleep &lt;span class=&quot;synConstant&quot;&gt;5&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# 5秒を3回止まったので、開始時間より+15秒になっている&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# 2014-12-17 12:44:45 UTC&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;もちろん、&lt;code&gt;Timecop.travel&lt;/code&gt;や&lt;code&gt;Timecop.freeze&lt;/code&gt;のようにブロックも使えます。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;以上です。&lt;br /&gt;
+日付/時刻の便利なメソッドは&lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20141217/1418817120&quot;&gt;タイムゾーンや時刻処理のまとめ&lt;/a&gt;を参照してください。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/travisjeffery/timecop&quot;&gt;travisjeffery/timecop &amp;middot; GitHub&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Thu, 18 Dec 2014 20:17:04 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450077337873</guid>
+          
+            <category>Rails初級</category>
+          
+            <category>Rails ActiveSupport</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>Railsのタイムゾーンや時刻処理のまとめ</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20141217/1418817120</link>
+          <description>&lt;p&gt;Rubyでは日付(yyyymmdd)を扱うために&lt;code&gt;Date&lt;/code&gt;クラス、時刻(yyyymmdd hh:mm:ss)を扱うために&lt;code&gt;Time&lt;/code&gt;クラスが定義さています。&lt;br /&gt;
+これらを扱いやすくするためにRailsのActiveSupportでタイムゾーンなどいくつか機能が拡張されているので、それらをまとめました。&lt;/p&gt;&lt;p&gt;&lt;i&gt;時刻関連のテストは&lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20141218/1418901424&quot;&gt;Timecopの使い方&lt;/a&gt;を参照してください。&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;li&gt;ActiveSupport 4.1.7&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#activesuppor-time-prerequisite&quot;&gt;本ページの動作の前提条件&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#activesuppor-time-rails-timezone&quot;&gt;Rails4アプリ全体でタイムゾーンを設定&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#activesuppor-time-user-timezone&quot;&gt;ユーザー単位でタイムゾーンを設定&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#activesuppor-time-all-and-local-timezones&quot;&gt;タイムゾーン一覧とOSのタイムゾーンを確認&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#activesuppor-time-current-date&quot;&gt;現在の日付(Date)を取得(Date.today, Date.current)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#activesuppor-time-current-time&quot;&gt;現在の時刻(Time)を取得する(Time.now)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#activesuppor-time-indicate-time&quot;&gt;指定した日時(Time)を作成する(Time.local)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#activesuppor-time-yesterday-tomorrow&quot;&gt;昨日、明日を取得する(yesterday, tomorrow)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#activesuppor-time-prev-and-next&quot;&gt;昨月、昨年、翌月、翌年を取得する(prev_xxx, next_xxx)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#activesuppor-time-relative-time&quot;&gt;相対的な時刻(Time)を返す&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#activesuppor-time-beginning-and-end&quot;&gt;開始時間と終了時間を取得する(beginning_of_xxx, end_of_xxx)&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;activesuppor-time-prerequisite&quot;&gt;1. 本ページの動作の前提条件&lt;/h3&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;OS(Mac)のタイムゾーン: JST (+9:00) = Tokyo&lt;/li&gt;
+&lt;li&gt;Railsのタイムゾーン  : CST (-5:00/-6:00) = US &amp; Canada（&lt;code&gt;application.rb&lt;/code&gt;に&lt;code&gt;config.time_zone = &#39;Central Time (US &amp; Canada)&#39;&lt;/code&gt;を設定）&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;アメリカなどの場合、サマータイムがあるため日付に応じて自動的にタイムゾーンが変わります。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synType&quot;&gt;Time&lt;/span&gt;.zone.local(&lt;span class=&quot;synConstant&quot;&gt;2014&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;11&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;) &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; Sat, 01 Nov 2014 00:00:00 CDT -05:00&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Time&lt;/span&gt;.zone.local(&lt;span class=&quot;synConstant&quot;&gt;2014&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;11&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;29&lt;/span&gt;) &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; Sat, 29 Nov 2014 00:00:00 CST -06:00&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;activesuppor-time-rails-timezone&quot;&gt;2. Rails4アプリ全体でタイムゾーンを設定&lt;/h3&gt;Rails全体のタイムゾーンを設定するには&lt;code&gt;application.rb&lt;/code&gt;の&lt;code&gt;config.time_zone&lt;/code&gt;にタイムゾーンを設定します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# config/application.rb&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# デフォルトはUTC (0:00)&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# タイムゾーンをセントラルタイム（CDT -5:00 / CST -6:00)に設定&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# config.time_zone = &#39;Central Time (US &amp;amp; Canada)&#39;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# タイムゾーンを東京(JST +9:00)に設定&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# config.time_zone = &#39;Tokyo&#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;設定可能なタイムゾーンは「&lt;a href=&quot;#activesuppor-time-all-and-local-timezones&quot;&gt;タイムゾーン一覧とOSのタイムゾーンを確認&lt;/a&gt;」を参照してください。&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;activesuppor-time-user-timezone&quot;&gt;3. ユーザー単位でタイムゾーンを設定&lt;/h3&gt;ユーザー単位でタイムゾーンを設定するには、ユーザーにタイムゾーンを保持するカラムを追加し、コントローラーで設定する必要があります。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rails g migration add_time_zone_to_users time_zone
+rake db:migrate&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+モデルにバリデーションをつける。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/models/user.rb&lt;/span&gt;
+valications &lt;span class=&quot;synConstant&quot;&gt;:time_zone&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;inclusion&lt;/span&gt;: { &lt;span class=&quot;synStatement&quot;&gt;in&lt;/span&gt;: &lt;span class=&quot;synType&quot;&gt;ActiveSupport&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;TimeZone&lt;/span&gt;.zones_map(&amp;amp;&lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;) }
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+ビューで更新するようにする。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/users/_form.html.erb
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;field&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :time_zone %&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;br&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; /&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.time_zone_select&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :time_zone %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+StringParamterに&lt;code&gt;time_zone&lt;/code&gt;を追加する。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/users_controller.rb&lt;/span&gt;
+
+&lt;span class=&quot;synStatement&quot;&gt;private&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;users_params&lt;/span&gt;
+    params.require(&lt;span class=&quot;synConstant&quot;&gt;:user&lt;/span&gt;).permite(..., &lt;span class=&quot;synConstant&quot;&gt;:time_zone&lt;/span&gt;)
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+コントローラーでタイムゾーンを設定する。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/application_controller.rb&lt;/span&gt;
+around_action &lt;span class=&quot;synConstant&quot;&gt;:user_time_zone&lt;/span&gt;, &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:current_user&lt;/span&gt;
+
+&lt;span class=&quot;synStatement&quot;&gt;private&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;user_time_zone&lt;/span&gt;(&amp;amp;block)
+    &lt;span class=&quot;synType&quot;&gt;Time&lt;/span&gt;.use_zone(current_user.time_zone, &amp;amp;block)
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;activesuppor-time-all-and-local-timezones&quot;&gt;4. タイムゾーン一覧とOSのタイムゾーンを確認&lt;/h3&gt;&lt;code&gt;rake time:zones:all&lt;/code&gt;ですべてのタイムゾーンを確認できます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rake time:zones:all
+* UTC -11:00 *
+American Samoa
+International Date Line West
+Midway Island
+Samoa
+
+* UTC -10:00 *
+Hawaii
+
+* UTC -09:00 *
+Alaska
+...&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+OSのタイムゾーンは&lt;code&gt;rake time:zones:local&lt;/code&gt;で確認できます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rake time:zones:local
+* UTC +09:00 *
+Osaka
+Sapporo
+Seoul
+Tokyo
+Yakutsk&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;activesuppor-time-current-date&quot;&gt;5. 現在の日付(Date)を取得(Date.today, Date.current)&lt;/h3&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;Date.today&lt;/code&gt;で、現在の日付を取得する&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Date.current&lt;/code&gt;で、タイムゾーンに基づいた現在の日付を取得する&lt;/li&gt;
+&lt;/ul&gt;&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# JST (+ 9:00)&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Date&lt;/span&gt;.today   &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; Sat, 29 Nov 2014&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# CST (- 5:00)&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Date&lt;/span&gt;.current &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; Sat, 29 Nov 2014&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# Time.zoneかconfig.time_zoneがセットされている場合、Time.zone.todayの結果を返す&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# セットされていない場合、Date.todayの結果を返す&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;activesuppor-time-current-time&quot;&gt;6. 現在の時刻(Time)を取得する(Time.now)&lt;/h3&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;Time.now&lt;/code&gt;で、現在の日時を取得する&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Time.zone.now&lt;/code&gt;で、タイムゾーンに基づいた現在の日時を取得する&lt;/li&gt;
+&lt;/ul&gt;&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synType&quot;&gt;Time&lt;/span&gt;.now      &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; 2014-11-29 17:00:46 +0900&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Time&lt;/span&gt;.zone.now &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; Sat, 29 Nov 2014 02:01:41 CST -06:00&lt;/span&gt;
+
+&lt;span class=&quot;synType&quot;&gt;Time&lt;/span&gt;.current  &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; Sat, 29 Nov 2014 02:01:41 CST -06:00&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# Time.zonかconfig.time_zoneがセットされている場合、Time.zone.nowの結果を返す&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# セットされていない場合、Tiem.nowの結果を返す&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;activesuppor-time-indicate-time&quot;&gt;7. 指定した日時(Time)を作成する(Time.local)&lt;/h3&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;Time.local&lt;/code&gt;で、指定した日時を取得する&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Time.zone.local&lt;/code&gt;で、タイムゾーンに基づいた指定した日時を取得する&lt;/li&gt;
+&lt;/ul&gt;&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synType&quot;&gt;Time&lt;/span&gt;.local(&lt;span class=&quot;synConstant&quot;&gt;2014&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;11&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;29&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;11&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;22&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;33&lt;/span&gt;)      &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; 2014-11-29 11:22:33 +0900&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Time&lt;/span&gt;.zone.local(&lt;span class=&quot;synConstant&quot;&gt;2014&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;11&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;29&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;11&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;22&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;33&lt;/span&gt;) &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; Sat, 29 Nov 2014 11:22:33 CST -06:00&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;activesuppor-time-yesterday-tomorrow&quot;&gt;8. 昨日、明日を取得する(yesterday, tomorrow)&lt;/h3&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;Time#yesterday&lt;/code&gt;で、前日の日時を取得する&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;Time#tomorrow&lt;/code&gt;で、翌日の日時を取得する&lt;/li&gt;
+&lt;/ul&gt;&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;t = &lt;span class=&quot;synType&quot;&gt;Time&lt;/span&gt;.local(&lt;span class=&quot;synConstant&quot;&gt;2014&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;11&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;30&lt;/span&gt;) &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; 2014-11-30 00:00:00 +0900&lt;/span&gt;
+t.yesterday                  &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; 2014-11-29 00:00:00 +0900&lt;/span&gt;
+t.tomorrow                   &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; 2014-12-01 00:00:00 +0900&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# タイムゾーンは呼び出し元のTimeオブジェクトに依存する&lt;/span&gt;
+t2 = &lt;span class=&quot;synType&quot;&gt;Time&lt;/span&gt;.zone.local(&lt;span class=&quot;synConstant&quot;&gt;2014&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;11&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;29&lt;/span&gt;) &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; Sat, 29 Nov 2014 00:00:00 CST -06:00&lt;/span&gt;
+t2.yesterday                       &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; Fri, 28 Nov 2014 00:00:00 CST -06:00&lt;/span&gt;
+t2.tomorrow                        &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; Sun, 30 Nov 2014 00:00:00 CST -06:00&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;activesuppor-time-prev-and-next&quot;&gt;9. 昨月、昨年、翌月、翌年を取得する(prev_xxx, next_xxx)&lt;/h3&gt;次のメソッドが定義されています。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Time#prev_month, Date#prev_month&lt;/li&gt;
+&lt;li&gt;Time#next_month, Date#next_month&lt;/li&gt;
+&lt;li&gt;Time#prev_year,  Date#prev_year&lt;/li&gt;
+&lt;li&gt;Time#next_year,  Date#next_year&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;また、タイムゾーンは呼び出し元のオブジェクトに依存します。&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;activesuppor-time-relative-time&quot;&gt;10. 相対的な時刻(Time)を返す&lt;/h3&gt;ActiveSupportによりNumericクラスには次のメソッドが拡張されている。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;years (年)&lt;/li&gt;
+&lt;li&gt;mounths (月)&lt;/li&gt;
+&lt;li&gt;weeks (週)&lt;/li&gt;
+&lt;li&gt;days (日)&lt;/li&gt;
+&lt;li&gt;hours (時間)&lt;/li&gt;
+&lt;li&gt;minutes (分)&lt;/li&gt;
+&lt;li&gt;seconds (秒)&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;そして、次のメソッドをメソッドチェインすることで相対的な日付を返す&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;後: from_now or since&lt;/li&gt;
+&lt;li&gt;前: until or ago(time = :Time.current)&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;デフォルトで引数に&lt;code&gt;Time.current&lt;/code&gt;が指定されているため、Railsのタイムゾーンに基づいた現在日時からの相対時間を返す&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synType&quot;&gt;Time&lt;/span&gt;.current    &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; Sat, 29 Nov 2014 02:20:08 CST -06:00&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# 1週間前&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;.weeks.ago     &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; Sat, 22 Nov 2014 02:21:23 CST -06:00&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# 1日後&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;.days.from_now &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; Sun, 30 Nov 2014 02:20:32 CST -06:00&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 引数を指定することで、その日からの相対的な時間を指定できる&lt;/span&gt;
+t = &lt;span class=&quot;synType&quot;&gt;Time&lt;/span&gt;.local(&lt;span class=&quot;synConstant&quot;&gt;2014&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;11&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;) &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; 2014-11-01 00:00:00 +0900&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;.months.ago(t)             &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; 2014-10-01 00:00:00 +0900&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;activesuppor-time-beginning-and-end&quot;&gt;11. 開始時間と終了時間を取得する(beginning_of_xxx, end_of_xxx)&lt;/h3&gt;DateクラスとTimeクラスには、開始時刻や終了時刻を取得するために次のメソッドが定義されています。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;beginning_of_hour,    end_of_hour&lt;/li&gt;
+&lt;li&gt;beginning_of_day,     end_of_day&lt;/li&gt;
+&lt;li&gt;beginning_of_week,    end_of_week&lt;/li&gt;
+&lt;li&gt;beginning_of_month,   end_of_month&lt;/li&gt;
+&lt;li&gt;beginning_of_quarter, end_of_quarter&lt;/li&gt;
+&lt;li&gt;beginning_of_year,    end_of_year&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;次のようにすることで、ActiveRecordで月単位などでレコードを取得ができる&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;now = &lt;span class=&quot;synType&quot;&gt;Time&lt;/span&gt;.current &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; Sat, 29 Nov 2014 02:26:53 CST -06:00&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Order&lt;/span&gt;.where(&lt;span class=&quot;synConstant&quot;&gt;order_at&lt;/span&gt;: now.beginning_of_month..now.end_of_month)
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+以上です。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://api.rubyonrails.org/&quot;&gt;Ruby on Rails API&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Rails3 レシピブック 190の技&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://railscasts.com/episodes/106-time-zones-revised&quot;&gt;#106 Time Zones (revised) - RailsCasts&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Wed, 17 Dec 2014 20:52:00 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450075634983</guid>
+          
+            <category>Rails初級</category>
+          
+            <category>Rails ActiveSupport</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>Rails4でクラス名、DB名、ファイル名の変換</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20141216/1418729961</link>
+          <description>&lt;p&gt;Railsの規約を実装するために、クラス名からDB名を取得する、ファイル名を取得するなど文字列を変換する処理がActiveSuportに実装されています。ActiveSupportはStringクラスを拡張する形で、上記の名前を簡単に変換することができます。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;li&gt;ActiveSupport 4.1.7&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#activesupport-pluralize&quot;&gt;単数形から複数形にする(pluralize)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#activesupport-singularize&quot;&gt;複数形から単数形にする(singularize)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#activesupport-underscore&quot;&gt;クラス名からファイル名へ変換する(underscore)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#activesupport-camelcase&quot;&gt;ファイル名からクラス名へ変換する(camelcase)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#activesupport-tableize&quot;&gt;モデルクラス名からテーブル名へ変換する(tableize)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#activesupport-classify&quot;&gt;テーブル名からモデルクラス名へ変換する(classify)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#activesupport-constantize&quot;&gt;クラス名からクラスオブジェクトを取得する(constantize)&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;activesupport-pluralize&quot;&gt;1. 単数形から複数形にする(pluralize)&lt;/h3&gt;Stringクラスの&lt;code&gt;pluralize&lt;/code&gt;メソッドは、&lt;b&gt;単数形を複数形&lt;/b&gt;にします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# 単数形を複数形に変換する&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;post&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.pluralize     &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;posts&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;the post&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.pluralize &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;the posts&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 複数形のものはそのまま&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;posts&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.pluralize &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;posts&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 不規則変換も変換してくれる&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;person&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.pluralize &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;people&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 日本語は変な風に変換されてしまうので注意が必要&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;あいう&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.pluralize =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;あいうs&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# ロケールを指定すれば変換されない&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;あいう&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.pluralize(locale = &lt;span class=&quot;synConstant&quot;&gt;:ja&lt;/span&gt;) &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;あいう&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;activesupport-singularize&quot;&gt;2. 複数形から単数形にする(singularize)&lt;/h3&gt;Stringクラスの&lt;code&gt;singularize&lt;/code&gt;メソッドは&lt;b&gt;複数形を単数形&lt;/b&gt;にします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# 複数形を単数形に変換する&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;posts&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.singularize    &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;post&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;the post&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.singularize &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;the post&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 単数形のものはそのまま&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;post&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.singularize &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;post&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 不規則変換も変換してくれる&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;people&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.singularize &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;person&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;activesupport-underscore&quot;&gt;3. クラス名からファイル名へ変換する(underscore)&lt;/h3&gt;Railsでは、&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;クラス名は、キャメルケース（例: &lt;code&gt;UsersControler&lt;/code&gt;、&lt;code&gt;User&lt;/code&gt;)&lt;/li&gt;
+&lt;li&gt;ファイル名は、スネークケース（例：&lt;code&gt;users_controller.rb&lt;/code&gt;、&lt;code&gt;user.rb&lt;/code&gt;)&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;です。&lt;br /&gt;
+Stringクラスの&lt;code&gt;underscore&lt;/code&gt;メソッドで&lt;b&gt;スネークケース&lt;/b&gt;にします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;UsersControlller&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.underscore         &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;users_controlller&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;#{&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;UsersControlller&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.underscore&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;.rb&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;users_controlller.rb&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;User&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.underscore          &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;user&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;User&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.underscore &amp;lt;&amp;lt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;.rb&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;user.rb&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# :: は / に変換してくれる&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;ActiveModel::Errors&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.underscore &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;active_model/errors&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;activesupport-camelcase&quot;&gt;4. ファイル名からクラス名へ変換する(camelcase)&lt;/h3&gt;Railsでは、&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;ファイル名は、スネークケース（例：&lt;code&gt;users_controller.rb&lt;/code&gt;、&lt;code&gt;user.rb&lt;/code&gt;)&lt;/li&gt;
+&lt;li&gt;クラス名は、キャメルケース（例: &lt;code&gt;UsersControler&lt;/code&gt;、&lt;code&gt;User&lt;/code&gt;)&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;です。&lt;/p&gt;&lt;p&gt;Stringクラスの&lt;code&gt;camelcase&lt;/code&gt;メソッドで&lt;b&gt;キャメルケース&lt;/b&gt;にします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;users_controller&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.camelcase    &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;UsersController&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;users_controller.rb&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.camelcase &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;UsersController.rb&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.camelcase &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;User&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# / は :: に変換してくれる&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;active_model/errors&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.camelcase &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;ActiveModel::Errors&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;activesupport-tableize&quot;&gt;5. モデルクラス名からテーブル名へ変換する(tableize)&lt;/h3&gt;テーブル名は、&lt;code&gt;ActiveModel::Base&lt;/code&gt;を継承したモデルクラスのクラス名(例: &lt;code&gt;User&lt;/code&gt;、&lt;code&gt;LineItem&lt;/code&gt;)のスネークケースの複数形である必要があります。（例: &lt;code&gt;users&lt;/code&gt;、&lt;code&gt;line_items&lt;/code&gt;)&lt;/p&gt;&lt;p&gt;Stringクラスの&lt;code&gt;tableize&lt;/code&gt;メソッドでモデル名をテーブル名へ変換します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;User&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.tableize     &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;users&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;LineItem&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.tableize &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;line_items&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;activesupport-classify&quot;&gt;6. テーブル名からモデルクラス名へ変換する(classify)&lt;/h3&gt;Stringクラスの&lt;code&gt;classify&lt;/code&gt;メソッドでテーブル名をモデルクラス名へ変換します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;users&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.classify      &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;User&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;line_items&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.classify &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;LineItem&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;activesupport-constantize&quot;&gt;7. クラス名からクラスオブジェクトを取得する(constantize)&lt;/h3&gt;Stringクラスの&lt;code&gt;constantize&lt;/code&gt;メソッドでクラス名からクラスオブジェクトを取得します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;User&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.constantize            &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; User&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;UsersController&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.constantize &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; UsersController&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# newなどをチェインさせれば、オブジェクトを作成できる&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;User&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.constantize.new
+&lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; #&amp;lt;User id: nil, name: nil, created_at: nil, updated_at: nil&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 存在しないクラスをconstantizeするとNameError例外が発生する&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Hoge&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.constantize &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; NameError: uninitialized constant Hoge&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;code&gt;config/initializers/inflections.rb&lt;/code&gt;に変換ルールを定義できる。&lt;/p&gt;&lt;p&gt;以上です。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://api.rubyonrails.org/&quot;&gt;Ruby on Rails API&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Rails3 レシピブック 190の技&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Tue, 16 Dec 2014 20:39:21 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450075628427</guid>
+          
+            <category>Rails Tips</category>
+          
+            <category>Rails ActiveSupport</category>
+          
+        </item>
+      
+    
+  </channel>
+</rss>

@@ -1,0 +1,199 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>SEO - Rails Webook</title>
+    <link>http://ruby-rails.hatenadiary.com/category/SEO</link>
+    <description>自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</description>
+    <lastBuildDate>Fri, 18 Dec 2015 02:44:31 +0900</lastBuildDate>
+    <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+    <generator>Hatena::Blog</generator>
+    
+      
+      
+        <item>
+          <title>Railsでfriendly_idを使って検索エンジンにわかりやすいURLを作成する</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20150221/1424489524</link>
+          <description>&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150221/20150221111817.jpg&quot; alt=&quot;f:id:nipe880324:20150221111817j:plain:w480&quot; title=&quot;f:id:nipe880324:20150221111817j:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+&lt;i&gt;Photo by &lt;a href=&quot;https://www.flickr.com/photos/marcos_hb/&quot;&gt;Flickr: marcosHB&amp;#39;s Photostream&lt;/a&gt;&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/norman/friendly_id&quot; target=&quot;_blank&quot;&gt;friendly_id&lt;/a&gt;は次のようにURLを人間や検索エンジンにわかりやすいようにするgemです。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# firendly_idを使っていない場合&lt;/span&gt;
+http&lt;span class=&quot;synConstant&quot;&gt;:/&lt;/span&gt;/example.com/states/&lt;span class=&quot;synConstant&quot;&gt;4323454&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# firendly_idを使った場合&lt;/span&gt;
+http&lt;span class=&quot;synConstant&quot;&gt;:/&lt;/span&gt;/example.com/states/washington
+&lt;/pre&gt;&lt;p&gt;また、URL文字列(washingtonの部分)の履歴や他言語対応などの機能もあります。&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails 4.2.0&lt;/li&gt;
+&lt;li&gt;Ruby  2.1.0&lt;/li&gt;
+&lt;li&gt;friendly_id 5.1.0&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#friendly_id-install&quot;&gt;friendly_idのインストール&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#friendly_id-basic_usage&quot;&gt;friendly_idの基本的な使い方&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#friendly_id-add_slug&quot;&gt;slugを追加する&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#friendly_id-add_history&quot;&gt;404エラーを避けるためにslugの履歴を取る&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;friendly_id-install&quot;&gt;1. friendly_idのインストール&lt;/h3&gt;Gemfileに追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Gemfile&lt;/span&gt;
+gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;friendly_id&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;Bundlerを実行します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;bundle &lt;span class=&quot;synStatement&quot;&gt;install&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;friendly_id-basic_usage&quot;&gt;2. friendly_idの基本的な使い方&lt;/h3&gt;FrendlyIdの設定ファイルと&lt;code&gt;friendly_id_slugs&lt;/code&gt;テーブルを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;bin/rails g friendly_id
+  create  db/migrate/20150220082838_create_friendly_id_slugs.rb
+  create  config/initializers/friendly_id.rb
+
+bin/rake db:migrate
+&lt;/pre&gt;&lt;p&gt;&lt;i&gt;&lt;code&gt;friendly_id_slugs&lt;/code&gt;テーブルは&lt;code&gt;slug&lt;/code&gt;カラム（URL上のIDの代わりに表示する文字列を保持する）のバージョニングを行うテーブルです。slugの履歴を取らない場合は必要ありません。&lt;/i&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;code&gt;friendly_id&lt;/code&gt;を使うためにデモとしてUserをScaffoldで作成します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;bin/rails g scaffold User name:string:uniq
+bin/rake db:migrate
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+作成されたUserモデルにFriendlyIDを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/models/user.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  validates &lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;presence&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;uniqueness&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;include&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;FriendlyId&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# extend FriendlyId でもよい(違いはない)&lt;/span&gt;
+  friendly_id &lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;  &lt;span class=&quot;synComment&quot;&gt;# idカラムの代わりにnameカラムをURLのIDとする&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+こうすることで、Userモデルの検索や作成時などに、&lt;code&gt;id&lt;/code&gt;パラメーターに「&lt;b&gt;name属性の値&lt;/b&gt;」が設定されてサーバー側に送られてきます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;{ &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;controller&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;users&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;show&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;tom-tick&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; }
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+そのため、Usersコントローラーのユーザーを取得箇所では、&lt;code&gt;friendly&lt;/code&gt;メソッドを使いUserを取得できるようにします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/users_controller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;set_user&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# @user = User.find(params[:id])&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;@user&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.friendly.find(params[&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;])
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+ちなみに&lt;code&gt;friendly&lt;/code&gt;メソッドは次のように動作します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.friendly.find(&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;tom-tick&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;) &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; friendly_idで設定したカラムで検索できる(ここではnameカラム)&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.friendly.find(&lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;)          &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; IDで検索ができる&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.find(&lt;span class=&quot;synConstant&quot;&gt;23&lt;/span&gt;)                  &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; friendlyメソッドを使わなくてもIDで検索できる&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.find(&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;tom-tick&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;)          &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; X friendlyメソッドを使わないとnameカラムで検索できない&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+では、画面で確認してみましょう。&lt;br /&gt;
+IDの代わりに、Userモデルのnameカラムの値がURLとして使われています。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150221/20150221120546.jpg&quot; alt=&quot;f:id:nipe880324:20150221120546j:plain:w320&quot; title=&quot;f:id:nipe880324:20150221120546j:plain:w320&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:320px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;日本語も作ることができます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150221/20150221120552.jpg&quot; alt=&quot;f:id:nipe880324:20150221120552j:plain:w320&quot; title=&quot;f:id:nipe880324:20150221120552j:plain:w320&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:320px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;friendly_id-add_slug&quot;&gt;3. slugを追加する&lt;/h3&gt;現在はUserモデルのnameカラムをURLとして表示していますが、ユーザー名にスペースが入ったりするとURLが見づらいものになるのでslugカラム（URL上のIDの代わりに表示する文字列）を追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;bin/rails g migration add_slug_to_users slug:index:uniq
+  invoke  active_record
+  create    db/migrate/20150220083718_add_slug_to_users.rb
+
+bin/rake db:migrate
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+slugカラムを使うようにするために、Userモデルに&lt;code&gt;use: :slugged&lt;/code&gt;を追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/models/user.rb&lt;/span&gt;
+friendly_id &lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;use&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:slugged&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+既に存在するUserレコードの&lt;code&gt;slug&lt;/code&gt;カラムは&lt;code&gt;nil&lt;/code&gt;なので値を設定します。&lt;br /&gt;
+保存をすると&lt;code&gt;nil&lt;/code&gt;の場合、FriendlyIdが自動的に&lt;code&gt;slug&lt;/code&gt;を生成してくれます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;bin/rails c
+
+&lt;span class=&quot;synComment&quot;&gt;# slugを確認する&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.all.pluck(&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:slug&lt;/span&gt;)
+&lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; [[1, &amp;quot;Tom Tick&amp;quot;, nil], [2, &amp;quot;田中 太郎&amp;quot;, nil]]&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# FriendlyIdが自動的にslugを作成し、保存する&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.find_each(&amp;amp;&lt;span class=&quot;synConstant&quot;&gt;:save&lt;/span&gt;)
+
+&lt;span class=&quot;synComment&quot;&gt;# slugが生成されたことを確認する&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.all.pluck(&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:slug&lt;/span&gt;)
+=&amp;gt; [[&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Tom Tick&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;tom-tick&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;], [&lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;田中 太郎&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;fcf1c7ee-6d17-4b43-a67a-b6d67adfdb48&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;]]
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+上記で見てわかると思うのですが、日本語は適切に入らないので、FriendlyIdの&lt;code&gt;normalize_frindly_id&lt;/code&gt;メソッドをオーバーライドします。&lt;br /&gt;
+日本語の場合、&lt;code&gt;parameterize&lt;/code&gt;メソッドは空文字を返すので次のようにしています。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/models/user.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;normalize_friendly_id&lt;/span&gt;(value)
+  value.to_s.parameterize.present? ? value.to_s.parameterize : value
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+では、うまく入らなかったUserレコードのslugを更新します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;bin/rails c
+
+japanese_user = &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.last
+japanese_user.slug = &lt;span class=&quot;synConstant&quot;&gt;nil&lt;/span&gt;
+japanese_user.save
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+では、画面を確認してみましょう。&lt;br /&gt;
+英語の場合は、大文字は小文字になり、スペースはハイフンになっています。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150221/20150221121203.jpg&quot; alt=&quot;f:id:nipe880324:20150221121203j:plain:w320&quot; title=&quot;f:id:nipe880324:20150221121203j:plain:w320&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:320px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;残念ながら日本語などの場合、そのままの値をslugに設定しているのでslugを導入する前とURLは変わりません。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150221/20150221120552.jpg&quot; alt=&quot;f:id:nipe880324:20150221120552j:plain:w320&quot; title=&quot;f:id:nipe880324:20150221120552j:plain:w320&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:320px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;上記で、slugを変更するために、&lt;code&gt;nil&lt;/code&gt;を設定て、保存することで slugの変更を行いました。&lt;br /&gt;
+slugを変更したいと思うたびに、&lt;code&gt;nil&lt;/code&gt;を設定するのはめんどうなので、slugを更新するかどうかを確認する&lt;code&gt;should_generate_new_friendly_id?&lt;/code&gt;メソッドをオーバーライドします。&lt;br /&gt;
+&lt;code&gt;name&lt;/code&gt;カラムをfriendly_Idとして利用しているので、&lt;code&gt;name&lt;/code&gt;属性が変更された場合にtrueを返す(slugを変更する)ようにします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/models/user.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;should_generate_new_friendly_id?&lt;/span&gt;
+  name_changed?
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+では、名前を更新してみて、URLが変更されることを確認します。&lt;br /&gt;
+URLが「tom-tick」の名前を更新すると、&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150221/20150221121548.jpg&quot; alt=&quot;f:id:nipe880324:20150221121548j:plain:w320&quot; title=&quot;f:id:nipe880324:20150221121548j:plain:w320&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:320px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;URLが「tom-tick2」に更新されてました。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150221/20150221121601.jpg&quot; alt=&quot;f:id:nipe880324:20150221121601j:plain:w320&quot; title=&quot;f:id:nipe880324:20150221121601j:plain:w320&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:320px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;friendly_id-add_history&quot;&gt;4. 404エラーを避けるためにslugの履歴を取る&lt;/h3&gt;上記で、&lt;code&gt;name&lt;/code&gt;属性を変更することで、URLを変更することができました。&lt;br /&gt;
+しかし、もし前のURL（例：/users/tom-tick）でアクセスした場合、&lt;b&gt;404エラー Not Found （内部的にはActiveRecord::RecordNotFound Exception）&lt;/b&gt;が発生してしまいます。&lt;br /&gt;
+そのため、以前のslugも保持するようにして、前のURLでアクセスされたときもページを表示できるようにします。&lt;/p&gt;&lt;p&gt;FriendlyIdでは次のように&lt;code&gt;history&lt;/code&gt;を追加するだけです。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/models/user.rb&lt;/span&gt;
+friendly_id &lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;use&lt;/span&gt;: [&lt;span class=&quot;synConstant&quot;&gt;:slugged&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:history&lt;/span&gt;]
+&lt;/pre&gt;&lt;p&gt;&lt;i&gt;こうすることで、本記事の最初で作成した&lt;code&gt;friendly_id_slugs&lt;/code&gt;テーブルに自動的にslugの履歴が保持されることで、前のURLからでも同じUserモデルにアクセスできるようになります。&lt;/i&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;slugを変更しても、前のslugでもページにアクセスできるか確認します。&lt;br /&gt;
+まず、名前を「Tom Tick2」から「Tom Tick3」に変更します。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150221/20150221122447.jpg&quot; alt=&quot;f:id:nipe880324:20150221122447j:plain:w320&quot; title=&quot;f:id:nipe880324:20150221122447j:plain:w320&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:320px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;すると、slugは「tom-tick3」に変更されます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150221/20150221122601.jpg&quot; alt=&quot;f:id:nipe880324:20150221122601j:plain:w320&quot; title=&quot;f:id:nipe880324:20150221122601j:plain:w320&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:320px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;slugが変更された後でも、「/users/tom-tick2」でもアクセスできます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150221/20150221122613.jpg&quot; alt=&quot;f:id:nipe880324:20150221122613j:plain:w320&quot; title=&quot;f:id:nipe880324:20150221122613j:plain:w320&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:320px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;現在のslugにリダイレクトさせるようにするために、ステータスコード 301 Moved Permanently（恒久的に移動した)を返しリダイレクトするようにします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/users_controller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;show&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; request.path != user_path(&lt;span class=&quot;synIdentifier&quot;&gt;@user&lt;/span&gt;)
+    &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; redirect_to &lt;span class=&quot;synIdentifier&quot;&gt;@user&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:status&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;:moved_permanently&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;code&gt;friendly_id_slugs&lt;/code&gt;テーブルはslugの変更に応じて増えていくので、適切にデータの削除が必要です。削除することでアクセスができなくなるので、タイミングは難しいところです。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;以上です。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://norman.github.io/friendly_id/file.Guide.html&quot;&gt;File: Guide &amp;mdash; Documentation by YARD 0.8.7.6&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://railscasts.com/episodes/314-pretty-urls-with-friendlyid&quot;&gt;#314 Pretty URLs with FriendlyId - RailsCasts&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Sat, 21 Feb 2015 12:32:04 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450084594626</guid>
+          
+            <category>SEO</category>
+          
+            <category>Rails中級</category>
+          
+            <category>Rails Model</category>
+          
+        </item>
+      
+    
+  </channel>
+</rss>

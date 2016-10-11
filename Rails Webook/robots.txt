@@ -1,0 +1,5 @@
+User-agent: *
+Sitemap: http://ruby-rails.hatenadiary.com/sitemap_index.xml
+Disallow: /api/
+Disallow: /draft/
+

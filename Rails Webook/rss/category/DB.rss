@@ -1,0 +1,499 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>DB - Rails Webook</title>
+    <link>http://ruby-rails.hatenadiary.com/category/DB</link>
+    <description>自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</description>
+    <lastBuildDate>Fri, 18 Dec 2015 02:44:31 +0900</lastBuildDate>
+    <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+    <generator>Hatena::Blog</generator>
+    
+      
+      
+        <item>
+          <title>Postgresqlのデータ型一覧とRailsのマイグレーションの指定方法</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20150607/1433606267</link>
+          <description>&lt;p&gt;Postgresqlの各データ型とRailsのマイグレーションでの指定方法をまとめました。&lt;br /&gt;
+次の目次にある、データ型についてまとめました。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#postgresql-migration-int&quot;&gt;数値データ型&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#postgresql-migration-money&quot;&gt;通貨型&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#postgresql-migration-str&quot;&gt;文字型&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#postgresql-migration-date&quot;&gt;日付/時刻データ型&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#postgresql-migration-bool&quot;&gt;論理値データ型&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Ruby 2.2.0&lt;/li&gt;
+&lt;li&gt;Rails 4.2.1&lt;/li&gt;
+&lt;li&gt;Postgresql 9.4.1&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;postgresql-migration-int&quot;&gt;数値データ型&lt;/h3&gt;数値データ型には2、4、8バイト整数と、4、8バイト浮動小数点、精度設定が可能な数があります。&lt;/p&gt;&lt;p&gt;&lt;table border=&quot;1&quot; class=&quot;CALSTABLE&quot;&gt;
+  &lt;colgroup&gt;&lt;col&gt;&lt;col&gt;&lt;col&gt;&lt;col&gt;&lt;/colgroup&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;型名&lt;/th&gt;&lt;th&gt;格納サイズ&lt;/th&gt;&lt;th&gt;説明&lt;/th&gt;&lt;th&gt;範囲&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;smallint&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;2バイト&lt;/td&gt;&lt;td&gt;狭範囲の整数&lt;/td&gt;&lt;td&gt;-32768から+32767&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;integer&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;4バイト&lt;/td&gt;&lt;td&gt;典型的に使用する整数&lt;/td&gt;&lt;td&gt;-2147483648から+2147483647&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;bigint&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;8バイト&lt;/td&gt;&lt;td&gt;広範囲整数&lt;/td&gt;&lt;td&gt;-9223372036854775808から+9223372036854775807&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;decimal&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;可変長&lt;/td&gt;&lt;td&gt;ユーザ指定精度、正確、通貨などに使用&lt;/td&gt;&lt;td&gt;小数点前までは131072桁、小数点以降は16383桁&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;numeric&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;可変長&lt;/td&gt;&lt;td&gt;decimalと同じ&lt;/td&gt;&lt;td&gt;小数点前までは131072桁、小数点以降は16383桁&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;real&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;4バイト&lt;/td&gt;&lt;td&gt;可変精度、不正確&lt;/td&gt;&lt;td&gt;6桁精度&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;double precision&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;8バイト&lt;/td&gt;&lt;td&gt;可変精度、不正確&lt;/td&gt;&lt;td&gt;15桁精度&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;smallserial&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;2バイト&lt;/td&gt;&lt;td&gt;狭範囲自動整数&lt;/td&gt;&lt;td&gt;1から32767&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;serial&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;4バイト&lt;/td&gt;&lt;td&gt;自動増分整数&lt;/td&gt;&lt;td&gt;1から2147483647&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;bigserial&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;8バイト&lt;/td&gt;&lt;td&gt;広範囲自動増分整数&lt;/td&gt;&lt;td&gt;1から9223372036854775807&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# マイグレーションファイル&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;CreateHoges&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Migration&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;change&lt;/span&gt;
+    create_table &lt;span class=&quot;synConstant&quot;&gt;:hoges&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;t&lt;/span&gt;|
+      t.integer &lt;span class=&quot;synConstant&quot;&gt;:int2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;limit&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# smallint型&lt;/span&gt;
+      t.integer &lt;span class=&quot;synConstant&quot;&gt;:int4&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;limit&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;4&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# integer型&lt;/span&gt;
+      t.integer &lt;span class=&quot;synConstant&quot;&gt;:int&lt;/span&gt;            &lt;span class=&quot;synComment&quot;&gt;# integer型&lt;/span&gt;
+      t.integer &lt;span class=&quot;synConstant&quot;&gt;:int8&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;limit&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;8&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# bigint型&lt;/span&gt;
+
+      t.decimal &lt;span class=&quot;synConstant&quot;&gt;:decimal&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;precision&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;10&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;scale&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# decimal/numeric(10,2)型&lt;/span&gt;
+
+      t.float &lt;span class=&quot;synConstant&quot;&gt;:real&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;limit&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;4&lt;/span&gt;   &lt;span class=&quot;synComment&quot;&gt;# real型&lt;/span&gt;
+      t.float &lt;span class=&quot;synConstant&quot;&gt;:double_precision&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# double precision型&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;参考：&lt;a href=&quot;https://www.postgresql.jp/document/9.4/html/datatype-numeric.html#DATATYPE-INT&quot; target=&quot;_blank&quot;&gt;数値データ型の詳細な説明&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;postgresql-migration-money&quot;&gt;通貨型&lt;/h3&gt;money型は貨幣金額を固定精度の小数点で格納します。&lt;br /&gt;
+範囲は小数点2桁を想定しています。出力形式は通常は&quot;典型的な&quot;通貨書式となりますが、ロケールによって異なります。&lt;/p&gt;&lt;p&gt;&lt;table border=&quot;1&quot; class=&quot;CALSTABLE&quot;&gt;
+  &lt;colgroup&gt;&lt;col&gt;&lt;col&gt;&lt;col&gt;&lt;col&gt;&lt;/colgroup&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;&lt;th&gt;型名&lt;/th&gt;&lt;th&gt;格納サイズ&lt;/th&gt;&lt;th&gt;説明&lt;/th&gt;&lt;th&gt;範囲&lt;/th&gt;&lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;money&lt;/td&gt;&lt;td&gt;8バイト&lt;/td&gt;&lt;td&gt;貨幣金額&lt;/td&gt;&lt;td&gt;-92233720368547758.08 から +92233720368547758.07&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# マイグレーションファイル&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;CreateHoges&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Migration&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;change&lt;/span&gt;
+    create_table &lt;span class=&quot;synConstant&quot;&gt;:hoges&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;t&lt;/span&gt;|
+      t.money &lt;span class=&quot;synConstant&quot;&gt;:money&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# money型&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;参考：&lt;a href=&quot;https://www.postgresql.jp/document/9.4/html/datatype-money.html&quot; target=&quot;_blank&quot;&gt;通貨型の詳細な説明&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;postgresql-migration-str&quot;&gt;文字型&lt;/h3&gt;&lt;table border=&quot;1&quot; class=&quot;CALSTABLE&quot;&gt;
+  &lt;colgroup&gt;&lt;col&gt;&lt;col&gt;&lt;/colgroup&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;&lt;th&gt;型名&lt;/th&gt;&lt;th&gt;説明&lt;/th&gt;&lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;character varying(&lt;tt class=&quot;REPLACEABLE&quot;&gt;&lt;i&gt;n&lt;/i&gt;&lt;/tt&gt;)&lt;/tt&gt;、&lt;tt class=&quot;TYPE&quot;&gt;varchar(&lt;tt class=&quot;REPLACEABLE&quot;&gt;&lt;i&gt;n&lt;/i&gt;&lt;/tt&gt;)&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;上限付き可変長&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;character(&lt;tt class=&quot;REPLACEABLE&quot;&gt;&lt;i&gt;n&lt;/i&gt;&lt;/tt&gt;)&lt;/tt&gt;、&lt;tt class=&quot;TYPE&quot;&gt;char(&lt;tt class=&quot;REPLACEABLE&quot;&gt;&lt;i&gt;n&lt;/i&gt;&lt;/tt&gt;)&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;空白で埋められた固定長&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;text&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;制限なし可変長&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# マイグレーションファイル&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;CreateHoges&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Migration&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;change&lt;/span&gt;
+    create_table &lt;span class=&quot;synConstant&quot;&gt;:hoges&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;t&lt;/span&gt;|
+      t.string &lt;span class=&quot;synConstant&quot;&gt;:str&lt;/span&gt;                &lt;span class=&quot;synComment&quot;&gt;# character varying型&lt;/span&gt;
+      t.string &lt;span class=&quot;synConstant&quot;&gt;:str128&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;limit&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;128&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# character varying(128)型&lt;/span&gt;
+      t.text   &lt;span class=&quot;synConstant&quot;&gt;:text&lt;/span&gt;               &lt;span class=&quot;synComment&quot;&gt;# text型&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;参考：&lt;a href=&quot;https://www.postgresql.jp/document/9.4/html/datatype-character.html&quot; target=&quot;_blank&quot;&gt;日付/時刻データ型の詳細な説明&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;postgresql-migration-date&quot;&gt;日付/時刻データ型&lt;/h3&gt;&lt;table border=&quot;1&quot; class=&quot;CALSTABLE&quot;&gt;
+  &lt;colgroup&gt;&lt;col&gt;&lt;col&gt;&lt;col&gt;&lt;col&gt;&lt;col&gt;&lt;col&gt;&lt;/colgroup&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;&lt;th&gt;型名&lt;/th&gt;&lt;th&gt;格納サイズ&lt;/th&gt;&lt;th&gt;説明&lt;/th&gt;&lt;th&gt;最遠の過去&lt;/th&gt;&lt;th&gt;最遠の未来&lt;/th&gt;&lt;th&gt;精度&lt;/th&gt;&lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;timestamp [ (&lt;tt class=&quot;REPLACEABLE&quot;&gt;&lt;i&gt;p&lt;/i&gt;&lt;/tt&gt;) ] [ without time zone ]&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;8 バイト&lt;/td&gt;&lt;td&gt;日付と時刻両方（時間帯なし）&lt;/td&gt;&lt;td&gt;4713 BC&lt;/td&gt;&lt;td&gt;294276 AD&lt;/td&gt;&lt;td&gt;1μ秒、14桁&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;timestamp [ (&lt;tt class=&quot;REPLACEABLE&quot;&gt;&lt;i&gt;p&lt;/i&gt;&lt;/tt&gt;) ] with time zone&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;8バイト&lt;/td&gt;&lt;td&gt;日付と時刻両方、時間帯付き&lt;/td&gt;&lt;td&gt;4713 BC&lt;/td&gt;&lt;td&gt;294276 AD&lt;/td&gt;&lt;td&gt;1μ秒、14桁&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;date&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;4バイト&lt;/td&gt;&lt;td&gt;日付（時刻なし）&lt;/td&gt;&lt;td&gt;4713 BC&lt;/td&gt;&lt;td&gt;5874897 AD&lt;/td&gt;&lt;td&gt;1日&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;time [ (&lt;tt class=&quot;REPLACEABLE&quot;&gt;&lt;i&gt;p&lt;/i&gt;&lt;/tt&gt;) ] [ without time zone ]&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;8バイト&lt;/td&gt;&lt;td&gt;時刻（日付なし）&lt;/td&gt;&lt;td&gt;00:00:00&lt;/td&gt;&lt;td&gt;24:00:00&lt;/td&gt;&lt;td&gt;1μ秒、14桁&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;time [ (&lt;tt class=&quot;REPLACEABLE&quot;&gt;&lt;i&gt;p&lt;/i&gt;&lt;/tt&gt;) ] with time zone&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;12バイト&lt;/td&gt;&lt;td&gt;その日の時刻のみ、時間帯付き&lt;/td&gt;&lt;td&gt;00:00:00+1459&lt;/td&gt;&lt;td&gt;24:00:00-1459&lt;/td&gt;&lt;td&gt;1μ秒、14桁&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;interval [ &lt;tt class=&quot;REPLACEABLE&quot;&gt;&lt;i&gt;fields&lt;/i&gt;&lt;/tt&gt; ] [ (&lt;tt class=&quot;REPLACEABLE&quot;&gt;&lt;i&gt;p&lt;/i&gt;&lt;/tt&gt;) ]&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;16バイト&lt;/td&gt;&lt;td&gt;時間間隔&lt;/td&gt;&lt;td&gt;-178000000年&lt;/td&gt;&lt;td&gt;178000000年&lt;/td&gt;&lt;td&gt;1μ秒、14桁&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# マイグレーションファイル&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;CreateHoges&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Migration&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;change&lt;/span&gt;
+    create_table &lt;span class=&quot;synConstant&quot;&gt;:hoges&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;t&lt;/span&gt;|
+      t.datetime  &lt;span class=&quot;synConstant&quot;&gt;:datetime&lt;/span&gt;  &lt;span class=&quot;synComment&quot;&gt;# timestamp without time zone型&lt;/span&gt;
+      t.timestamp &lt;span class=&quot;synConstant&quot;&gt;:timestamp&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# timestamp without time zone型&lt;/span&gt;
+      t.timestamp &lt;span class=&quot;synConstant&quot;&gt;:timestamp&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# timestamp without time zone型&lt;/span&gt;
+      t.time      &lt;span class=&quot;synConstant&quot;&gt;:time&lt;/span&gt;      &lt;span class=&quot;synComment&quot;&gt;# date型&lt;/span&gt;
+      t.date      &lt;span class=&quot;synConstant&quot;&gt;:date&lt;/span&gt;      &lt;span class=&quot;synComment&quot;&gt;# time without time zone型&lt;/span&gt;
+      t.column    &lt;span class=&quot;synConstant&quot;&gt;:duration&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:interval&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# interval型&lt;/span&gt;
+      t.column &lt;span class=&quot;synConstant&quot;&gt;:timestamp_with_tz&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;timestamp with time zone&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+      t.column &lt;span class=&quot;synConstant&quot;&gt;:time_with_tz&lt;/span&gt;,      &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;time with time zone&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;参考：&lt;a href=&quot;https://www.postgresql.jp/document/9.4/html/datatype-datetime.html&quot; target=&quot;_blank&quot;&gt;日付/時刻データ型の詳細な説明&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;postgresql-migration-bool&quot;&gt;論理値データ型&lt;/h3&gt;boolean型はいくつかの状態を取ることができます。 &quot;真&quot;もしくは&quot;偽&quot;、そして第3の状態はSQLではNULL値で表現される&quot;不明&quot;の状態です。&lt;/p&gt;&lt;p&gt;&lt;table border=&quot;1&quot; class=&quot;CALSTABLE&quot;&gt;
+  &lt;colgroup&gt;&lt;col&gt;&lt;col&gt;&lt;col&gt;&lt;/colgroup&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;&lt;th&gt;名前&lt;/th&gt;&lt;th&gt;格納サイズ&lt;/th&gt;&lt;th&gt;説明&lt;/th&gt;&lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;boolean&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;1バイト&lt;/td&gt;&lt;td&gt;真または偽の状態&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# マイグレーションファイル&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;CreateHoges&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Migration&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;change&lt;/span&gt;
+    create_table &lt;span class=&quot;synConstant&quot;&gt;:hoges&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;t&lt;/span&gt;|
+      t.boolean   &lt;span class=&quot;synConstant&quot;&gt;:bool&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# boolean型&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;参考：&lt;a href=&quot;https://www.postgresql.jp/document/9.4/html/datatype-boolean.html&quot; target=&quot;_blank&quot;&gt;論理値データ型の詳細な説明&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;他にもバイナリ型やJSON型などのデータ型もあるので気にになる方は、参考のURLを一度読んでみてください。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://www.postgresql.jp/document/9.4/html/datatype.html&quot;&gt;https://www.postgresql.jp/document/9.4/html/datatype.html&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Sun, 07 Jun 2015 00:57:47 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450096729801</guid>
+          
+            <category>Rails Migration</category>
+          
+            <category>Rails中級</category>
+          
+            <category>DB</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>Railsの開発効率をあげる - Rails-ERDを使ってRailsでER図を簡単につくる</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20141027/1414409495</link>
+          <description>
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;Rails-ERDとは&lt;/h3&gt;
+    &lt;p&gt;&lt;a href=&quot;https://github.com/voormedia/rails-erd&quot; target=&quot;_blank&quot;&gt;Rails-ERD&lt;/a&gt;とは、&lt;br /&gt;
+ActiveRecordをもとにRailsプロジェクトのER図を作成してくれるツールです。&lt;br /&gt;
+Railsプロジェクト(ActiveRecord)からER図を簡単に作れるので、Excelや他のツールでER図を作って、Railsに反映させていくという2重管理をしなくてよくなり、メンテナンスコストが下がるので開発効率があがると思います。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;Rails-ERDで作成されたER図の例（CMS）です。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141025/20141025035233.png&quot; alt=&quot;f:id:nipe880324:20141025035233p:plain:w480&quot; title=&quot;f:id:nipe880324:20141025035233p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;対象読者&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Railsの開発効率を上げたい方（特に、ER図をDryに管理したい方）&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Ruby  2.0&lt;/li&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;li&gt;rails-erd 1.1.0&lt;/li&gt;
+&lt;li&gt;Graphviz&lt;/li&gt;
+&lt;li&gt;Mac OS X 10.10 Yoshimite&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;#rails-erd-create-rails&quot;&gt;Railsプロジェクトを作成&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#rails-erd-install&quot;&gt;Rails-ERDのインストール&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#rails-erd-usage&quot;&gt;Rails-ERDの使い方&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;rails-erd-create-rails&quot;&gt;1. Railsプロジェクトを作成&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;まずはRailsプロジェクトを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rails new rails-erd_test
+cd rails-erd_test&lt;/pre&gt;&lt;p&gt;次にRails-ERDでER図を作成するために、モデルを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rails g scaffold User firstname:string lastname:string email:string
+rails g model Post title:string body:text user:references
+rails g model Comment body:text user:references
+rake db:migrate&lt;/pre&gt;&lt;p&gt;Userモデルに&lt;code&gt;has_many&lt;/code&gt;を追加します。&lt;br /&gt;
+ちなみに、PostモデルとCommentモデルには、&lt;code&gt;user:references&lt;/code&gt;を指定したので&lt;code&gt;belongs_to&lt;/code&gt;が追加されています。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/models/user.rb&lt;/span&gt;
+
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  has_many &lt;span class=&quot;synConstant&quot;&gt;:posts&lt;/span&gt;
+  has_many &lt;span class=&quot;synConstant&quot;&gt;:comments&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;rails-erd-install&quot;&gt;2. Rails-ERDのインストール&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;では、さっそくRailsにRails-ERDをインストールしていきましょう。&lt;/p&gt;&lt;p&gt;&lt;code&gt;Gemfile&lt;/code&gt;にRails-ERDを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Gemfile&lt;/span&gt;
+
+group &lt;span class=&quot;synConstant&quot;&gt;:development&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:test&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;rails-erd&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# 上記でうまくいかない、かつ、OSX Mavericksを使っている場合はこちらを使ってください&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# gem &#39;rails-erd&#39;, github: &#39;paulwittmann/rails-erd&#39;, branch: &#39;mavericks&#39;&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;Bundlerでgemをインストールします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;bundle install&lt;/pre&gt;&lt;p&gt;次に、&lt;a href=&quot;http://www.graphviz.org/&quot; target=&quot;_blank&quot;&gt;Graphviz&lt;/a&gt;というグラフを作成するツールをいれます。&lt;br /&gt;
+&lt;a href=&quot;http://www.graphviz.org/Download..php&quot; target=&quot;_blank&quot;&gt;http://www.graphviz.org/Download..php&lt;/a&gt;からOSに応じてダウンロードし、インストールしてください。&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;rails-erd-usage&quot;&gt;3. Rails-ERDの使い方&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;&lt;code&gt;rake erd&lt;/code&gt;コマンドでER図が作成されます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ rake erd
+Loading application environment...
+Loading code in search of Active Record models...
+Generating Entity-Relationship Diagram for 3 models...
+Done! Saved diagram to erd.pdf.&lt;/pre&gt;&lt;p&gt;ファイルは、&lt;cdoe&gt;erd.pdf&lt;/cdoe&gt;で作成されましたので、開いてみましょう。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141025/20141025035156.png&quot; alt=&quot;f:id:nipe880324:20141025035156p:plain:w480&quot; title=&quot;f:id:nipe880324:20141025035156p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;次のようにオプションを指定すると、主キー、外部キーの表示、ファイル名、ファイルタイプを変更できます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ rake erd attributes=foreign_keys,primary_keys,content filename=rails-erd filetype=png&lt;/pre&gt;&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141025/20141025035210.png&quot; alt=&quot;f:id:nipe880324:20141025035210p:plain:w480&quot; title=&quot;f:id:nipe880324:20141025035210p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;オプションの詳細は&lt;a href=&quot;http://voormedia.github.io/rails-erd/customise.html&quot; target=&quot;_blank&quot;&gt;http://voormedia.github.io/rails-erd/customise.html&lt;/a&gt;を参照してください。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;以上です。&lt;br /&gt;
+Rails-ERDを使うことで、Railsプロジェクト(ActiveRecord)からER図を簡単に作れるので是非使ってください。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/voormedia/rails-erd&quot;&gt;voormedia/rails-erd &amp;middot; GitHub&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://voormedia.github.io/rails-erd&quot;&gt;Rails ERD &amp;ndash; Entity-Relationship Diagrams for Rails&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;パーフェクトRuby on Rails&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Mon, 27 Oct 2014 20:31:35 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450070177417</guid>
+          
+            <category>Rails gem</category>
+          
+            <category>開発を効率化する</category>
+          
+            <category>DB</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>MongoDBの基礎入門 - インストール から CRUDまで</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20140726/1406331785</link>
+          <description>&lt;p&gt;NoSQLのMongoDBのインストールからCRUD（データの作成、検索、更新、削除）までの簡単な使い方について説明します。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    &lt;p&gt;・MongoDBとは&lt;br /&gt;
+・MongoDBの基本用語&lt;br /&gt;
+・インストール方法&lt;br /&gt;
+・MongoDBの起動、コンソールからの接続方法と使い方&lt;br /&gt;
+・MongoDBのCRUD（作成、検索、更新、削除）&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;MongoDBとは&lt;/h3&gt;
+    &lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140726/20140726084215.jpg&quot; alt=&quot;f:id:nipe880324:20140726084215j:plain&quot; title=&quot;f:id:nipe880324:20140726084215j:plain&quot; class=&quot;hatena-fotolife&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;
+
+    &lt;blockquote&gt;
+        &lt;p&gt;widipediaから引用&lt;/p&gt;&lt;p&gt;MongoDBはRDBMSではなく、いわゆるNoSQLと呼ばれるデータベースに分類されるものである。&lt;br /&gt;
+RDBMSのようにレコードをテーブルに格納するのではなく、「ドキュメント」と呼ばれる構造的データをJSONライクな形式で表現し、そのドキュメントの集合を「コレクション」として管理する（このデータの物理的な格納はBSONと呼ばれるJSONのバイナリ版といえる形式で行われる）。&lt;br /&gt;
+コレクションはRDBMSのような固定的なスキーマを持たない。ドキュメントには複雑な階層構造を持たせることもでき、それらの構造に含まれるフィールドを指定したクエリやインデクス生成も簡単な指定によって行える。&lt;br /&gt;
+RDBMSのように高度な結合操作を効率的に行うことはできないが、データの追加・更新・削除・クエリは高速に行うことができる。また、アプリケーションは自身の構造やデータ型に合った自然な形でデータを格納することができるため、扱うデータの特性によっては、RDBMSよりも容易かつ迅速に開発を行うことができる可能性がある。&lt;/p&gt;
+
+    &lt;/blockquote&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;基本用語&lt;/h3&gt;
+    
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;・MongoDBドキュメント&lt;/h5&gt;
+    &lt;p&gt; JSONライクなフィールドと値のセットが集まったたもの。「MongoDBドキュメント」や「ドキュメント」などと呼ばれます。&lt;br /&gt;
+SQLでは&lt;b&gt;「レコード」&lt;/b&gt;に対応します。次のような形式で保存、表示されます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;  {
+    name: &amp;#34;太郎&amp;#34;,                  // field: value
+    age: 26,                       // field: value
+    status: &amp;#34;A&amp;#34;,                   // field: value
+    groups: [ &amp;#34;news&amp;#34;, &amp;#34;sports&amp;#34; ]   // field: value
+  }&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;・コレクション&lt;/h5&gt;
+    &lt;p&gt;名前からも分かるように、上記のMongoDBドキュメントを複数格納しているものです。&lt;br /&gt;
+SQLでは、&lt;b&gt;「テーブル」&lt;/b&gt;に対応します。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;・フィールド&lt;/h5&gt;
+    &lt;p&gt;SQLでいう&lt;b&gt;「カラム」&lt;/b&gt;のことです。&lt;br /&gt;
+フィールドを指定することにより、値を取得したりできます。&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;インストール方法&lt;/h3&gt;
+    &lt;p&gt;環境ごとに違うので、詳細は公式ドキュメントを参考にしてください。&lt;br /&gt;
+&lt;a href=&quot;http://docs.mongodb.org/manual/installation/&quot; target=&quot;_blank&quot;&gt;MongoDBのインストール方法（公式ページ）&lt;/a&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;MongoDBの起動、コンソールからの接続方法と使い方&lt;/h3&gt;
+    
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;・MongoDBの起動&lt;/h5&gt;
+    &lt;p&gt;デフォルトでは、ポート番号は「27017」で起動します。&lt;br /&gt;
+もし、ポート番号を指定したい場合は--port」引数を使ってください。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ mongod&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;・mongodにコンソールから接続&lt;/h5&gt;
+    &lt;p&gt;上記のコマンドでMongoDBが起動していると思いますので、別のコンソールから下記のコマンドで接続しましょう。&lt;br /&gt;
+デフォルトでは、ホスト名は「localhost」でポート番号は「27017」に接続します。&lt;br /&gt;
+もし、上記でポート番号などを変えている場合は、「--host」や「--port」引数を使ってください。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ mongo&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;・DBを選択する&lt;/h5&gt;
+    &lt;p&gt;mongoコマンドで接続直後は、「test」という名のDBに接続されています&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;&amp;gt; db                   // 現在のDBを確認する (ex: 接続直後は 「test」が表示されるはず）
+&amp;gt; show dbs        // DBの一覧を表示
+&amp;gt; use &amp;lt;DB名&amp;gt;    // &amp;lt;DB名&amp;gt;を使うことを指定（MongoDBはDBを作成することはなく、insertした時点で自動で作成されます）
+&amp;gt; db  // =&amp;gt; test_mongodb_development 現在のDBを確認する&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;・ヘルプの表示&lt;/h5&gt;
+    &lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;&amp;gt; help&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;・MongoDBの使い方&lt;/h5&gt;
+    &lt;p&gt;操作を行うDBを選択&lt;br /&gt;
+DBが存在しないが「mydb」を使うと選択できる。あとから、DBにデータを作成するときに自動でDBが作成されるので問題ない。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;use mydb&lt;/pre&gt;&lt;p&gt;MongoDBドキュメントを作成&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;&amp;gt; j = { name : &amp;#34;mongo&amp;#34; }    // j というドキュメントを作成
+&amp;gt; k = { x : 3 }                    // k というドキュメントを作成&lt;/pre&gt;&lt;p&gt;testDataコレクションにjとkを挿入&lt;br /&gt;
+testDataというコレクションを作成していないが、MongoDBが自動で作成してくれる。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;&amp;gt; db.testData.insert( j )
+&amp;gt; db.testData.insert( k )&lt;/pre&gt;&lt;p&gt;現在のDBのコレクションを表示し、testDataコレクションが存在することを確認&lt;br /&gt;
+system.indexesコレクションはすべてのDBが持っているコレクションです。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;&amp;gt; show collections 
+system.indexes
+testData&lt;/pre&gt;&lt;p&gt;findでドキュメントが存在することを確認する&lt;br /&gt;
+全てのMongoDBドキュメントは &quot;_id&quot;フィールドを持っている。これはMongoDBドキュメント作成時に、MongoDBが自動で一意（ユニーク）な値を作成してくれている。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;db.testData.find
+{ &amp;#34;_id&amp;#34; : ObjectId(&amp;#34;53d2d417ef8ccef0d315a9f3&amp;#34;), &amp;#34;name&amp;#34; : &amp;#34;mongo&amp;#34; }
+{ &amp;#34;_id&amp;#34; : ObjectId(&amp;#34;53d2d41fef8ccef0d315a9f4&amp;#34;), &amp;#34;x&amp;#34; : 3 }&lt;/pre&gt;&lt;p&gt;これで基本的なMongoDBのコンソールからの操作が分かったと思いますので、作成、検索、更新、削除の仕方について学んでいきましょう。&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;MongoDBのCRUD（作成、検索、更新、削除）&lt;/h3&gt;
+    &lt;p&gt;※解説のために、複数行で記載していますが、もちろん1行で記載することも可能です。&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;・データの追加 - INSERT&lt;/h5&gt;
+    &lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;db.users.insert(                     // コレクションを指定する（ex: usersコレクションにデータを追加する）
+                  {                          // フィールドと値のセットをカンマ(,)区切りで渡す
+                      name: &amp;#34;鈴木&amp;#34;,
+                       age: 26,
+                    status: &amp;#34;B&amp;#34;
+                  }
+                )&lt;/pre&gt;&lt;p&gt;SQL文だったら...&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;INSERT INTO users
+            ( name, age, status )
+VALUES      ( &amp;#34;鈴木&amp;#34;, 26, &amp;#34;B&amp;#34; )&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;・データの取得 - FIND&lt;/h5&gt;
+    &lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;db.users.find(                       // コレクションを指定する（ex: usersコレクションのデータを探す）
+  { age: { $gt: 18 } },              // 検索条件を指定する（ex: ageが18より大きい値を取得。つまり、age &amp;gt; 18）
+  { name: 1, age: 1 }       // 取得するフィールドを指定する（ex: nameとageを取得する。_idは必ず取得されてしまう）
+).sort( { age: 1 } ).litmi(3)     // 検索結果に対する操作を指定する（ex:  sort: ageの昇順で並び替える(1:昇順 / -1:降順)。limit: それを3ドキュメントまで取得）
+
+SQL文だったら...
+&amp;gt;||
+SELECT _id, name, age
+FROM   users
+WHERE  age &amp;gt; 18
+ORDER BY age ASC
+LIMIT  3&lt;/pre&gt;&lt;p&gt;その他&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;db.users.find() // usersコレクション内の全てのドキュメントを取得&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;・データの更新 - UPDATE&lt;/h5&gt;
+    &lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;db.users.update(           // コレクションを指定する
+  { age: { $gt: 18 } },       // 検索条件を指定する
+  { $set: { status: &amp;#34;A&amp;#34; } },    // 設定する値を指定する
+  { multi: true }                // 検索オプション（multiオプションは検索条件にヒットする全てのドキュメントを更新する）
+)&lt;/pre&gt;&lt;p&gt;SQL文だったら...&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;UPDATE users
+SET    status = &amp;#34;A&amp;#34;
+WHERE  age &amp;gt; 18&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;・データの削除 - DELETE&lt;/h5&gt;
+    &lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;db.users.remove(      // コレクションを指定する
+  { status: &amp;#34;D&amp;#34; }          // 削除する条件を指定する（statusフィールドが&amp;#34;D&amp;#34;のドキュメントを削除する）
+)&lt;/pre&gt;&lt;p&gt;SQL文だったら...&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;DELETE FROM users
+WHERE  status = &amp;#34;D&amp;#34;&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+以上です。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://www.mongodb.org/&quot; target=&quot;_blank&quot;&gt;MongoDBの公式ページ&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Sat, 26 Jul 2014 08:43:05 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/12921228815728864884</guid>
+          
+            <category>MongoDB</category>
+          
+            <category>DB</category>
+          
+        </item>
+      
+    
+  </channel>
+</rss>

@@ -1,0 +1,1865 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>Rails Test - Rails Webook</title>
+    <link>http://ruby-rails.hatenadiary.com/category/Rails%20Test</link>
+    <description>自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</description>
+    <lastBuildDate>Fri, 18 Dec 2015 02:44:31 +0900</lastBuildDate>
+    <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+    <generator>Hatena::Blog</generator>
+    
+      
+      
+        <item>
+          <title>RailsのRSpecテストを速くする方法まとめ</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20150106/1420545920</link>
+          <description>&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150106/20150106210347.jpg&quot; alt=&quot;f:id:nipe880324:20150106210347j:plain:w480&quot; title=&quot;f:id:nipe880324:20150106210347j:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+&lt;i&gt;Photo by &lt;a href=&quot;https://www.flickr.com/photos/huddleston/&quot;&gt;Flickr: chief_huddleston&amp;#39;s Photostream&lt;/a&gt;&lt;/i&gt;&lt;/p&gt;&lt;p&gt;Railsの規模が大きくなると自動テストの実行時間もだんだんと長くなっていきます。素早く開発していくにはテストの実行時間を短くすることが大切です。&lt;br /&gt;
+RSpecのテストを速くする方法をまとめましたので参考にしてください。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;li&gt;rspec-rails 3.1.0&lt;/li&gt;
+&lt;li&gt;test-queue 0.2.9&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;1.   &lt;a href=&quot;#fast-test-profile&quot;&gt;RSpecのパフォーマンス測定&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;2.   &lt;a href=&quot;#fast-test-test-queue&quot;&gt;test-queueで並列でテストを実行する&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;3.   &lt;a href=&quot;#fast-test-rspec-guard&quot;&gt;rspec-guardを使って更新したファイルを自動的にテストする&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;4.   &lt;a href=&quot;#fast-test-spring&quot;&gt;Springを使ってテストのロード時間を短くする&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;5.   &lt;a href=&quot;#fast-test-log-level&quot;&gt;ログレベルを変える&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;6.   &lt;a href=&quot;#fast-test-deffered-gc&quot;&gt;GCを実行を抑える&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;7.   &lt;a href=&quot;#fast-test-refactorings&quot;&gt;RSpecファイルのリファクタリングをする&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;7.1. &lt;a href=&quot;#fast-test-reduce-it&quot;&gt;&lt;code&gt;it&lt;/code&gt;を少なくする&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;7.2. &lt;a href=&quot;#fast-test-create-to-build_stubbed&quot;&gt;&lt;code&gt;create&lt;/code&gt;よりも&lt;code&gt;build_stubbed&lt;/code&gt;を使う&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;8. &lt;a href=&quot;#fast-test-ideas&quot;&gt;WIP その他のアイデア&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;fast-test-profile&quot;&gt;1. RSpecのパフォーマンス測定&lt;/h3&gt;まず、RSpecの「&lt;b&gt;テスト実行の総実行時間&lt;/b&gt;」と「&lt;b&gt;どのテストが遅いテストか&lt;/b&gt;」を把握する必要があります。&lt;br /&gt;
+&lt;code&gt;rspec&lt;/code&gt;コマンドに&lt;code&gt;-p&lt;/code&gt;オプションを使うことで、遅いテストサンプルとグループが10件(デフォルト)表示されます。&lt;/p&gt;&lt;p&gt;テストの総実行時間は、&lt;code&gt;Finished in XXX seconds&lt;/code&gt;に記載されています。&lt;br /&gt;
+また、&lt;code&gt;Top 10 slowest examples&lt;/code&gt;に遅いテストサンプル、&lt;code&gt;Top 10 slowest example groups&lt;/code&gt;が遅いテストサンプルグループが遅い順に記載されます。&lt;br /&gt;
+これらの、遅いテストケースを解消することを重点的にやることにより、テスト総実行時間が大幅に短くなりやすいです。&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;$ rspce &lt;span class=&quot;synSpecial&quot;&gt;-p&lt;/span&gt;
+
+...
+
+Finished &lt;span class=&quot;synError&quot;&gt;in&lt;/span&gt; 0.67808 seconds &lt;span class=&quot;synPreProc&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;files took 2.55 seconds to load&lt;/span&gt;&lt;span class=&quot;synPreProc&quot;&gt;)&lt;/span&gt;
+
+Top &lt;span class=&quot;synConstant&quot;&gt;10&lt;/span&gt; slowest examples &lt;span class=&quot;synPreProc&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;0.27127 seconds, 40.0% of total &lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;synPreProc&quot;&gt;)&lt;/span&gt;:
+  UsersController routing routes to &lt;span class=&quot;synComment&quot;&gt;#show&lt;/span&gt;
+    0.05689 seconds ./spec/routing/users_routing_spec.rb:&lt;span class=&quot;synConstant&quot;&gt;14&lt;/span&gt;
+  orders/edit renders the edit order form
+
+...
+
+Top &lt;span class=&quot;synConstant&quot;&gt;10&lt;/span&gt; slowest example groups:
+orders/edit
+  0.05224 seconds average &lt;span class=&quot;synPreProc&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;0.05224 seconds / &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt; example&lt;/span&gt;&lt;span class=&quot;synPreProc&quot;&gt;)&lt;/span&gt; ./spec/views/orders/edit.html.erb_spec.rb:&lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;
+products/edit
+  0.02615 seconds average &lt;span class=&quot;synPreProc&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;0.02615 seconds / &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt; example&lt;/span&gt;&lt;span class=&quot;synPreProc&quot;&gt;)&lt;/span&gt; ./spec/views/products/edit.html.erb_spec.rb:&lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;
+
+...
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;code&gt;--pforile&lt;/code&gt;オプションの使い方&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;-p, &lt;span class=&quot;synSpecial&quot;&gt;--[no-]profile&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;[&lt;/span&gt;COUNT&lt;span class=&quot;synStatement&quot;&gt;]&lt;/span&gt;       サンプルをプロファイルし、最も遅いサンプルを表示する（デフォルト：&lt;span class=&quot;synConstant&quot;&gt;10&lt;/span&gt;件）
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;fast-test-test-queue&quot;&gt;2. test-queueで並列でテストを実行する&lt;/h3&gt;&lt;code&gt;test-queue&lt;/code&gt;というgemを入れることで、１マシン上でCPUのコア数分だけRSpecテストを並列実行できます。&lt;br /&gt;
+もし、8コアある場合は、理論的には8分かかっていたものは1分で実行できるようになります。（並列テストの準備やローダー実行などがあるので実際の値はもう少しかかります）&lt;/p&gt;&lt;p&gt;では、&lt;code&gt;test-queue&lt;/code&gt;をRailsプロジェクトに導入していきます。&lt;br /&gt;
+まず、Gemfileに追記します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Gemfile&lt;/span&gt;
+group &lt;span class=&quot;synConstant&quot;&gt;:development&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:test&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  gem &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;test-queue&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+Bundlerを実行します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;bundle &lt;span class=&quot;synStatement&quot;&gt;install&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;code&gt;bin/rspec-queue&lt;/code&gt;という実行ファイルを作成します。&lt;br /&gt;
+内容は次の通りです。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synPreProc&quot;&gt;#!/usr/bin/env ruby&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;ENV&lt;/span&gt;[&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;RAILS_ENV&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;] ||= &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;test&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;File&lt;/span&gt;.expand_path(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;../../config/environment&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;__FILE__&lt;/span&gt;)
+
+&lt;span class=&quot;synPreProc&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;test_queue&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;test_queue/runner/rspec&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;#&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# テストランナー&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# Reference: https://github.com/tmm1/test-queue&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;MyAppRSpecRunner&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;TestQueue&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Runner&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;RSpec&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# def prepare(concurrency)&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# end&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;after_fork&lt;/span&gt;(num)
+    &lt;span class=&quot;synComment&quot;&gt;# ワーカー別のデータベースを準備する。&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;ENV&lt;/span&gt;.update(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;TEST_ENV_NUMBER&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; num &amp;gt; &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt; ? num.to_s : &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;)
+    &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;.configurations[&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;test&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;][&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;database&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;] &amp;lt;&amp;lt; &lt;span class=&quot;synIdentifier&quot;&gt;ENV&lt;/span&gt;[&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;TEST_ENV_NUMBER&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;]
+    &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Tasks&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;DatabaseTasks&lt;/span&gt;.create_current
+    &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;.establish_connection(&lt;span class=&quot;synConstant&quot;&gt;:test&lt;/span&gt;)
+
+    &lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt;.application.load_tasks
+    &lt;span class=&quot;synType&quot;&gt;Rake&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Task&lt;/span&gt;[&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;db:reset&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;].invoke
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# def around_filter(suite)&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;#   $stats.timing(&amp;quot;test.#{suite}.runtime&amp;quot;) do&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;#     yield&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;#   end&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synType&quot;&gt;MyAppRSpecRunner&lt;/span&gt;.new.execute
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+そして、&lt;code&gt;test-queue&lt;/code&gt;では、ワーカー毎にデータベースを必要とするため、データベース名に番号をつけます。&lt;br /&gt;
+他にも、ファイル作成などテスト環境を分ける必要があるものは&lt;code&gt;ENV[&#39;TEST_ENV_NUMBER&#39;]&lt;/code&gt;をつけます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;config/database.yml
+
+test:
+  &amp;lt;&amp;lt;: *default
+  &lt;span class=&quot;synConstant&quot;&gt;database&lt;/span&gt;: db/test.sqlite3&amp;lt;%= &lt;span class=&quot;synIdentifier&quot;&gt;ENV&lt;/span&gt;[&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;TEST_ENV_NUMBER&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;] %&amp;gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;code&gt;bin/rspec-queue&lt;/code&gt;に実行権限をつけます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;&lt;span class=&quot;synStatement&quot;&gt;chmod&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;+x&lt;/span&gt; bin/rspec-queue
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+そして、&lt;code&gt;bin/rspec-queue&lt;/code&gt;を実行します。すると、コア数分だけ並列にテストが行われます。&lt;br /&gt;
+テスト実行後に、&lt;code&gt;.test_queue_stats&lt;/code&gt;というファイルが作成されますが、これは、テストの実行時間を保存しており、次回&lt;code&gt;rspec-queue&lt;/code&gt;を実行するときに、各ワーカーでテスト実行時間を標準化させるために使います。&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;$ bin/rspec-queue spec
+
+Starting &lt;span class=&quot;synStatement&quot;&gt;test&lt;/span&gt;-queue master &lt;span class=&quot;synPreProc&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;/tmp/test_queue_97612_70155795430020.sock&lt;/span&gt;&lt;span class=&quot;synPreProc&quot;&gt;)&lt;/span&gt;
+
+&lt;span class=&quot;synStatement&quot;&gt;==&amp;gt;&lt;/span&gt; Summary &lt;span class=&quot;synPreProc&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt; workers in 1.5298s&lt;/span&gt;&lt;span class=&quot;synPreProc&quot;&gt;)&lt;/span&gt;
+
+    &lt;span class=&quot;synStatement&quot;&gt;[&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;]&lt;/span&gt;                          &lt;span class=&quot;synConstant&quot;&gt;21&lt;/span&gt; examples, &lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt; failures, &lt;span class=&quot;synConstant&quot;&gt;15&lt;/span&gt; pending         &lt;span class=&quot;synConstant&quot;&gt;9&lt;/span&gt; suites &lt;span class=&quot;synError&quot;&gt;in&lt;/span&gt; 1.4998s      &lt;span class=&quot;synPreProc&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;pid &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;98021&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;exit&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;synPreProc&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;[&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;]&lt;/span&gt;                          &lt;span class=&quot;synConstant&quot;&gt;32&lt;/span&gt; examples, &lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt; failures, &lt;span class=&quot;synConstant&quot;&gt;15&lt;/span&gt; pending         &lt;span class=&quot;synConstant&quot;&gt;5&lt;/span&gt; suites &lt;span class=&quot;synError&quot;&gt;in&lt;/span&gt; 1.5024s      &lt;span class=&quot;synPreProc&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;pid &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;98019&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;exit&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;synPreProc&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;[&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;]&lt;/span&gt;                                      &lt;span class=&quot;synConstant&quot;&gt;14&lt;/span&gt; examples, &lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt; failures         &lt;span class=&quot;synConstant&quot;&gt;6&lt;/span&gt; suites &lt;span class=&quot;synError&quot;&gt;in&lt;/span&gt; 1.5059s      &lt;span class=&quot;synPreProc&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;pid &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;98020&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;exit&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;synPreProc&quot;&gt;)&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;[&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;]&lt;/span&gt;                          &lt;span class=&quot;synConstant&quot;&gt;20&lt;/span&gt; examples, &lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt; failures, &lt;span class=&quot;synConstant&quot;&gt;15&lt;/span&gt; pending         &lt;span class=&quot;synConstant&quot;&gt;5&lt;/span&gt; suites &lt;span class=&quot;synError&quot;&gt;in&lt;/span&gt; 1.5247s      &lt;span class=&quot;synPreProc&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;pid &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;98022&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;exit&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;&lt;span class=&quot;synPreProc&quot;&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;fast-test-rspec-guard&quot;&gt;3. rspec-guardを使って更新したファイルを自動的にテストする&lt;/h3&gt;毎回少しのファイルを変更するたびに全件テストを実行していたらバカになりません。（そんな人はいないと思いますが）&lt;br /&gt;
+少なくとも次のように、ファイル単位やサンプル単位で実行していると思います。&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# ファイル単位でrspecを実行する&lt;/span&gt;
+$ bin/rspec spec/features/users_spec.rb
+
+&lt;span class=&quot;synComment&quot;&gt;# 行指定(120行目)にマッチしたrspecのテストを実行する&lt;/span&gt;
+$ bin/rspec spec/features/users_spec.rb:&lt;span class=&quot;synConstant&quot;&gt;120&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;これを、ファイルを変更するたびに、何度もコマンドを実行するのはめんどくさいので、&lt;code&gt;rspec-guard&lt;/code&gt;を使うことで自動的にテストをするようにできます。&lt;br /&gt;
+副次的な効果として、ファイルを保存するたびに、&lt;code&gt;rspec-guard&lt;/code&gt;により細かくテストをしてくれるので、どこでテストがこけたかがすぐに分かるのでどのコードがいけないのかすぐにわかります。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;rspec-guardの導入方法や使い方については、&lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20141021/1413819783&quot; target=&quot;_blank&quot;&gt;コチラ&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;fast-test-spring&quot;&gt;4. Springを使ってテストのロード時間を短くする&lt;/h3&gt;Railsが大規模になるほど、依存ライブラリやファイル数が増えるのでrspecコマンド実行時のロード時間が長くなる。&lt;br /&gt;
+プリローダーのSpringを使うことで、ロード時間を短くすることができます。&lt;br /&gt;
+10秒が3秒ぐらいになるなどそこまで効果はないですが、何回もコマンドを実行すると思えば、チリも積もれば山となるということで入れておくのをお勧めします。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Springの導入方法、RSpecコマンド + Springを使う方法については、&lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20141026/1414289421&quot; target=&quot;_blank&quot;&gt;コチラ&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;fast-test-log-level&quot;&gt;5. ログレベルを変える&lt;/h3&gt;&lt;code&gt;development&lt;/code&gt;環境と&lt;code&gt;test&lt;/code&gt;環境では、デフォルトのログレベルが&lt;code&gt;:debug&lt;/code&gt;になっています。&lt;br /&gt;
+&lt;code&gt;test&lt;/code&gt;環境では、ログを確認するケースは少ないので、ログレベルを&lt;code&gt;:error&lt;/code&gt;に設定し、I/O出力を減らします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# config/environments/test.rb&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# Setting of a Log Level&lt;/span&gt;
+config.log_level = &lt;span class=&quot;synConstant&quot;&gt;:error&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;fast-test-deffered-gc&quot;&gt;6. GCを実行を抑える&lt;/h3&gt;RSpec実行中のGCの実行を抑えることで、テスト時間を早くさせるハックです。&lt;br /&gt;
+Rubyのバージョンも上がり、GCの性能が良くなってきたので、むしろ遅くなる可能性もありますのでご注意ください。&lt;/p&gt;&lt;p&gt;GCを実行するクラスのファイルを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# spec/supports/deferred_garbage_collection.rb&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# http://ariejan.net/2011/09/24/rspec-speed-up-by-tweaking-ruby-garbage-collection&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# Usage:&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# DEFER_GC=10 rspec spec/&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# DEFER_GC=10 cucumber features/&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# put it to spec/support/deferred_garbage_collection_all_in_one.rb&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#        or feature/support/hooks.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;DeferredGarbageCollection&lt;/span&gt;
+  &lt;span class=&quot;synType&quot;&gt;DEFERRED_GC_THRESHOLD&lt;/span&gt; = (&lt;span class=&quot;synIdentifier&quot;&gt;ENV&lt;/span&gt;[&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;DEFER_GC&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;] || &lt;span class=&quot;synConstant&quot;&gt;-1&lt;/span&gt;).to_f
+
+  &lt;span class=&quot;synIdentifier&quot;&gt;@last_gc_run&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Time&lt;/span&gt;.now
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;self&lt;/span&gt;.&lt;span class=&quot;synIdentifier&quot;&gt;start&lt;/span&gt;
+    &lt;span class=&quot;synType&quot;&gt;GC&lt;/span&gt;.disable &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;DEFERRED_GC_THRESHOLD&lt;/span&gt; &amp;gt; &lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;self&lt;/span&gt;.&lt;span class=&quot;synIdentifier&quot;&gt;reconsider&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;DEFERRED_GC_THRESHOLD&lt;/span&gt; &amp;gt; &lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt; &amp;amp;&amp;amp; &lt;span class=&quot;synType&quot;&gt;Time&lt;/span&gt;.now - &lt;span class=&quot;synIdentifier&quot;&gt;@last_gc_run&lt;/span&gt; &amp;gt;= &lt;span class=&quot;synType&quot;&gt;DEFERRED_GC_THRESHOLD&lt;/span&gt;
+      &lt;span class=&quot;synType&quot;&gt;GC&lt;/span&gt;.enable
+      &lt;span class=&quot;synType&quot;&gt;GC&lt;/span&gt;.start
+      &lt;span class=&quot;synType&quot;&gt;GC&lt;/span&gt;.disable
+      &lt;span class=&quot;synIdentifier&quot;&gt;@last_gc_run&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Time&lt;/span&gt;.now
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;そして、specの設定ファイルに下記を追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# spec/rails_helper.rb&lt;/span&gt;
+
+&lt;span class=&quot;synType&quot;&gt;RSpec&lt;/span&gt;.configure &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;config&lt;/span&gt;|
+  config.before(&lt;span class=&quot;synConstant&quot;&gt;:all&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    &lt;span class=&quot;synType&quot;&gt;DeferredGarbageCollection&lt;/span&gt;.start
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+  config.after(&lt;span class=&quot;synConstant&quot;&gt;:all&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    &lt;span class=&quot;synType&quot;&gt;DeferredGarbageCollection&lt;/span&gt;.reconsider
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;fast-test-refactorings&quot;&gt;7. RSpecファイルのリファクタリングをする&lt;/h3&gt;&lt;h4 id=&quot;fast-test-reduce-it&quot;&gt;7.1. &lt;code&gt;it&lt;/code&gt;を少なくする&lt;/h4&gt;テストの基本として、1テストあたりで確認することは1つという考えがあります。こうすることで、失敗したテストから、ソースコードの悪い箇所を特定しやすいためです。&lt;br /&gt;
+しかし、1テスト(&lt;code&gt;it&lt;/code&gt;)を多くすると、テスト実行時間という観点からはテストの前準備処理が何度も実行されるので、テストの実行時間が長くなります。&lt;br /&gt;
+そのため、「テストの可読性/保守性」と「テストの実行時間」というトレードオフをうまく考えながら&lt;code&gt;it&lt;/code&gt;をまとめていく必要があります。&lt;/p&gt;&lt;p&gt;個人的な考えとしては次のようなように考えています。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;モデルやコントローラーの単体テストでは、前準備の処理も軽く、ここの事象を確認するので&lt;code&gt;it&lt;/code&gt;は細くて良い&lt;/li&gt;
+&lt;li&gt;Featuresなどのエンドツーエンドテストでは、前準備の処理も時間がかかるので、可読性と保守性を損ねない程度に&lt;code&gt;it&lt;/code&gt;をまとめる&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;次は、&lt;code&gt;it&lt;/code&gt;をまとめる前後のサンプルのRSpecのテストコードです。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# 商品管理のFeatures 修正前&lt;/span&gt;
+describe &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;商品管理&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  describe &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;商品を登録する&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    before &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      visit products_path
+      click_link &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;新規商品を登録&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+    it &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;新規商品登録画面が表示されること&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      within(&lt;span class=&quot;synConstant&quot;&gt;:h1&lt;/span&gt;) { expect(page).to have_content &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;新規商品登録&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; }
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+    context &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;有効な商品情報を入力した場合&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;# itのたびにこのbeforeブロックが繰り返される&lt;/span&gt;
+      before &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+        fill_in &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;商品名&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;with&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;パソコン&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+        fill_in &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;値段&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,   &lt;span class=&quot;synConstant&quot;&gt;with&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;100_000&lt;/span&gt;
+        click_button &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;登録する&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+      &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+      it &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;商品詳細画面が表示されること&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+        within(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;) { expect(page).to have_content &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;商品詳細&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; }
+      &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+      it &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;登録した商品情報が表示されること&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+        within(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;#product&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+          expect(page).to have_content &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;パソコン&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+          expect(page).to have_content &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;100,000&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+        &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+      &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+      it &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;登録した商品情報がDBに登録されていること&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+        result = &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.last
+        expect(result.name).to  have_content &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;パソコン&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+        expect(result.price).to have_content &lt;span class=&quot;synConstant&quot;&gt;100_000&lt;/span&gt;
+      &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+    context &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;無効な商品情報を入力した場合&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;# Do something ...&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+極力可能なものは&lt;code&gt;it&lt;/code&gt;をまとめます。見易さという点では修正前の方がよいですが、テスト実行時間は減ります。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# 商品管理のFeatures 修正後&lt;/span&gt;
+describe &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;商品管理&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;type&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:feature&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  describe &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;商品を登録する&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    before &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      visit products_path
+      click_link &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;新規商品を登録&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+    it &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;新規商品登録画面が表示されること&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      within(&lt;span class=&quot;synConstant&quot;&gt;:h1&lt;/span&gt;) { expect(page).to have_content &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;新規商品登録&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; }
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+    context &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;有効な商品情報を入力した場合&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;# itの数が3から1に減ったので、このbeforeブロックの実行回数も3から1へ減る&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;# すなわち、テスト実行時間も減る&lt;/span&gt;
+      before &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+        fill_in &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;商品名&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;with&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;パソコン&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+        fill_in &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;値段&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,   &lt;span class=&quot;synConstant&quot;&gt;with&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;100_000&lt;/span&gt;
+        click_button &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;登録する&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+      &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+      it &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;登録した商品情報が登録されること&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+        &lt;span class=&quot;synComment&quot;&gt;# 商品詳細画面が表示されること&lt;/span&gt;
+        within(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;) { expect(page).to have_content &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;商品詳細&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; }
+
+        &lt;span class=&quot;synComment&quot;&gt;# 登録した商品情報が表示されること&lt;/span&gt;
+        within(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;#product&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+          expect(page).to have_content &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;パソコン&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+          expect(page).to have_content &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;100,000&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+        &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+        &lt;span class=&quot;synComment&quot;&gt;# 登録した商品情報がDBに登録されていること&lt;/span&gt;
+        result = &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.last
+        expect(result.name).to  have_content &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;パソコン&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+        expect(result.price).to have_content &lt;span class=&quot;synConstant&quot;&gt;100_000&lt;/span&gt;
+      &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+    context &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;無効な商品情報を入力した場合&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;# Do something ...&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h4 id=&quot;fast-test-create-to-build_stubbed&quot;&gt;7.2. &lt;code&gt;create&lt;/code&gt;よりも&lt;code&gt;build_stubbed&lt;/code&gt;を使う&lt;/h4&gt;テスト実行時間の大部分を占めているものの１つにデータをDBに登録するという処理があります。&lt;br /&gt;
+これは、ディスクへのI/O書き込みが発生するので、メモリに比べて遅くなるのはいたしかたありません。&lt;/p&gt;&lt;p&gt;そのため、主にモデルのテストで、&lt;code&gt;FactoryGirl&lt;/code&gt;の&lt;code&gt;create&lt;/code&gt;でデータを作成するよりも、&lt;code&gt;build_stubbed&lt;/code&gt;でスタブを作成してテストを実行させることにより、DBへの書き込みを少なくさせてテストを早くするという方法です。&lt;/p&gt;&lt;p&gt;&lt;code&gt;let&lt;/code&gt;内で&lt;code&gt;create&lt;/code&gt;メソッドを使ってテストデータを毎回作成しています。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# 注文明細(line_item)のモデルSpecファイル 修正前&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;RSpec&lt;/span&gt;.describe &lt;span class=&quot;synType&quot;&gt;LineItem&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:type&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;:model&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  describe &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;#total_price&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    let(&lt;span class=&quot;synConstant&quot;&gt;:product&lt;/span&gt;)   { create(&lt;span class=&quot;synConstant&quot;&gt;:product&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;price&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;100&lt;/span&gt;)}
+    let(&lt;span class=&quot;synConstant&quot;&gt;:line_item&lt;/span&gt;) { create(&lt;span class=&quot;synConstant&quot;&gt;:line_item&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;product&lt;/span&gt;: product, &lt;span class=&quot;synConstant&quot;&gt;quantity&lt;/span&gt;: quantity) }
+
+    subject { line_item.total_price }
+
+    context &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;quantity = 0&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      let(&lt;span class=&quot;synConstant&quot;&gt;:quantity&lt;/span&gt;) { &lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt; }
+      it { is_expected.to eq &lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt; }
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+    context &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;quantity = 1&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      let(&lt;span class=&quot;synConstant&quot;&gt;:quantity&lt;/span&gt;) { &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt; }
+      it { is_expected.to eq &lt;span class=&quot;synConstant&quot;&gt;100&lt;/span&gt; }
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+    context &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;quantity = 2&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      let(&lt;span class=&quot;synConstant&quot;&gt;:quantity&lt;/span&gt;) { &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt; }
+      it { is_expected.to eq &lt;span class=&quot;synConstant&quot;&gt;200&lt;/span&gt; }
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+変更は簡単で&lt;code&gt;build_stubbed&lt;/code&gt;に変更するだけです。&lt;br /&gt;
+DBにデータを書き込まないので、DBからSELECTでデータを取得する処理では使えません。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# 注文明細(line_item)のモデルSpecファイル 修正後&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;RSpec&lt;/span&gt;.describe &lt;span class=&quot;synType&quot;&gt;LineItem&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:type&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;:model&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  describe &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;#total_price&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    let(&lt;span class=&quot;synConstant&quot;&gt;:product&lt;/span&gt;)   { build_stubbed(&lt;span class=&quot;synConstant&quot;&gt;:product&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;price&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;100&lt;/span&gt;)}
+    let(&lt;span class=&quot;synConstant&quot;&gt;:line_item&lt;/span&gt;) { build_stubbed(&lt;span class=&quot;synConstant&quot;&gt;:line_item&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;product&lt;/span&gt;: product, &lt;span class=&quot;synConstant&quot;&gt;quantity&lt;/span&gt;: quantity) }
+
+    ...
+
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;fast-test-ideas&quot;&gt;WIP その他のアイデア&lt;/h3&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;SOA的な感じでシステムを分けてテストを少なくさせる&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://wayneye.com/Blog/12-Tips-To-Boost-RSpec-And-Cucumber&quot;&gt;12 tips to boost RSpect and Cucumber - Wayne&amp;#39;s Geek Life&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Tue, 06 Jan 2015 21:05:20 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450077080960</guid>
+          
+            <category>Rails中級</category>
+          
+            <category>Rails Test</category>
+          
+            <category>まとめ</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>RailsでJasmineを使ってJavascriptの単体テストをする</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20150105/1420465062</link>
+          <description>&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150105/20150105223634.png&quot; alt=&quot;f:id:nipe880324:20150105223634p:plain&quot; title=&quot;f:id:nipe880324:20150105223634p:plain&quot; class=&quot;hatena-fotolife&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Railsで&lt;a href=&quot;http://jasmine.github.io/2.0/introduction.html&quot; target=&quot;_blank&quot;&gt;Jasmine&lt;/a&gt;を使ってJavascriptの単体テストを実行する方法を説明します。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://jasmine.github.io/2.0/introduction.html&quot; target=&quot;_blank&quot;&gt;Jasmine&lt;/a&gt;はJavascriptの単体テストを行うためのテスティングフレームワークです。そして、RailsでJasmineを使うために、&lt;a href=&quot;https://github.com/searls/jasmine-rails&quot; target=&quot;_blank&quot;&gt;jasmine-rails&lt;/a&gt;というgemが提供されています。&lt;/p&gt;&lt;p&gt;Railsでは&lt;code&gt;capybara-webkit&lt;/code&gt;や&lt;code&gt;poltergist&lt;/code&gt;などでエンドツーエンドレベルでのJavascriptのテストができます。しかし、エンドツーエンドなので仮想ブラウザを起動させてテストを行うので時間がかかるというデメリットがあります。そのため、Javascriptの単体テストは&lt;a href=&quot;http://jasmine.github.io/2.0/introduction.html&quot; target=&quot;_blank&quot;&gt;Jasmine&lt;/a&gt;を使ってテストするという住み分けが必要です。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Ruby 2.1.1&lt;/li&gt;
+&lt;li&gt;Rails 4.1.7&lt;/li&gt;
+&lt;li&gt;jasmine-core  2.1.3&lt;/li&gt;
+&lt;li&gt;jasmine-rails 0.10.4&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#jasmine-install&quot;&gt;jasmine-railsのインストール&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#jasmine-usage&quot;&gt;RailsでのJasmineの初歩的な使い方&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#jasmine-matchers&quot;&gt;Jasmineで使えるMatcher&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#jasmine-jquery-for-dom&quot;&gt;(WIP) DOMを検査する&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;jasmine-install&quot;&gt;jasmine-railsのインストール&lt;/h3&gt;まず、Gemfileに&lt;code&gt;jasmine-rails&lt;/code&gt;を追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Gemfile&lt;/span&gt;
+group &lt;span class=&quot;synConstant&quot;&gt;:development&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:test&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;jasmine-rails&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+次に、Bundlerを実行します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;bundle &lt;span class=&quot;synStatement&quot;&gt;install&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+そして、RailsジェネレーターでJasmineの初期ファイルを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;rails g jasmine_rails:&lt;span class=&quot;synStatement&quot;&gt;install&lt;/span&gt;
+   identical  spec/javascripts/support/jasmine.yml
+       route  mount JasmineRails::Engine &lt;span class=&quot;synStatement&quot;&gt;=&amp;gt;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;/specs&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;&#39;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;if &lt;/span&gt;defined?&lt;span class=&quot;synStatement&quot;&gt;(&lt;/span&gt;JasmineRails&lt;span class=&quot;synStatement&quot;&gt;)&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+Jasmineの設定ファイルは、&lt;code&gt;spec/javascripts/support/jasmine.yml&lt;/code&gt;に作成されます。&lt;br /&gt;
+設定ファイル内では、Railsの規約に合わせた、Javascriptのソースファイルパス、Jasmineでのテストファイルパスなどがデフォルトで記載されています。&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;jasmine-usage&quot;&gt;RailsでのJasmineの初歩的な使い方&lt;/h3&gt;簡単な例を使って、RailsでのJasmineの初歩的な使い方を説明します。&lt;/p&gt;&lt;p&gt;まず、Javascriptのテストファイルを作成します。&lt;br /&gt;
+RSpec3と文法はほとんど同じです。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;# spec/javascripts/foo_spec.js.coffee
+
+describe &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Foo&amp;quot;&lt;/span&gt;, -&amp;gt;
+  beforeEach -&amp;gt;
+    @foo = &lt;span class=&quot;synStatement&quot;&gt;new&lt;/span&gt; Foo(&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Taro&amp;quot;&lt;/span&gt;)
+
+  it &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;is first test&amp;quot;&lt;/span&gt;, -&amp;gt;
+    expect(@foo.greet()).toBe &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Hello, Taro&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+次にソースファイルを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;# app/assets/javascripts/foo.js.coffee
+&lt;span class=&quot;synStatement&quot;&gt;class&lt;/span&gt; @Foo
+  constructor: (name) -&amp;gt;
+    @name = name
+
+  greet: -&amp;gt;
+    &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Hello, #{@name}&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+では、Javascriptのテストを実行します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;RAILS_ENV&lt;/span&gt;=&lt;span class=&quot;synStatement&quot;&gt;test&lt;/span&gt; bundle &lt;span class=&quot;synStatement&quot;&gt;exec&lt;/span&gt; rake spec:javascript
+
+...
+
+Finished
+-----------------
+&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt; spec, &lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt; failures &lt;span class=&quot;synError&quot;&gt;in&lt;/span&gt; 0.003s.
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;jasmine-matchers&quot;&gt;Jasmineで使えるMatcher&lt;/h3&gt;&lt;a href=&quot;http://jasmine.github.io/2.0/introduction.html&quot;&gt;introduction.js&lt;/a&gt;を参照&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;jasmine-jquery-for-dom&quot;&gt;(WIP) DOMを検査する&lt;/h3&gt;テキストフィールドに入力し、動的にバリデーションメッセージを出すなどのDOMを操作するJavascriptのテストを実施したい場合は、&lt;code&gt;jasmine-jquery&lt;/code&gt;を使うと楽らしい&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://jasmine.github.io/2.0/introduction.html&quot;&gt;introduction.js&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/searls/jasmine-rails&quot;&gt;searls/jasmine-rails &amp;middot; GitHub&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://railscasts.com/episodes/261-testing-javascript-with-jasmine-revised&quot;&gt;#261 Testing JavaScript with Jasmine (revised) - RailsCasts&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Mon, 05 Jan 2015 22:37:42 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450077055396</guid>
+          
+            <category>Rails Test</category>
+          
+            <category>Javascript</category>
+          
+            <category>Rails中級</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>RSpec3 / Capybara / Capybara-Webkit チートシート</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20150103/1420280252</link>
+          <description>&lt;p&gt;Railsの有名なテストフレームワークのRSpec、エンドツーエンドテスト用のフレームワークのCapybara、エンドツーエンドテストのJavascript(Ajaxなど)部分のテスト用のCapybara-webkitのチートシートです。&lt;br /&gt;
+基本的な使い方を知っていることを前提に、Railsでの使い方をまとめました。&lt;/p&gt;&lt;p&gt;その他参考になるサイトです。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20150101/1420093487&quot; target=&quot;_blank&quot;&gt;RSpec/Capybaraの導入方法&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20150102/1420174315&quot; target=&quot;_blank&quot;&gt;FactoryGrilのチートシート&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails           4.1.7&lt;/li&gt;
+&lt;li&gt;rspec-rails     3.1.0&lt;/li&gt;
+&lt;li&gt;capybara        2.4.1&lt;/li&gt;
+&lt;li&gt;capybara-webkit 1.3.0&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;#rspec-cheat-matcher&quot;&gt;RSpec Matcher&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#rspec-cheat-original&quot;&gt;独自RSpec Matcher&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#rspec-cheat-mock&quot;&gt;RSpec Mock(モック/スタブ)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#rspec-cheat-shoulda-macher&quot;&gt;Shoulda-Macher&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#rspec-cheat-capybara&quot;&gt;Capybara&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#rspec-cheat-capybara-webkit&quot;&gt;JSのテスト(with Capybara-WebKit)&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;rspec-cheat-matcher&quot;&gt;RSpec Matcher&lt;/h3&gt;&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;値が等しい(eq, not_to eq)&lt;/h4&gt;
+    &lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;expect(actual).to     eq expected
+expect(actual).not_to eq not_expected
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;同じオブジェクト(be)&lt;/h4&gt;
+    &lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;expect(actual).to be expected
+
+&lt;span class=&quot;synComment&quot;&gt;# それぞれString型のインスタンスが作成されるため同じオブジェクトではない&lt;/span&gt;
+expect(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;test&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;).to be &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;test&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; Failure/Error&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;比較(&gt;, &gt;=, &lt;=, &lt;, be_within)&lt;/h4&gt;
+    &lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;expect(actual).to be &amp;gt;  expected
+expect(actual).to be &amp;gt;= expected
+expect(actual).to be &amp;lt;= expected
+expect(actual).to be &amp;lt;  expected
+expect(actual).to be_within(delta).of(expected)
+
+&lt;span class=&quot;synComment&quot;&gt;# 例：1.05は1から0.1以内の範囲&lt;/span&gt;
+expect(&lt;span class=&quot;synConstant&quot;&gt;1.05&lt;/span&gt;).to be_within(&lt;span class=&quot;synConstant&quot;&gt;0.1&lt;/span&gt;).of(&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;)
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;正規表現(match)&lt;/h4&gt;
+    &lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;expect(actual).to match(&lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;expression&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;)
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;インスタンスのクラスやタイプタイプ&lt;/h4&gt;
+    &lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# あるクラスのインスタンスか確認する&lt;/span&gt;
+expect(actual).to be_an_instance_of(expected)
+
+&lt;span class=&quot;synComment&quot;&gt;# 例：&amp;quot;str&amp;quot;はStringクラスのインスタンス&lt;/span&gt;
+expect(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;str&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;).to be_an_instance_of &lt;span class=&quot;synType&quot;&gt;String&lt;/span&gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;# あるクラス階層(継承関係もたどる)のインスタンスか確認する&lt;/span&gt;
+expect(actual).to be_a  expected
+expect(actual).to be_an expected        &lt;span class=&quot;synComment&quot;&gt;# be_a のエイリアス&lt;/span&gt;
+expect(actual).to be_a_kind_of expected &lt;span class=&quot;synComment&quot;&gt;# be_a の別のエイリアス&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 例： 1.11は継承関係も含むObjectクラスのインスタンス&lt;/span&gt;
+expect(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;1.11&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;).to be_an &lt;span class=&quot;synType&quot;&gt;Object&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;真偽値、nil&lt;/h4&gt;
+    &lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;expect(actual).to be &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;
+expect(actual).to be &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;
+expect(actual).to be_nil
+expect(actual).to_not be_nil
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;例外(Exception)&lt;/h4&gt;
+    &lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;expect { 処理 }.to raise_error
+expect { 処理 }.to raise_error &lt;span class=&quot;synType&quot;&gt;ErrorClass&lt;/span&gt;
+expect { 処理 }.to raise_error &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;message&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+expect { 処理 }.to raise_error(&lt;span class=&quot;synType&quot;&gt;ErrorClass&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;message&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;)
+
+&lt;span class=&quot;synComment&quot;&gt;# 例：ActiveRecord::RecordNotFound例外が発生することを確認&lt;/span&gt;
+expect { &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.find(&lt;span class=&quot;synConstant&quot;&gt;-1&lt;/span&gt;) }.to raise_error &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;RecordNotFound&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;predicateマッチャ&lt;/h4&gt;
+    &lt;p&gt;アプリ内の&lt;code&gt;xxx?&lt;/code&gt;メソッドをRSpec内で&lt;code&gt;be_xxx&lt;/code&gt;Macherとして記載ができる。（例：&lt;code&gt;include?&lt;/code&gt; =&gt; &lt;code&gt;be_include&lt;/code&gt;）&lt;br /&gt;
+また、同様に&lt;code&gt;has_xxx?&lt;/code&gt;メソッドを&lt;code&gt;have_xxx&lt;/code&gt;として記載ができる。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;expect(actual).to be_xxx
+expect(actual).to have_xxx(&lt;span class=&quot;synConstant&quot;&gt;:arg&lt;/span&gt;)
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;範囲(ruby &gt;= 1.9の場合)&lt;/h4&gt;
+    &lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;expect(&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;..&lt;span class=&quot;synConstant&quot;&gt;10&lt;/span&gt;).to cover(&lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;)
+expect(&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;..&lt;span class=&quot;synConstant&quot;&gt;10&lt;/span&gt;).not_to cover(&lt;span class=&quot;synConstant&quot;&gt;-1&lt;/span&gt;)
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;数の変化(change, by, from, to)&lt;/h4&gt;
+    &lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# 商品の総数が1増加することを確認&lt;/span&gt;
+expect {
+  &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.create &lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;MyProduct&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+}.to change { &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.count }.by(&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;)
+
+&lt;span class=&quot;synComment&quot;&gt;# 商品の総数が1増加することを確認&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.create &lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;MyProduct&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+expect {
+  &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.first.destroy
+}.to change { &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.count }.by(&lt;span class=&quot;synConstant&quot;&gt;-1&lt;/span&gt;)
+
+&lt;span class=&quot;synComment&quot;&gt;# 商品の総数が1から3個へなったことを確認&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.create &lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;MyProduct&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+expect {
+  &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;.times { product.create &lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;MyProduct&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; }
+}.to change { &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.count }.from(&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;).to(&lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;)
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;配列、文字列に含む&lt;/h4&gt;
+    &lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# 含む&lt;/span&gt;
+expect(actual).to &lt;span class=&quot;synPreProc&quot;&gt;include&lt;/span&gt;(expected)
+
+&lt;span class=&quot;synComment&quot;&gt;# 開始する、終了する&lt;/span&gt;
+expect(actual).to start_with(expected)
+expect(actual).to end_with(expected)
+
+&lt;span class=&quot;synComment&quot;&gt;# 配列がマッチするか確認する&lt;/span&gt;
+expect(actual).to match_array(expected_array) &lt;span class=&quot;synComment&quot;&gt;# 上記と同様&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 例&lt;/span&gt;
+expect([&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;]).to &lt;span class=&quot;synPreProc&quot;&gt;include&lt;/span&gt;(&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;)
+expect([&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;]).to &lt;span class=&quot;synPreProc&quot;&gt;include&lt;/span&gt;(&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;)
+expect([&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;]).to start_with(&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;)
+expect([&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;]).to start_with(&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;)
+expect([&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;]).to end_with(&lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;)
+expect([&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;]).to end_with(&lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;)
+expect({&lt;span class=&quot;synConstant&quot;&gt;:a&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;}).to &lt;span class=&quot;synPreProc&quot;&gt;include&lt;/span&gt;(&lt;span class=&quot;synConstant&quot;&gt;:a&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;b&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;)
+expect(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;this string&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;).to &lt;span class=&quot;synPreProc&quot;&gt;include&lt;/span&gt;(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;is str&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;)
+expect(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;this string&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;).to start_with(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;this&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;)
+expect(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;this string&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;).to end_with(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;ring&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;)
+expect([&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;]).to contain_exactly(&lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;)
+expect([&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;]).to match_array([&lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;])
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;rspec-cheat-original&quot;&gt;独自RSpec Matcher&lt;/h3&gt;&lt;code&gt;RSpec::Matchers.define&lt;/code&gt;で定義します。定義場所は、&lt;code&gt;spec/support&lt;/code&gt;配下に個別の名前をつけて作成すると良いでしょう。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# 定義&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# spec/support/have_flash_message.rb&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;RSpec&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Matchers&lt;/span&gt;.define &lt;span class=&quot;synConstant&quot;&gt;:have_flash_message&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;message&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;type&lt;/span&gt;|
+  match &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;page&lt;/span&gt;|
+    expect(page).to have_selector(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;div.alert.alert-&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;type&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;text&lt;/span&gt;: message)
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 利用&lt;/span&gt;
+expect(page).to have_flash_message &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;更新に失敗しました&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;danger&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+CanCanCanのAbilityの状況を確認するリッチなカスタムマッチャ&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Examples&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# @user.should have_ability(:create, for: Post.new)&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# @user.should have_ability([:create, :read], for: Post.new)&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# @user.should have_ability(&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#   {create: true, read: false, update: false, destroy: true}, for: Post.new)&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;RSpec&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Matchers&lt;/span&gt;.define &lt;span class=&quot;synConstant&quot;&gt;:have_ability&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;ability_hash&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;options&lt;/span&gt; = {}|
+  match &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;user&lt;/span&gt;|
+    ability = &lt;span class=&quot;synType&quot;&gt;Ability&lt;/span&gt;.new(user)
+    target = options[&lt;span class=&quot;synConstant&quot;&gt;:for&lt;/span&gt;]
+    &lt;span class=&quot;synIdentifier&quot;&gt;@ability_result&lt;/span&gt; = {}
+    ability_hash = { ability_hash =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt; } &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; ability_hash.is_a? &lt;span class=&quot;synType&quot;&gt;Symbol&lt;/span&gt;
+    ability_hash = ability_hash.reduce({}) { |&lt;span class=&quot;synIdentifier&quot;&gt;a&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;e&lt;/span&gt;| a.merge(e =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;) } &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt;
+      ability_hash.is_a? &lt;span class=&quot;synType&quot;&gt;Array&lt;/span&gt;
+    ability_hash.each &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;action&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;_true_or_false&lt;/span&gt;|
+      &lt;span class=&quot;synIdentifier&quot;&gt;@ability_result&lt;/span&gt;[action] = ability.can?(action, target)
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+    ability_hash == &lt;span class=&quot;synIdentifier&quot;&gt;@ability_result&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+  failure_message &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;user&lt;/span&gt;|
+    ability_hash, options = expected
+    ability_hash = { ability_hash =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt; } &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; ability_hash.is_a? &lt;span class=&quot;synType&quot;&gt;Symbol&lt;/span&gt;
+    ability_hash = ability_hash.reduce({}) { |&lt;span class=&quot;synIdentifier&quot;&gt;a&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;e&lt;/span&gt;| a.merge(e =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;) } &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt;
+      ability_hash.is_a? &lt;span class=&quot;synType&quot;&gt;Array&lt;/span&gt;
+    target = options[&lt;span class=&quot;synConstant&quot;&gt;:for&lt;/span&gt;]
+    &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;expected User:&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;user&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; to have ability:&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;ability_hash&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; for &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;target&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;, &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; \
+    &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;but actual result is &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;@ability_result&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# clean up output of RSpec Documentation format&lt;/span&gt;
+  description &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; ability_hash.length == &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;
+      &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;have ability &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;expected.to_s.match(&lt;span class=&quot;synSpecial&quot;&gt;/(&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;[^&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;]*)/&lt;/span&gt;)[&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;]&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; \
+      &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;for &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;expected.to_s.match(&lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;([^&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;]*)/&lt;/span&gt;)[&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;]&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;else&lt;/span&gt;
+      &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;have abilities &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;expected.to_s.match(&lt;span class=&quot;synSpecial&quot;&gt;/\[(\[[^\]]*\])&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;)[&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;]&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; \
+      &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;for &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;expected.to_s.match(&lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;([^&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;]*)/&lt;/span&gt;)[&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;]&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;rspec-cheat-mock&quot;&gt;RSpec Mock(モック/スタブ)&lt;/h3&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;モック/スタブの基本&lt;/h4&gt;
+    &lt;p&gt;RSpecでは、&lt;code&gt;allow&lt;/code&gt;、&lt;code&gt;receive&lt;/code&gt;、&lt;code&gt;and_return&lt;/code&gt;を使うことで、モックのクラスメソッドやインスタンスメソッドを作成できる。&lt;br /&gt;
+&lt;b&gt;モック化するメソッドは、空メソッドでも良いので&lt;code&gt;def&lt;/code&gt;で定義しておく必要がある。&lt;/b&gt;&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# インスタンスメソッド(product.name)のリターン値を&amp;quot;Mock Name&amp;quot;と定義している&lt;/span&gt;
+product = build(&lt;span class=&quot;synConstant&quot;&gt;:product&lt;/span&gt;)
+allow(product).to receive(&lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;).and_return(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Mock Name&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;)
+puts product.name &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;Mock Name&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# and_returnではなく、ブロックでも同様&lt;/span&gt;
+allow(product).to receive(&lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;) { &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Mock Name&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; }
+
+
+&lt;span class=&quot;synComment&quot;&gt;# クラスメソッド(Product.count)のリターン値を 5 と定義している&lt;/span&gt;
+allow(&lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;).to receive(&lt;span class=&quot;synConstant&quot;&gt;:count&lt;/span&gt;).and_return(&lt;span class=&quot;synConstant&quot;&gt;5&lt;/span&gt;)
+puts &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.count &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 5&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;連続的なリターン値&lt;/h4&gt;
+    &lt;p&gt;&lt;code&gt;and_return&lt;/code&gt;に複数値を渡すと、呼び出すたびに値を変更することができる。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;allow(&lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;).to receive(&lt;span class=&quot;synConstant&quot;&gt;:increment&lt;/span&gt;).and_return(&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;)
+puts &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.increment &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 1&lt;/span&gt;
+puts &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.increment &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 2&lt;/span&gt;
+puts &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.increment &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 3&lt;/span&gt;
+puts &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.increment &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 3&lt;/span&gt;
+puts &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.increment &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 3&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;例外を返す&lt;/h4&gt;
+    &lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;allow(double).to receive(&lt;span class=&quot;synConstant&quot;&gt;:msg&lt;/span&gt;).and_raise(error)
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;rspec-cheat-shoulda-macher&quot;&gt;Shoulda-Macher&lt;/h3&gt;主にモデルのバリデーションのテストを簡単にかける&lt;br /&gt;
+&lt;a href=&quot;http://thoughtbot.github.io/shoulda-matchers/v2.7.0/&quot;&gt;File: README &amp;mdash; Documentation by YARD 0.8.7.3&lt;/a&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;rspec-cheat-capybara&quot;&gt;Capybara&lt;/h3&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;操作 - 遷移する&lt;/h4&gt;
+    &lt;p&gt;URL指定(&quot;/projects&quot;)でも、パス指定(xxx_path)でも指定が可能。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;visit &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;/projects&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+visit post_comments_path(post)
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;操作 - リンクやボタンを押す&lt;/h4&gt;
+    &lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;click_link   &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;お問い合わせ&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# リンク(aタグ)を押す。リンクテキストかIDを引数にする&lt;/span&gt;
+click_button &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;登録する&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;    &lt;span class=&quot;synComment&quot;&gt;# ボタンを押す。ボタンのvalue値(ボタンの表示文字)を引数にする&lt;/span&gt;
+click_on &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;登録する&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;        &lt;span class=&quot;synComment&quot;&gt;# ボタンかリンクを押す&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;操作 - フォーム入力&lt;/h4&gt;
+    &lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# テキストフィールド/テキストエリア入力&lt;/span&gt;
+fill_in &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;入力フィールド&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;with&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;入力値&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;  &lt;span class=&quot;synComment&quot;&gt;# namd属性、id属性、ラベルで入力フィールドを指定できる&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# ラジオボタンを選択&lt;/span&gt;
+choose  &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;ラジオボタン&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;  &lt;span class=&quot;synComment&quot;&gt;# namd属性、id属性、ラベルで入力フィールドを指定できる&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# チェックボックスのチェックをつける、チェックを外す&lt;/span&gt;
+check   &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;チェックボックス&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# namd属性、id属性、ラベルで入力フィールドを指定できる&lt;/span&gt;
+uncheck &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;チェックボックスを外す&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# ファイルアップロード&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# 第一引数は、namd属性、id属性、ラベルで入力フィールドを指定できる&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# 第二引数は、ファイルのパスを指定&lt;/span&gt;
+attach_file &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;ファイル入力&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;/path/to/image.jpg&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# セレクトボックスの選択&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# 第一引数は、セレクトするOption属性の値&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# 第二引数のfromオプションは、セレクトボックスのid属性, name属性, ラベルを指定する&lt;/span&gt;
+select  &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;option&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;form&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;select box&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;検証 - 現在のパスを確認&lt;/h4&gt;
+    &lt;p&gt;&lt;code&gt;current_path&lt;/code&gt;メソッドにより、現在のパスを検証できます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;expect(current_path).to eq post_comments_path(post)
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;検証 - 画面表示文字の存在を確認&lt;/h4&gt;
+    &lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;expect(page).to have_content &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;foo&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+expect(page).to have_no_content &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;bar&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;検証 - CSS、XPathの存在を確認&lt;/h4&gt;
+    &lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;expect(page).to have_css   &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;table tr.foo&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+expect(page).to have_xpath &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;//table/tr&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;検証 - 特定の値の表示有無を確認&lt;/h4&gt;
+    &lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;find_link(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Hello&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;).visible?
+expect(find(&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;#navigation&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;)).to have_button(&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Sign out&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;)
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;特定のスコープで操作、検証&lt;/h4&gt;
+    &lt;p&gt;&lt;code&gt;whithin&lt;/code&gt;により、入力、検証の範囲を指定することができる。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# CSS, XPathなどで指定することが可能&lt;/span&gt;
+within &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;li#employee&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  fill_in &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Name&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:with&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Jimmy&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+within &lt;span class=&quot;synConstant&quot;&gt;:xpath&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;//div[contains(., &amp;quot;bar&amp;quot;)]&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  ...
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+within &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;li&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;text&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;リストテキスト&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  ...
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;別のウインドウを操作、検証&lt;/h4&gt;
+    &lt;p&gt;&lt;code&gt;window_opend_by&lt;/code&gt;と&lt;code&gt;within_window&lt;/code&gt;で別のウインドウの操作、検証を行うことができます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# いいねボタンを押すと、Facebookのログイン用のウインドウが開かれる&lt;/span&gt;
+facebook_window = window_opened_by &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  click_button &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;いいね&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# Facebookのログイン用のウインドウで情報を登録してログインしている&lt;/span&gt;
+within_window facebook_window &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  find(&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;#login_email&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;).set(&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;a@example.com&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;)
+  find(&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;#login_password&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;).set(&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;qwerty&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;)
+  click_button &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;ログイン&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;デバッグ&lt;/h4&gt;
+    &lt;p&gt;&lt;code&gt;tmp/capybara&lt;/code&gt;配下にスナップショットのHTMLファイルを作成する&lt;br /&gt;
+(CSS適用や入力フィールドが入力されていないので注意)&lt;br /&gt;
+&lt;a href=&quot;https://github.com/copiousfreetime/launchy&quot; target=&quot;_blank&quot;&gt;launchy&lt;/a&gt;というgemを入れるとテスト実行時に自動的にブラウザで開いてくれる。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;save_and_open_page
+&lt;/pre&gt;&lt;p&gt;画像ファイルとして画面を表示する(CSSや入力フィールドは入力されている)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;page.save_screenshot &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;screenshot.png&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+HTMLのbody要素の中身を確認する&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;puts page.body     &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; HTMLボディの内容 ...&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;rspec-cheat-capybara-webkit&quot;&gt;JSのテスト(with Capybara-WebKit)&lt;/h3&gt;Javascriptをテストする場合、&lt;code&gt;js: true&lt;/code&gt;を追加する。&lt;br /&gt;
+&lt;code&gt;rails_helper.rb&lt;/code&gt;での、通常時とJS True時のDatabase Cleanerの削除方式が違うので注意が必要。&lt;/p&gt;&lt;p&gt;Driverがサポートしている場合、モーダルを操作できる。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;操作 - JSのalert, confirmダイアログのボタンを押す&lt;/h4&gt;
+    &lt;p&gt;CapybaraとCapybara-Webkitを使うことで、Javascriptの&lt;code&gt;alert()&lt;/code&gt;や&lt;code&gt;confirm&lt;/code&gt;で呼ばれたダイアログのボタンを押せます。&lt;br /&gt;
+Todo alert画像&lt;/p&gt;&lt;p&gt;注意点として、下記のメソッドは結果に関わらず次へ進んでしまうらしいので、メッセージ取得などの結果を確実に取得したい場合はsleepなどを入れる必要がある&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# OKボタンを押す&lt;/span&gt;
+page.driver.browser.accept_js_confirms
+
+&lt;span class=&quot;synComment&quot;&gt;# NOボタンを押す&lt;/span&gt;
+page.driver.browser.dismiss_js_confirms
+
+&lt;span class=&quot;synComment&quot;&gt;# メッセージを取得する&lt;/span&gt;
+page.driver.browser.alert_messages
+page.driver.browser.confirm_messages
+page.driver.browser.console_messages
+&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;エラー(404, 500など)のテスト&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;code&gt;rescue_from&lt;/code&gt;でエラーを定義した時に、404や500エラーを意図的に発生させたいことがあると思います。&lt;br /&gt;
+RSpecやCapybaraの機能を使うこと簡単にテストすることができます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;### アプリケーションコード ###&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActionController&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  protect_from_forgery &lt;span class=&quot;synConstant&quot;&gt;:with&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;:exception&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# 例外ハンドル&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# NOTICE: rescue_from は下から評価される&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;unless&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt;.env.development?
+    rescue_from &lt;span class=&quot;synType&quot;&gt;Exception&lt;/span&gt;,                        &lt;span class=&quot;synConstant&quot;&gt;:with&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;:render_500&lt;/span&gt;
+    rescue_from &lt;span class=&quot;synType&quot;&gt;ActionController&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;RoutingError&lt;/span&gt;,   &lt;span class=&quot;synConstant&quot;&gt;:with&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;:render_404&lt;/span&gt;
+    rescue_from &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;RecordNotFound&lt;/span&gt;,     &lt;span class=&quot;synConstant&quot;&gt;:with&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;:render_404&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;### テストコード ###&lt;/span&gt;
+describe &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;404エラー&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  context &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;RoutingError&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    before &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      visit &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;/undefined_routing_path&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# 存在しないパスにアクセスする&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+    it &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;404エラーページに遷移すること&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      expect(page).to have_content(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;404 File not found&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;)
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+    it &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;ステータスコードが404であること&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      expect(page.status_code).to eq &lt;span class=&quot;synConstant&quot;&gt;404&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+  context &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;RecordNotFound&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    before &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      visit admin_shop_path(&lt;span class=&quot;synConstant&quot;&gt;1000000&lt;/span&gt;) &lt;span class=&quot;synComment&quot;&gt;# 存在しないレコードのIDにアクセスする&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+    it &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;404エラーページに遷移すること&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      expect(page).to have_content(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;404 File not found&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;)
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+    it &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;ステータスコードが404であること&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      expect(page.status_code).to eq &lt;span class=&quot;synConstant&quot;&gt;404&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+
+describe &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;500エラー&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  before &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# 一覧画面に遷移したら例外を発生させる&lt;/span&gt;
+    expect_any_instance_of(&lt;span class=&quot;synType&quot;&gt;ProductsController&lt;/span&gt;).to receive(&lt;span class=&quot;synConstant&quot;&gt;:index&lt;/span&gt;).and_throw(&lt;span class=&quot;synType&quot;&gt;Exception&lt;/span&gt;)
+
+    visit products_path
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+  it &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;500エラーページに遷移すること&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    expect(page).to have_content &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;500 Internal Server Error&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+  it &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;ステータスコードが500であること&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    expect(page.status_code).to equal(&lt;span class=&quot;synConstant&quot;&gt;500&lt;/span&gt;)
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;</description>
+          <pubDate>Sat, 03 Jan 2015 19:17:32 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450077047919</guid>
+          
+            <category>Rails Test</category>
+          
+            <category>Rails中級</category>
+          
+            <category>まとめ</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>Factory Girl Railsのチートシート</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20150102/1420174315</link>
+          <description>&lt;p&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;のテストで&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%CA%A3%BF%F4&quot;&gt;複数&lt;/a&gt;のオブジェクトの作成を簡易に行えるFactoryGirl。&lt;br /&gt;
+FactoryGirlについて基本的なことを知っていることを前提に、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;でFactoryGirlを使うよく使う機能やTipsをまとめました。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt; 4.1.7&lt;/li&gt;
+&lt;li&gt;Factory Girl 4.4.0&lt;/li&gt;
+&lt;li&gt;Factory Girl &lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt; 4.4.1&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;#factory_girl_cheat_install&quot;&gt;1. Factory Girlのインストール&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#factory_girl_cheat_syntax&quot;&gt;2. FactoryGirlシンタックスの省略&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#factory_girl_cheat_usage&quot;&gt;3. FactoryGirlの使い方あれこれ&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;#factory_girl_cheat_basic&quot;&gt;3.1. オブジェクトのビルド、作成、スタブ作成、属性取得&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#factory_girl_cheat_create&quot;&gt;3.2. 特定の値を指定してオブジェクトを作成&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#factory_girl_cheat_block&quot;&gt;3.3. ブロックを渡すことで細かな処理を記載可能&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#factory_girl_cheat_list&quot;&gt;3.4. 一度に複数のレコードを作成する&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#factory_girl_cheat_define&quot;&gt;4. Factory定義のあれこれ&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;#factory_girl_cheat_dependent&quot;&gt;4.1. 他の属性に依存する属性を定義する&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#factory_girl_cheat_hierarchy&quot;&gt;4.2. factoryの階層構造で定義をDRYにしたい&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#factory_girl_cheat_trait&quot;&gt;4.3. 特徴をわかりやすくする。グループ化させる&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#factory_girl_cheat_sequence&quot;&gt;4.4. 呼び出しのたびに作成するデータを変える&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#factory_girl_cheat_belongs_to_association&quot;&gt;4.5. &lt;code&gt;belongs_to&lt;/code&gt;の関連を定義&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#factory_girl_cheat_has_many_association&quot;&gt;4.6. &lt;code&gt;has_many&lt;/code&gt;の関連を定義&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#factory_girl_cheat_samples&quot;&gt;5. Factoryのサンプル集&lt;/a&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;#factory_girl_cheat_samples1&quot;&gt;5.1. transientとinitialize_with&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;factory_girl_cheat_install&quot;&gt;1. Factory Girlのインストール&lt;/h3&gt;&lt;code&gt;Gemfile&lt;/code&gt;に&lt;code&gt;factory_girl_rails&lt;/code&gt;を追加する。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Gemfile&lt;/span&gt;
+group &lt;span class=&quot;synConstant&quot;&gt;:development&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:test&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;factory_girl_rails&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# その他必要に応じて&lt;/span&gt;
+  gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;rspec-rails&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+  gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;pry-rails&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+  gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;pry-byebug&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+  ...
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+Bundlerを実行する&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;bundle install&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;factory_girl_cheat_syntax&quot;&gt;2. FactoryGirl&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B7%A5%F3%A5%BF%A5%C3%A5%AF%A5%B9&quot;&gt;シンタックス&lt;/a&gt;の省略&lt;/h3&gt;&lt;code&gt;include FactoryGirl::Syntax::Methods&lt;/code&gt;を追加することで、次のように&lt;code&gt;FactoryGirl&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B7%A5%F3%A5%BF%A5%C3%A5%AF%A5%B9&quot;&gt;シンタックス&lt;/a&gt;を省略できるのでタイプ数が減り便利です。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# シンタックス省略前&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;FactoryGirl&lt;/span&gt;.create(&lt;span class=&quot;synConstant&quot;&gt;:user&lt;/span&gt;) &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; Userモデルを作成&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# シンタックス省略後&lt;/span&gt;
+create(&lt;span class=&quot;synConstant&quot;&gt;:user&lt;/span&gt;) &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; Userモデルを作成&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;code&gt;FactoryGirl&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B7%A5%F3%A5%BF%A5%C3%A5%AF%A5%B9&quot;&gt;シンタックス&lt;/a&gt;を省略する設定&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;### RSpecの場合 ###&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# spec/support/factory_girl.rb&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;RSpec&lt;/span&gt;.configure &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;config&lt;/span&gt;|
+  config.include &lt;span class=&quot;synType&quot;&gt;FactoryGirl&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Syntax&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Methods&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# rails_helper.rb&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# コメントアウトを外す&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Dir&lt;/span&gt;[&lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt;.root.join(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;spec/support/**/*.rb&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;)].each { |&lt;span class=&quot;synIdentifier&quot;&gt;f&lt;/span&gt;| &lt;span class=&quot;synPreProc&quot;&gt;require&lt;/span&gt; f }
+
+
+
+&lt;span class=&quot;synComment&quot;&gt;### MiniTestの場合 ###&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;MiniTest&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Unit&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;TestCase&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;include&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;FactoryGirl&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Syntax&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Methods&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;### MiniTest::Specの場合 ###&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;MiniTest&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Spec&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;include&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;FactoryGirl&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Syntax&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Methods&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;### minitest-railsの場合 ###&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;MiniTest&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;ActiveSupport&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;TestCase&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;include&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;FactoryGirl&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Syntax&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Methods&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;factory_girl_cheat_usage&quot;&gt;3. FactoryGirlの使い方あれこれ&lt;/h3&gt;&lt;h4 id=&quot;factory_girl_cheat_basic&quot;&gt;3.1. オブジェクトのビルド、作成、スタブ作成、属性取得&lt;/h4&gt;&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# 次のFactoryが定義されている前提&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# spec/factories/users.rb&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;FactoryGirl&lt;/span&gt;.define &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  factory &lt;span class=&quot;synConstant&quot;&gt;:user&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    name &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;MyString&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+    sex &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;male&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+    age &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# Userインスタンスを返す(DBに保存されていない)&lt;/span&gt;
+user = build(&lt;span class=&quot;synConstant&quot;&gt;:user&lt;/span&gt;)
+&lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;lt;User id: nil, name: &amp;quot;MyString&amp;quot;, sex: &amp;quot;male&amp;quot;, age: 1, created_at: nil, updated_at: nil&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# Userインスタンスを返す(DBに保存されている)&lt;/span&gt;
+user = create(&lt;span class=&quot;synConstant&quot;&gt;:user&lt;/span&gt;)
+&lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;lt;User id: 1, name: &amp;quot;MyString&amp;quot;, sex: &amp;quot;male&amp;quot;, age: 1, created_at: &amp;quot;2014-12-09 12:50:05&amp;quot;, updated_at: &amp;quot;2014-12-09 12:50:05&amp;quot;&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# すべての定義された属性が格納されたスタブ化されたオブジェクトを返す&lt;/span&gt;
+stub = build_stubbed(&lt;span class=&quot;synConstant&quot;&gt;:user&lt;/span&gt;)
+&lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;lt;User id: 1001, name: &amp;quot;MyString&amp;quot;, sex: &amp;quot;male&amp;quot;, age: 1, screated_at: nil, updated_at: nil&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 通常のnew, create, updateに渡せる属性のハッシュを返す&lt;/span&gt;
+attrs = attributes_for(&lt;span class=&quot;synConstant&quot;&gt;:user&lt;/span&gt;)
+&lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; {:name=&amp;gt;&amp;quot;MyString&amp;quot;, :sex=&amp;gt;&amp;quot;male&amp;quot;, :age=&amp;gt;1}&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h4 id=&quot;factory_girl_cheat_create&quot;&gt;3.2. 特定の値を指定してオブジェクトを作成&lt;/h4&gt;上記すべての&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;の第2引数にハッシュで属性名と値を渡すことで、特定の値を設定してオブジェクトを作成できる。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# name属性を&amp;quot;Tom&amp;quot;, age属性を30で作成&lt;/span&gt;
+user = build(&lt;span class=&quot;synConstant&quot;&gt;:user&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Tom&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;age&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;30&lt;/span&gt;)
+&lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;lt;User id: nil, name: &amp;quot;Tom&amp;quot;, sex: &amp;quot;male&amp;quot;, age: 30, created_at: nil, updated_at: nil&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h4 id=&quot;factory_girl_cheat_block&quot;&gt;3.3. ブロックを渡すことで細かな処理を記載可能&lt;/h4&gt;上記のすべての&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;でブロックが使える&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# userオブジェクトとそれに紐づくpostオブジェクトを作成(+DB保存)している&lt;/span&gt;
+create(&lt;span class=&quot;synConstant&quot;&gt;:user&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;user&lt;/span&gt;|
+  user.posts.create(attributes_for(&lt;span class=&quot;synConstant&quot;&gt;:post&lt;/span&gt;))
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h4 id=&quot;factory_girl_cheat_list&quot;&gt;3.4. 一度に&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%CA%A3%BF%F4&quot;&gt;複数&lt;/a&gt;のレコードを作成する&lt;/h4&gt;上記のすべての&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;に&lt;code&gt;_list&lt;/code&gt;を追加することで、一度に&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%CA%A3%BF%F4&quot;&gt;複数&lt;/a&gt;のオブジェクトの生成ができる。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# 25ユーザーを作成(DBに未保存)&lt;/span&gt;
+build_users   = build_list(&lt;span class=&quot;synConstant&quot;&gt;:user&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;25&lt;/span&gt;)
+
+&lt;span class=&quot;synComment&quot;&gt;# 25ユーザーを作成(DBに保存済)&lt;/span&gt;
+created_users = create_list(&lt;span class=&quot;synConstant&quot;&gt;:user&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;25&lt;/span&gt;)
+
+build_stubbed_list(&lt;span class=&quot;synConstant&quot;&gt;:user&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;25&lt;/span&gt;)
+attributes_for_list(&lt;span class=&quot;synConstant&quot;&gt;:user&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;25&lt;/span&gt;)
+
+&lt;span class=&quot;synComment&quot;&gt;# 特定の値を設定して、複数のオブジェクト作成することも可能&lt;/span&gt;
+twenty_years_olds = create_list(&lt;span class=&quot;synConstant&quot;&gt;:user&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;25&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;age&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;20&lt;/span&gt;)
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;factory_girl_cheat_define&quot;&gt;4. Factory定義のあれこれ&lt;/h3&gt;&lt;h4 id=&quot;factory_girl_cheat_dependent&quot;&gt;4.1. 他の属性に依存する属性を定義する&lt;/h4&gt;&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# 定義&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;FactoryGirl&lt;/span&gt;.define &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  factory &lt;span class=&quot;synConstant&quot;&gt;:user&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# 名前にageの値も入れる&lt;/span&gt;
+    name { &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;MyString-&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;age&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt; }
+    sex &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;male&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+    age &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 利用&lt;/span&gt;
+create(&lt;span class=&quot;synConstant&quot;&gt;:user&lt;/span&gt;)
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;lt;User id: 1, name: &amp;quot;MyString-1&amp;quot;, age: 1, sex: &amp;quot;male&amp;quot;, created_at: &amp;quot;...&amp;quot;, updated_at: &amp;quot;...&amp;quot; &amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h4 id=&quot;factory_girl_cheat_hierarchy&quot;&gt;4.2. factoryの階層構造で定義をDRYにしたい&lt;/h4&gt;Factoryを階層構造にすることでDRYに様々なFactoryを作成できます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# 定義&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;FactoryGirl&lt;/span&gt;.define &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  factory &lt;span class=&quot;synConstant&quot;&gt;:user&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    name { &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;MyString-&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;age&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt; }
+    sex &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;male&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+    age &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;
+
+    &lt;span class=&quot;synComment&quot;&gt;# name属性だけ設定&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# それ以外は上位階層の値を設定&lt;/span&gt;
+    factory &lt;span class=&quot;synConstant&quot;&gt;:tom&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      name &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Tom&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 利用&lt;/span&gt;
+build(&lt;span class=&quot;synConstant&quot;&gt;:tom&lt;/span&gt;)
+=&amp;gt; &lt;span class=&quot;synComment&quot;&gt;#&amp;lt;User id: nil, name: &amp;quot;Tom&amp;quot;, sex: &amp;quot;male&amp;quot;, age: 1, created_at: nil, updated_at: nil&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h4 id=&quot;factory_girl_cheat_trait&quot;&gt;4.3. 特徴をわかりやすくする。グループ化させる&lt;/h4&gt;Trait(呼び方:トレイ、意味:特色/特性/特徴)を使うことで属性定義をわかりやすくできます。&lt;br /&gt;
+また、Traitsを使うことで、Traitをグループ化することがdけいます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# 定義&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;FactoryGirl&lt;/span&gt;.define &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  factory &lt;span class=&quot;synConstant&quot;&gt;:product&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    name &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;My Awesome Product&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+
+    trait &lt;span class=&quot;synConstant&quot;&gt;:published&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      published &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;
+      published_at &lt;span class=&quot;synType&quot;&gt;Time&lt;/span&gt;.zone.now
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+    trait &lt;span class=&quot;synConstant&quot;&gt;:unpublished&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      published &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;
+      published_at &lt;span class=&quot;synConstant&quot;&gt;nil&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+    trait &lt;span class=&quot;synConstant&quot;&gt;:week_long_publishing&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      start_at { &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;.week.ago }
+      end_at   { &lt;span class=&quot;synType&quot;&gt;Time&lt;/span&gt;.now }
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+    trait &lt;span class=&quot;synConstant&quot;&gt;:month_long_publishing&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      start_at { &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;.month.ago }
+      end_at   { &lt;span class=&quot;synType&quot;&gt;Time&lt;/span&gt;.now }
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+    &lt;span class=&quot;synComment&quot;&gt;# traitsでグループ化する&lt;/span&gt;
+    factory &lt;span class=&quot;synConstant&quot;&gt;:week_long_published_story&lt;/span&gt;,    &lt;span class=&quot;synConstant&quot;&gt;traits&lt;/span&gt;: [&lt;span class=&quot;synConstant&quot;&gt;:published&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:week_long_publishing&lt;/span&gt;]
+    factory &lt;span class=&quot;synConstant&quot;&gt;:month_long_published_story&lt;/span&gt;,   &lt;span class=&quot;synConstant&quot;&gt;traits&lt;/span&gt;: [&lt;span class=&quot;synConstant&quot;&gt;:published&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:month_long_publishing&lt;/span&gt;]
+    factory &lt;span class=&quot;synConstant&quot;&gt;:week_long_unpublished_story&lt;/span&gt;,  &lt;span class=&quot;synConstant&quot;&gt;traits&lt;/span&gt;: [&lt;span class=&quot;synConstant&quot;&gt;:unpublished&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:week_long_publishing&lt;/span&gt;]
+    factory &lt;span class=&quot;synConstant&quot;&gt;:month_long_unpublished_story&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;traits&lt;/span&gt;: [&lt;span class=&quot;synConstant&quot;&gt;:unpublished&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:month_long_publishing&lt;/span&gt;]
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;### 使用 ###&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# 第2引数にtraitのシンボルを渡すことで値を設定できる&lt;/span&gt;
+build(&lt;span class=&quot;synConstant&quot;&gt;:product&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:published&lt;/span&gt;)
+&lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;lt;Product id: nil, name: &amp;quot;My Awesome Product&amp;quot;, published: true, published_at: &amp;quot;2014-12-09 13:27:36&amp;quot;, start_at: nil, end_at: nil, created_at: nil, updated_at: nil&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# factoryで定義したシンボル名でオブジェクトを作成できる&lt;/span&gt;
+build(&lt;span class=&quot;synConstant&quot;&gt;:week_long_published_product&lt;/span&gt;)
+&lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;lt;Product id: nil, name: &amp;quot;My Awesome Product&amp;quot;, published: true, published_at: &amp;quot;2014-12-09 13:29:35&amp;quot;, start_at: &amp;quot;2014-12-02 13:30:29&amp;quot;, end_at: &amp;quot;2014-12-09 13:30:29&amp;quot;, created_at: nil, updated_at: nil&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h4 id=&quot;factory_girl_cheat_sequence&quot;&gt;4.4. 呼び出しのたびに作成するデータを変える&lt;/h4&gt;&lt;code&gt;sequence&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;を使うことで作成するデータを変えることができます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# 定義&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;FactoryGirl&lt;/span&gt;.define &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  factory &lt;span class=&quot;synConstant&quot;&gt;:post&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    sequence(&lt;span class=&quot;synConstant&quot;&gt;:title&lt;/span&gt;)   { |&lt;span class=&quot;synIdentifier&quot;&gt;n&lt;/span&gt;| &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;MyString&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;n&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt; }
+    sequence(&lt;span class=&quot;synConstant&quot;&gt;:content&lt;/span&gt;) { |&lt;span class=&quot;synIdentifier&quot;&gt;n&lt;/span&gt;| &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;MyText&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;n&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt;   }
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 使用&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# 呼び出すたびにオートインクリメントされる(1, 2, 3, ...)&lt;/span&gt;
+build(&lt;span class=&quot;synConstant&quot;&gt;:post&lt;/span&gt;)
+&lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;lt;Post id: nil, user_id: nil, title: &amp;quot;MyString1&amp;quot;, content: &amp;quot;MyText1&amp;quot;, created_at: nil, updated_at: nil&amp;gt;&lt;/span&gt;
+build(&lt;span class=&quot;synConstant&quot;&gt;:post&lt;/span&gt;)
+&lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;lt;Post id: nil, user_id: nil, title: &amp;quot;MyString2&amp;quot;, content: &amp;quot;MyText2&amp;quot;, created_at: nil, updated_at: nil&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h4 id=&quot;factory_girl_cheat_belongs_to_association&quot;&gt;4.5. &lt;code&gt;belongs_to&lt;/code&gt;の関連を定義&lt;/h4&gt;factory名(関連名)と同じ名前を指定することで関連先のモデルも一緒に作成できます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# クラス定義&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  has_many &lt;span class=&quot;synConstant&quot;&gt;:posts&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Post&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  belongs_to &lt;span class=&quot;synConstant&quot;&gt;:user&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;# ファクトリー定義&lt;/span&gt;
+factory &lt;span class=&quot;synConstant&quot;&gt;:user&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# ...&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+factory &lt;span class=&quot;synConstant&quot;&gt;:post&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# ...&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# authorモデルも一緒に作成する&lt;/span&gt;
+  author
+
+  &lt;span class=&quot;synComment&quot;&gt;# 関連先のオブジェクトに値を設定できる&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# association :user, name: &amp;quot;Marin&amp;quot;, sex: &amp;quot;female&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;# 使用&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# postオブジェクトとそれに関連するuserモデルも作成する&lt;/span&gt;
+post = &lt;span class=&quot;synType&quot;&gt;FactoryGirl&lt;/span&gt;.create(&lt;span class=&quot;synConstant&quot;&gt;:post&lt;/span&gt;)
+&lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;lt;Post id: 2, user_id: 4, title: &amp;quot;MyString3&amp;quot;, content: &amp;quot;MyText3&amp;quot;, created_at: &amp;quot;2014-12-09 13:37:14&amp;quot;, updated_at: &amp;quot;2014-12-09 13:37:14&amp;quot;&amp;gt;&lt;/span&gt;
+post.user
+&lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;lt;User id: 4, name: &amp;quot;MyString-1&amp;quot;, age: 1, created_at: &amp;quot;2014-12-09 13:37:14&amp;quot;, updated_at: &amp;quot;2014-12-09 13:37:14&amp;quot;, sex: &amp;quot;male&amp;quot;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h4 id=&quot;factory_girl_cheat_has_many_association&quot;&gt;4.6. &lt;code&gt;has_many&lt;/code&gt;の関連を定義&lt;/h4&gt;&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# クラス定義&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  has_many &lt;span class=&quot;synConstant&quot;&gt;:posts&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Post&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  belongs_to &lt;span class=&quot;synConstant&quot;&gt;:user&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;# ファクトリー定義&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;FactoryGirl&lt;/span&gt;.define &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  factory &lt;span class=&quot;synConstant&quot;&gt;:user&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    name &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;MyString&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+
+    factory &lt;span class=&quot;synConstant&quot;&gt;:user_with_posts&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;# ignoreブロックでDBの属性とは関係ない属性を定義&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;# FactoryGirl 4.5以降はignoreではなくtransientを使う&lt;/span&gt;
+      ignore &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+        posts_count &lt;span class=&quot;synConstant&quot;&gt;5&lt;/span&gt;
+      &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+      &lt;span class=&quot;synComment&quot;&gt;# userに関連したpostを作成する&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;#   user - 作成されたuserインスタンス自身&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;#   evaluator - ignore(transient)内の属性を含むファクトリのすべての属性を保持&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;#   create_listの第2引数は、作成する関連をもったレコードの数を指定する&lt;/span&gt;
+      after(&lt;span class=&quot;synConstant&quot;&gt;:create&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;user&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;evaluator&lt;/span&gt;|
+        create_list(&lt;span class=&quot;synConstant&quot;&gt;:post&lt;/span&gt;, evaluator.posts_count, &lt;span class=&quot;synConstant&quot;&gt;user&lt;/span&gt;: user)
+      &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;# 使い方&lt;/span&gt;
+create(&lt;span class=&quot;synConstant&quot;&gt;:user&lt;/span&gt;).posts.length            &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 0&lt;/span&gt;
+create(&lt;span class=&quot;synConstant&quot;&gt;:user_with_posts&lt;/span&gt;).posts.length &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 5&lt;/span&gt;
+create(&lt;span class=&quot;synConstant&quot;&gt;:user_with_posts&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;posts_count&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;15&lt;/span&gt;).posts.length &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 15&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+FactoryGirlでは`after(:create)`を含め以下4つのコールバックがあります。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;after(&lt;span class=&quot;synConstant&quot;&gt;:build&lt;/span&gt;)      &lt;span class=&quot;synComment&quot;&gt;# FactoryGirl.build, FactoryGirl.createでのbuild後に呼ばれる&lt;/span&gt;
+before(&lt;span class=&quot;synConstant&quot;&gt;:create&lt;/span&gt;) &lt;span class=&quot;synComment&quot;&gt;# FactoryGirl.createで保存される前に呼ばれる&lt;/span&gt;
+after(&lt;span class=&quot;synConstant&quot;&gt;:create&lt;/span&gt;)    &lt;span class=&quot;synComment&quot;&gt;# FactoryGirl.createで保存される後に呼ばれる&lt;/span&gt;
+after(&lt;span class=&quot;synConstant&quot;&gt;:stub&lt;/span&gt;)       &lt;span class=&quot;synComment&quot;&gt;# FactoryGirl.build_stubbedでスタブされた後に呼ばれる&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;factory_girl_cheat_samples&quot;&gt;5. Factoryのサンプル集&lt;/h3&gt;&lt;h4 id=&quot;factory_girl_cheat_samples1&quot;&gt;5.1. transientとinitialize_with&lt;/h4&gt;&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Factory定義&lt;/span&gt;
+factory &lt;span class=&quot;synConstant&quot;&gt;:region&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  transient { continent &lt;span class=&quot;synConstant&quot;&gt;nil&lt;/span&gt; }
+
+  code &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;M&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+  name &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Comunidad de Madrid&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+
+  country &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; continent
+      &lt;span class=&quot;synType&quot;&gt;FactoryGirl&lt;/span&gt;.create(&lt;span class=&quot;synConstant&quot;&gt;:country&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;continent&lt;/span&gt;: continent)
+    &lt;span class=&quot;synStatement&quot;&gt;else&lt;/span&gt;
+      &lt;span class=&quot;synType&quot;&gt;FactoryGirl&lt;/span&gt;.create(&lt;span class=&quot;synConstant&quot;&gt;:country&lt;/span&gt;)
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# Regionをcodeとcountryで検索する、存在しない場合は作成する&lt;/span&gt;
+  initialize_with &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    &lt;span class=&quot;synType&quot;&gt;Region&lt;/span&gt;.find_or_initialize_by(&lt;span class=&quot;synConstant&quot;&gt;code&lt;/span&gt;: code, &lt;span class=&quot;synConstant&quot;&gt;country&lt;/span&gt;: country)
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/thoughtbot/factory_girl&quot;&gt;thoughtbot/factory_girl &amp;middot; GitHub&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/thoughtbot/factory_girl/blob/master/GETTING_STARTED.md&quot;&gt;factory_girl/GETTING_STARTED.md at master &amp;middot; thoughtbot/factory_girl &amp;middot; GitHub&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Fri, 02 Jan 2015 13:51:55 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450076592597</guid>
+          
+            <category>Rails中級</category>
+          
+            <category>Rails Test</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>RSpec/Capybara/Capybara-Webkitの導入方法</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20150101/1420093487</link>
+          <description>&lt;p&gt;RSpecの基本について理解している人を対象に、「&lt;b&gt;RSpecのテストに必要なGem、モデル、コントローラー、Feature(Capybare)、JavaScriptなどの基本的なテストの書き方&lt;/b&gt;」についてまとめました。&lt;/p&gt;&lt;p&gt;下記のサイトも参考になります。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20150102/1420174315&quot; target=&quot;_blank&quot;&gt;Factory Girl Rails のチートシート&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20150103/1420280252&quot; target=&quot;_blank&quot;&gt;RSpec/Capybara/Capybara-Webkit のレシピ集&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作環境&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Mac OS X 10&lt;/li&gt;
+&lt;li&gt;Ruby 2.1&lt;/li&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;li&gt;rspec-rails 3.1.0&lt;/li&gt;
+&lt;li&gt;shoulda-matchers 2.6.2&lt;/li&gt;
+&lt;li&gt;factory_girl_rails 4.4.1&lt;/li&gt;
+&lt;li&gt;capybara   2.4.1&lt;/li&gt;
+&lt;li&gt;Phantomjs  1.9.8&lt;/li&gt;
+&lt;li&gt;poltergeist 1.5.1&lt;/li&gt;
+&lt;li&gt;capybara-webkit 1.3.0&lt;/li&gt;
+&lt;li&gt;database_cleaner 1.3.0&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#rspec-preapre-ut-to-e2e&quot;&gt;UTからE2Eテストのための準備（RSpec, FactoryGirlなど）&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#rspec-model&quot;&gt;Modelのテスト&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#rspec-controller&quot;&gt;Controllerのテスト&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#rspec-helper&quot;&gt;Helperのテスト&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#rspec-api&quot;&gt;APIのテスト&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#rspec-e2e-features&quot;&gt;E2E(Features)のテスト&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#rspec-prepare-capybara-webkit&quot;&gt;E2Eテスト(JavaScript)のための準備（Capybara-Webkitなど）&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#rspec-prepare-javascript-poltergist&quot;&gt;E2Eテスト(JavaScript)のための準備（PhantomJS, Poltergistなど）&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;rspec-preapre-ut-to-e2e&quot;&gt;1. UTからE2Eテストのための準備（RSpec, FactoryGirlなど）&lt;/h3&gt;&lt;code&gt;Gemfile&lt;/code&gt;に以下を追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Gemfile&lt;/span&gt;
+
+group &lt;span class=&quot;synConstant&quot;&gt;:development&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:test&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# デバッグに便利なGem&lt;/span&gt;
+  gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;pry-rails&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;  &lt;span class=&quot;synComment&quot;&gt;# rails console(もしくは、rails c)でirbの代わりにpryを使われる&lt;/span&gt;
+  gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;pry-doc&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;    &lt;span class=&quot;synComment&quot;&gt;# methodを表示&lt;/span&gt;
+  gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;pry-byebug&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# デバッグを実施(Ruby 2.0以降で動作する)&lt;/span&gt;
+  gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;pry-stack_explorer&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# スタックをたどれる&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# RSpecの基本的なGem&lt;/span&gt;
+  gem &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;rspec-rails&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+  gem &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;shoulda-matchers&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+  gem &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;factory_girl_rails&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# E2Eテストを実施するために必要&lt;/span&gt;
+  gem &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;capybara&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;rspecの設定ファイルを作成する&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;bundle install
+rails g rspec:install&lt;/pre&gt;&lt;p&gt;設定ファイルに設定をする(&lt;code&gt;Add&lt;/code&gt;を記載している)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# spec/rails_helper.rb&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# This file is copied to spec/ when you run &#39;rails generate rspec:install&#39;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;ENV&lt;/span&gt;[&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;RAILS_ENV&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;] ||= &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;test&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;spec_helper&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;File&lt;/span&gt;.expand_path(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;../../config/environment&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;__FILE__&lt;/span&gt;)
+&lt;span class=&quot;synPreProc&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;rspec/rails&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# Add additional requires below this line. Rails is not loaded until this point!&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;capybara/rails&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;   &lt;span class=&quot;synComment&quot;&gt;# Add&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;capybara/rspec&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;   &lt;span class=&quot;synComment&quot;&gt;# Add&lt;/span&gt;
+
+
+&lt;span class=&quot;synType&quot;&gt;RSpec&lt;/span&gt;.configure &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;config&lt;/span&gt;|
+  &lt;span class=&quot;synComment&quot;&gt;# FactoryGirl でレシーバ無しでFactoryGirlのメソッド呼び出しを可能にする&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# Ex: FactoryGirl.create(:post) =&amp;gt; create(:post)&lt;/span&gt;
+  config.include &lt;span class=&quot;synType&quot;&gt;FactoryGirl&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Syntax&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Methods&lt;/span&gt;  &lt;span class=&quot;synComment&quot;&gt;# Add&lt;/span&gt;
+  ...
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;rspec-model&quot;&gt;2. Modelのテスト&lt;/h3&gt;&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;基本&lt;/h5&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;ビジネスロジックが集まる箇所なので、基本的にはテストを書く。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;attr_accessor&lt;/code&gt;、&lt;code&gt;presence: true&lt;/code&gt;などバグが入る可能性が少ない箇所はテストは書かない。&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;ModelとFactoryの生成&lt;/h5&gt;
+    &lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ rails g rspec:model post
+      create  spec/models/post_spec.rb
+      invoke  factory_girl
+      create    spec/factories/posts.rb&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;モデルのテストの作成&lt;/h5&gt;
+    &lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# テスト対象のモデルファイル&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# app/models/post.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Post&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  validates &lt;span class=&quot;synConstant&quot;&gt;:title&lt;/span&gt;,   &lt;span class=&quot;synConstant&quot;&gt;presence&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;uniquness&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;
+  validates &lt;span class=&quot;synConstant&quot;&gt;:content&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;presence&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;length&lt;/span&gt;: { &lt;span class=&quot;synConstant&quot;&gt;maximum&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;500&lt;/span&gt; }
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;# テストファイル&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# spec/models/post_spec.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;rails_helper&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+
+&lt;span class=&quot;synType&quot;&gt;RSpec&lt;/span&gt;.describe &lt;span class=&quot;synType&quot;&gt;Post&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:type&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;:model&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  describe &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;#title&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    it { is_expected.to validate_presence_of(&lt;span class=&quot;synConstant&quot;&gt;:title&lt;/span&gt;) }
+    it { is_expected.to validate_uniqueness_of(&lt;span class=&quot;synConstant&quot;&gt;:title&lt;/span&gt;) }
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+  describe &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;#content&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    it { is_expected.to validate_presence_of(&lt;span class=&quot;synConstant&quot;&gt;:content&lt;/span&gt;) }
+    it { is_expected.to ensure_length_of(&lt;span class=&quot;synConstant&quot;&gt;:content&lt;/span&gt;) }
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;参照：&lt;a href=&quot;http://thoughtbot.github.io/shoulda-matchers/v2.7.0/&quot; target=&quot;_blank&quot;&gt;Shoulda Matcherの公式ドキュメント v2.7.0&lt;/a&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;rspec-controller&quot;&gt;3. Controllerのテスト&lt;/h3&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;基本&lt;/h5&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;E2E(Features)と重複するので、画面入力で制御されていてその異常パラメーターがこないなどの異常系をテストする&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;コントローラーのテストで検証すること&lt;/h5&gt;
+    &lt;p&gt; - レスポンスのステータス&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;expect(response).to be_success
+expect(response[&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Contetn-Type&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;]).to =~ &lt;span class=&quot;synSpecial&quot;&gt;%r^&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;text/html!&lt;/span&gt;
+&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;ビューに渡されるインスタンス変数&lt;/li&gt;
+&lt;/ul&gt;&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;expect(assins(&lt;span class=&quot;synConstant&quot;&gt;:entries&lt;/span&gt;)).to == &lt;span class=&quot;synType&quot;&gt;Entry&lt;/span&gt;.all
+&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;描画したテンプレート&lt;/li&gt;
+&lt;/ul&gt;&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;expect(response).to render_template(&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;index&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;)
+expect(response).to redirect_to(entries_url)
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;ModelとFactoryの生成&lt;/h5&gt;
+    &lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rails g rspec:controller post
+      create  spec/controllers/post_controller_spec.rb&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;コントローラーのテスト作成&lt;/h5&gt;
+    &lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# テスト対象のコントローラーファイル&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# app/controllers/posts_controller.rb&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# POST /posts&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# POST /posts.json&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;create&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;@post&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Post&lt;/span&gt;.new(post_params)
+
+  respond_to &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;format&lt;/span&gt;|
+    &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;@post&lt;/span&gt;.save
+      format.html { redirect_to &lt;span class=&quot;synIdentifier&quot;&gt;@post&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;notice&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Post was successfully created.&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; }
+      format.json { render &lt;span class=&quot;synConstant&quot;&gt;:show&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;status&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:created&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;location&lt;/span&gt;: &lt;span class=&quot;synIdentifier&quot;&gt;@post&lt;/span&gt; }
+    &lt;span class=&quot;synStatement&quot;&gt;else&lt;/span&gt;
+      format.html { render &lt;span class=&quot;synConstant&quot;&gt;:new&lt;/span&gt; }
+      format.json { render &lt;span class=&quot;synConstant&quot;&gt;json&lt;/span&gt;: &lt;span class=&quot;synIdentifier&quot;&gt;@post&lt;/span&gt;.errors, &lt;span class=&quot;synConstant&quot;&gt;status&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:unprocessable_entity&lt;/span&gt; }
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;# テストファイル&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# spec/controllers/posts_controller_spec.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;rails_helper&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+
+&lt;span class=&quot;synType&quot;&gt;RSpec&lt;/span&gt;.describe &lt;span class=&quot;synType&quot;&gt;PostsController&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:type&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;:controller&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;valid_attributes&lt;/span&gt;
+    { &lt;span class=&quot;synConstant&quot;&gt;title&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;title&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;content&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;content&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; }
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;invalid_attributes&lt;/span&gt;
+    { &lt;span class=&quot;synConstant&quot;&gt;title&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;content&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt; }
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  describe &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;POST create&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    describe &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;with valid params&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      it &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;creates a new Post&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+        expect {
+          post &lt;span class=&quot;synConstant&quot;&gt;:create&lt;/span&gt;, {&lt;span class=&quot;synConstant&quot;&gt;:post&lt;/span&gt; =&amp;gt; valid_attributes}
+        }.to change(&lt;span class=&quot;synType&quot;&gt;Post&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:count&lt;/span&gt;).by(&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;)
+      &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+      it &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;assigns a newly created post as @post&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+        post &lt;span class=&quot;synConstant&quot;&gt;:create&lt;/span&gt;, {&lt;span class=&quot;synConstant&quot;&gt;:post&lt;/span&gt; =&amp;gt; valid_attributes}
+        expect(assigns(&lt;span class=&quot;synConstant&quot;&gt;:post&lt;/span&gt;)).to be_a(&lt;span class=&quot;synType&quot;&gt;Post&lt;/span&gt;)
+        expect(assigns(&lt;span class=&quot;synConstant&quot;&gt;:post&lt;/span&gt;)).to be_persisted
+      &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+      it &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;redirects to the created post&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+        post &lt;span class=&quot;synConstant&quot;&gt;:create&lt;/span&gt;, {&lt;span class=&quot;synConstant&quot;&gt;:post&lt;/span&gt; =&amp;gt; valid_attributes}
+        expect(response).to redirect_to(&lt;span class=&quot;synType&quot;&gt;Post&lt;/span&gt;.last)
+      &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+    describe &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;with invalid params&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      it &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;assigns a newly created but unsaved post as @post&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+        post &lt;span class=&quot;synConstant&quot;&gt;:create&lt;/span&gt;, {&lt;span class=&quot;synConstant&quot;&gt;:post&lt;/span&gt; =&amp;gt; invalid_attributes}
+        expect(assigns(&lt;span class=&quot;synConstant&quot;&gt;:post&lt;/span&gt;)).to be_a_new(&lt;span class=&quot;synType&quot;&gt;Post&lt;/span&gt;)
+      &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+      it &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;re-renders the &#39;new&#39; template&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+        post &lt;span class=&quot;synConstant&quot;&gt;:create&lt;/span&gt;, {&lt;span class=&quot;synConstant&quot;&gt;:post&lt;/span&gt; =&amp;gt; invalid_attributes}
+        expect(response).to render_template(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;new&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;)
+      &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;参照：&lt;a href=&quot;http://thoughtbot.github.io/shoulda-matchers/v2.7.0/&quot; target=&quot;_blank&quot;&gt;Shoulda Matcherの公式ドキュメント v2.7.0&lt;/a&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;rspec-helper&quot;&gt;4. Heloperのテスト&lt;/h3&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;基本&lt;/h5&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;ヘルパーはロジックをがっつり記載する箇所なので基本的にテストをする&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;helper_specの生成&lt;/h5&gt;
+    &lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rails g rspec:helper application
+      create  spec/helpers/application_helper_spec.rb&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;ヘルパーのテストの作成&lt;/h5&gt;
+    &lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# テスト対象のヘルパーファイル&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# app/helpers/application_helper.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;module&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ApplicationHelper&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;active_if_current&lt;/span&gt;(path)
+    &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;active&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; current_page?(path)
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;# テストファイル&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# spec/helpers/application_helper_spec.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;rails_helper&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+
+&lt;span class=&quot;synType&quot;&gt;RSpec&lt;/span&gt;.describe &lt;span class=&quot;synType&quot;&gt;ApplicationHelper&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:type&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;:helper&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  describe &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;active_if_current&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    subject { helper.active_if_current(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;/any_path&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;) }
+
+    context &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;現在のページが引数のパスと等しい場合&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      it &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+        allow(helper).to receive(&lt;span class=&quot;synConstant&quot;&gt;:current_page?&lt;/span&gt;).and_return(&lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;)
+        expect(subject).to eq &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;active&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+      &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+    context &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;現在のページが引数のパスと等しくない場合&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      it &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+        allow(helper).to receive(&lt;span class=&quot;synConstant&quot;&gt;:current_page?&lt;/span&gt;).and_return(&lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;)
+        expect(subject).to be_nil
+      &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;rspec-api&quot;&gt;5. APIのテスト&lt;/h3&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;基本&lt;/h4&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;APIのテストには、requestsを使います。&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;詳細は次の記事を参照してください。&lt;br /&gt;
+&lt;iframe src=&quot;http://ruby-rails.hatenadiary.com/embed/20150108/1420675366&quot; title=&quot;RailsでAPI作成とAPIのテストのまとめ - Rails Webook&quot; class=&quot;embed-card embed-blogcard&quot; scrolling=&quot;no&quot; frameborder=&quot;0&quot; style=&quot;width: 100%; height: 190px; max-width: 500px; margin: 10px 0px;&quot;&gt;&lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20150108/1420675366&quot;&gt;RailsでAPI作成とAPIのテストのまとめ - Rails Webook&lt;/a&gt;&lt;/iframe&gt;&lt;br /&gt;
+&lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20150108/1420675366&quot;&gt;Rails&amp;#x3067;API&amp;#x4F5C;&amp;#x6210;&amp;#x3068;API&amp;#x306E;&amp;#x30C6;&amp;#x30B9;&amp;#x30C8;&amp;#x306E;&amp;#x307E;&amp;#x3068;&amp;#x3081; - Rails Webook&lt;/a&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;rspec-e2e-features&quot;&gt;6. E2E(Features)のテスト&lt;/h3&gt;&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;基本&lt;/h5&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;E2E(Features)でルート、コントローラー、ビュー、モデルのつながりの１機能のテストをする&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;Feature Specの生成&lt;/h5&gt;
+    &lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rails g rspec:feature post
+      create  spec/features/posts_spec.rb&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;Feature Specのテストの作成&lt;/h5&gt;
+    &lt;p&gt;テスト対象のファイル(ルート、コントローラー、ビュー、モデルファイル)&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;config/routes.rb&lt;/li&gt;
+&lt;li&gt;app/models/post.rb&lt;/li&gt;
+&lt;li&gt;app/controllers/posts_controller.rb (new, createメソッド)&lt;/li&gt;
+&lt;li&gt;app/views/posts/new.html.erb&lt;/li&gt;
+&lt;li&gt;app/views/posts/show.html.erb&lt;/li&gt;
+&lt;li&gt;...&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;br /&gt;
+テストファイルのサンプルです。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# spec/features/post_spec.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;rails_helper&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+
+&lt;span class=&quot;synType&quot;&gt;RSpec&lt;/span&gt;.describe &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Posts&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:type&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;:feature&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  describe &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;新規登録&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    before &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      visit posts_path      &lt;span class=&quot;synComment&quot;&gt;# 一覧画面に遷移&lt;/span&gt;
+      click_link &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;New Post&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# &amp;quot;New Post&amp;quot;リンクを押す&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+    it &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;投稿新規作成画面が表示されること&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      expect(page.current_path).to eq new_post_path
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+    it &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;投稿を新規作成できること&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;# テキストフィールドに値を入力する&lt;/span&gt;
+      fill_in &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Title&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,   &lt;span class=&quot;synConstant&quot;&gt;with&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;タイトル&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+      fill_in &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Content&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;with&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;本文&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+      click_button &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Create Post&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+
+      &lt;span class=&quot;synComment&quot;&gt;# 画面に&amp;quot;Post was ...&amp;quot;と表示されていることを確認&lt;/span&gt;
+      expect(page).to have_content &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Post was successfully created.&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+      expect(page).to have_content &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;タイトル&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+      expect(page).to have_content &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;本文&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+
+      &lt;span class=&quot;synComment&quot;&gt;# データベースに登録された内容を確認(必要に応じて確認)&lt;/span&gt;
+      post = &lt;span class=&quot;synType&quot;&gt;Post&lt;/span&gt;.last
+      expect(post.title).to eq &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;タイトル&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+      expect(post.content).to eq &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;本文&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;CapybaraのDSL：&lt;a href=&quot;https://github.com/jnicklas/capybara#the-dsl&quot; blank=&quot;_blank&quot;&gt;CapybaraのDSL&lt;/a&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;rspec-prepare-capybara-webkit&quot;&gt;7. E2Eテスト(JavaScript)のための準備（Capybara-Webkitなど）&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/thoughtbot/capybara-webkit/wiki/Installing-Qt-and-compiling-capybara-webkit&quot;&gt;QTツールのインストール方法&lt;/a&gt;を見て、QTツールをインストールする。&lt;/p&gt;&lt;p&gt;&lt;code&gt;Gemfile&lt;/code&gt;にJSをテストするためのドライバーの&lt;b&gt;Capybara-Webkit&lt;/b&gt;を追加する。&lt;br /&gt;
+ドライバは別プロセスで実行されるので、テスト毎にデータベースを元の状態に戻せないので、元に戻せるようにするために&lt;b&gt;Database Cleaner&lt;/b&gt;も追加する。&lt;br /&gt;
+&lt;i&gt;Linuxの場合は、&lt;code&gt;headless&lt;/code&gt;というgemと、&lt;code&gt;xvfb-run&lt;/code&gt;というユーティリティのインストールが必要かもしれない。&lt;br /&gt;
+参照: &lt;a href=&quot;https://github.com/thoughtbot/capybara-webkit#ci&quot; target=&quot;_blank&quot;&gt;capybara-webkit on CI&lt;/a&gt;&lt;/i&gt;&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Gemfile&lt;/span&gt;
+group &lt;span class=&quot;synConstant&quot;&gt;:test&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  ...
+
+  &lt;span class=&quot;synComment&quot;&gt;# E2Eテスト(JavaScript)を実施するために必要&lt;/span&gt;
+  gem &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;capybara-webkit&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+  gem &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;database_cleaner&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+Gemをインストールします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;bundle install&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+次に、DatabaseCleanerを利用するように設定を行います。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# spec/rails_helper.rb&lt;/span&gt;
+
+...
+
+&lt;span class=&quot;synPreProc&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;capybara/rails&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;capybara/rspec&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 追加箇所 JavascriptのDriverをwebkitにする&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Capybara&lt;/span&gt;.javascript_driver = &lt;span class=&quot;synConstant&quot;&gt;:webkit&lt;/span&gt;
+
+...
+
+&lt;span class=&quot;synType&quot;&gt;RSpec&lt;/span&gt;.configure &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;config&lt;/span&gt;|
+
+  &lt;span class=&quot;synComment&quot;&gt;# If you&#39;re not using ActiveRecord, or you&#39;d prefer not to run each of your&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# examples within a transaction, remove the following line or assign false&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# instead of true.&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# config.use_transactional_fixtures = true&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# 追加箇所 trueからfalseにする&lt;/span&gt;
+  config.use_transactional_fixtures = &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# 追加箇所 開始&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# suite: RSpecコマンドでテストを実行する単位&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# all:  各テストファイル(xxx_spec.rb)単位&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# each: 各テストケース(it)単位&lt;/span&gt;
+  config.before(&lt;span class=&quot;synConstant&quot;&gt;:suite&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    &lt;span class=&quot;synType&quot;&gt;DatabaseCleaner&lt;/span&gt;.clean_with &lt;span class=&quot;synConstant&quot;&gt;:truncation&lt;/span&gt;  &lt;span class=&quot;synComment&quot;&gt;# テスト開始時にDBをクリーンにする&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# js以外のテスト時は通常のtransactionでデータを削除する&lt;/span&gt;
+  config.before(&lt;span class=&quot;synConstant&quot;&gt;:each&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    &lt;span class=&quot;synType&quot;&gt;DatabaseCleaner&lt;/span&gt;.strategy = &lt;span class=&quot;synConstant&quot;&gt;:transaction&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# jsのテスト時はtruncationで削除する&lt;/span&gt;
+  config.before(&lt;span class=&quot;synConstant&quot;&gt;:each&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;js&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    &lt;span class=&quot;synType&quot;&gt;DatabaseCleaner&lt;/span&gt;.strategy = &lt;span class=&quot;synConstant&quot;&gt;:truncation&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+  config.before(&lt;span class=&quot;synConstant&quot;&gt;:each&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    &lt;span class=&quot;synType&quot;&gt;DatabaseCleaner&lt;/span&gt;.start
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+  config.after(&lt;span class=&quot;synConstant&quot;&gt;:each&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    &lt;span class=&quot;synType&quot;&gt;DatabaseCleaner&lt;/span&gt;.clean
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+  config.after(&lt;span class=&quot;synConstant&quot;&gt;:all&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    &lt;span class=&quot;synType&quot;&gt;DatabaseCleaner&lt;/span&gt;.clean_with &lt;span class=&quot;synConstant&quot;&gt;:truncation&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# all時にDBをクリーンにする&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# 追加箇所 終了&lt;/span&gt;
+
+  ...
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+これで、Specファイル内に次ように&lt;code&gt;js: true&lt;/code&gt;と追記すればJavaScriptのテストが可能になります。&lt;br /&gt;
+&lt;code&gt;js: true&lt;/code&gt;を渡したブロック内がJavaScript用のドライバを利用してテストされます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;describe &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;JavaScriptのテスト&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;js&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# JavaScriptがつかわれている箇所のテスト&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+...
+
+it &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;JavaScriptのテスト&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;js&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# JavaScriptがつかわれている箇所のテスト&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;rspec-prepare-javascript-poltergist&quot;&gt;8. E2Eテスト(JavaScript)のための準備（PhantomJS, Poltergistなど）&lt;/h3&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;E2E(JavaScript)でE2Eと一緒に、AjaxなどのJavaScriptのテストを行う&lt;/li&gt;
+&lt;li&gt;ドライバーはseleniumなどあるが実行時間がかかり、画面が必要なのでCIなどで実行しにくいので、capybara-webkitかpoltergeistが採用されている&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;a href=&quot;http://phantomjs.org/&quot; target=&quot;_blank&quot;&gt;PhantomJS&lt;/a&gt;をインストールする。&lt;/p&gt;&lt;p&gt;&lt;code&gt;Gemfile&lt;/code&gt;にJSをテストするためのドライバーの&lt;b&gt;Poltergeist&lt;/b&gt;を追加する。&lt;br /&gt;
+ドライバは別プロセスで実行されるので、テスト毎にデータベースを元の状態に戻せないので、元に戻せるようにするために&lt;b&gt;Database Cleaner&lt;/b&gt;も追加する。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Gemfile&lt;/span&gt;
+group &lt;span class=&quot;synConstant&quot;&gt;:test&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  ...
+
+  &lt;span class=&quot;synComment&quot;&gt;# E2Eテスト(JavaScript)を実施するために必要&lt;/span&gt;
+  gem &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;poltergeist&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+  gem &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;database_cleaner&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+Gemをインストールします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;bundle install&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+次に、DatabaseCleanerを利用するように設定を行います。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# spec/rails_helper.rb&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# This file is copied to spec/ when you run &#39;rails generate rspec:install&#39;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;ENV&lt;/span&gt;[&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;RAILS_ENV&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;] ||= &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;test&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;spec_helper&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;File&lt;/span&gt;.expand_path(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;../../config/environment&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;__FILE__&lt;/span&gt;)
+&lt;span class=&quot;synPreProc&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;rspec/rails&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# Add additional requires below this line. Rails is not loaded until this point!&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;capybara/rails&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;capybara/rspec&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;capybara/poltergeist&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;  &lt;span class=&quot;synComment&quot;&gt;# Add&lt;/span&gt;
+
+&lt;span class=&quot;synType&quot;&gt;Capybara&lt;/span&gt;.javascript_driver = &lt;span class=&quot;synConstant&quot;&gt;:poltergeist&lt;/span&gt;  &lt;span class=&quot;synComment&quot;&gt;# Add&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# Requires supporting ruby files with custom matchers and macros, etc, in&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# spec/support/ and its subdirectories. Files matching `spec/**/*_spec.rb` are&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# run as spec files by default. This means that files in spec/support that end&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# in _spec.rb will both be required and run as specs, causing the specs to be&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# run twice. It is recommended that you do not name files matching this glob to&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# end with _spec.rb. You can configure this pattern with the --pattern&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# option on the command line or in ~/.rspec, .rspec or `.rspec-local`.&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# The following line is provided for convenience purposes. It has the downside&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# of increasing the boot-up time by auto-requiring all files in the support&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# directory. Alternatively, in the individual `*_spec.rb` files, manually&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# require only the support files necessary.&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# Dir[Rails.root.join(&amp;quot;spec/support/**/*.rb&amp;quot;)].each { |f| require f }&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# Checks for pending migrations before tests are run.&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# If you are not using ActiveRecord, you can remove this line.&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Migration&lt;/span&gt;.maintain_test_schema!
+
+&lt;span class=&quot;synType&quot;&gt;RSpec&lt;/span&gt;.configure &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;config&lt;/span&gt;|
+  &lt;span class=&quot;synComment&quot;&gt;# FactoryGirl でレシーバ無しでFactoryGirlのメソッド呼び出しを可能にする&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# Ex: FactoryGirl.create(:post) =&amp;gt; create(:post)&lt;/span&gt;
+  config.include &lt;span class=&quot;synType&quot;&gt;FactoryGirl&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Syntax&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Methods&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# Remove this line if you&#39;re not using ActiveRecord or ActiveRecord fixtures&lt;/span&gt;
+  config.fixture_path = &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;#{&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt;.root&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;/spec/fixtures&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# If you&#39;re not using ActiveRecord, or you&#39;d prefer not to run each of your&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# examples within a transaction, remove the following line or assign false&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# instead of true.&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# config.use_transactional_fixtures = true&lt;/span&gt;
+  config.use_transactional_fixtures = &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;  &lt;span class=&quot;synComment&quot;&gt;# Change&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# Add Begin&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# suite: RSpecコマンドでテストを実行する単位&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# all:  各テストファイル(xxx_spec.rb)単位&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# each: 各テストケース(it)単位&lt;/span&gt;
+  config.before(&lt;span class=&quot;synConstant&quot;&gt;:suite&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    &lt;span class=&quot;synType&quot;&gt;DatabaseCleaner&lt;/span&gt;.clean_with &lt;span class=&quot;synConstant&quot;&gt;:truncation&lt;/span&gt;  &lt;span class=&quot;synComment&quot;&gt;# テスト開始時にDBをクリーンにする&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# js以外のテスト時は通常のtransactionでデータを削除する&lt;/span&gt;
+  config.before(&lt;span class=&quot;synConstant&quot;&gt;:each&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    &lt;span class=&quot;synType&quot;&gt;DatabaseCleaner&lt;/span&gt;.strategy = &lt;span class=&quot;synConstant&quot;&gt;:transaction&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# jsのテスト時はtruncationで削除する&lt;/span&gt;
+  config.before(&lt;span class=&quot;synConstant&quot;&gt;:each&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;js&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    &lt;span class=&quot;synType&quot;&gt;DatabaseCleaner&lt;/span&gt;.strategy = &lt;span class=&quot;synConstant&quot;&gt;:truncation&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+  config.before(&lt;span class=&quot;synConstant&quot;&gt;:each&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    &lt;span class=&quot;synType&quot;&gt;DatabaseCleaner&lt;/span&gt;.start
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+  config.after(&lt;span class=&quot;synConstant&quot;&gt;:each&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    &lt;span class=&quot;synType&quot;&gt;DatabaseCleaner&lt;/span&gt;.clean
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+  config.after(&lt;span class=&quot;synConstant&quot;&gt;:all&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    &lt;span class=&quot;synType&quot;&gt;DatabaseCleaner&lt;/span&gt;.clean_with &lt;span class=&quot;synConstant&quot;&gt;:truncation&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# all時にDBをクリーンにする&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# Add End&lt;/span&gt;
+
+  ...
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/rspec/rspec-rails&quot; target=&quot;_blank&quot;&gt;RSpec-RailsのGitHubページ&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://thoughtbot.github.io/shoulda-matchers/v2.7.0/&quot; target=&quot;_blank&quot;&gt;Shoulda Matcherの公式ドキュメント v2.7.0&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/jnicklas/capybara#the-dsl&quot; target=&quot;_blank&quot;&gt;CapybaraのDSL&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/teampoltergeist/poltergeist&quot; target=&quot;_blank&quot;&gt;PoltergeistのGitHubページ&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/thoughtbot/capybara-webkit&quot; target=&quot;_blank&quot;&gt;Capybara-WebkitのGitHubページ&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/teampoltergeist/poltergeist&quot; blank=&quot;_blank&quot;&gt;PoltergeistのGitHubページ&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Thu, 01 Jan 2015 15:24:47 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450078648794</guid>
+          
+            <category>Rails中級</category>
+          
+            <category>まとめ</category>
+          
+            <category>Rails Test</category>
+          
+        </item>
+      
+    
+  </channel>
+</rss>

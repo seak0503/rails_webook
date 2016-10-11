@@ -1,0 +1,112 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>Heroku - Rails Webook</title>
+    <link>http://ruby-rails.hatenadiary.com/category/Heroku</link>
+    <description>自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</description>
+    <lastBuildDate>Fri, 18 Dec 2015 02:44:31 +0900</lastBuildDate>
+    <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+    <generator>Hatena::Blog</generator>
+    
+      
+      
+        <item>
+          <title>無料枠内でのHerokuの準備とデプロイ（Mac 10 + Rails 4.2 + MySQL 5.6）</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20150314/1426332751</link>
+          <description>&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150314/20150314010758.jpg&quot; alt=&quot;f:id:nipe880324:20150314010758j:plain&quot; title=&quot;f:id:nipe880324:20150314010758j:plain&quot; class=&quot;hatena-fotolife&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;無料枠内でのHerokuの使うための準備とデプロイの流れについて簡単にまとめました。&lt;br /&gt;
+環境は次の通りです。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Mac OS X 10 Yosemite&lt;/li&gt;
+&lt;li&gt;Ruby 2.2.1&lt;/li&gt;
+&lt;li&gt;Rails 4.2&lt;/li&gt;
+&lt;li&gt;MySQL 5.6&lt;/li&gt;
+&lt;li&gt;heroku-toolbelt 3.40.6&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#heroku-preparation&quot;&gt;Herokuの準備&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#heroku-deploy&quot;&gt;Herokuへデプロイ&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;heroku-preparation&quot;&gt;1. Herokuの準備&lt;/h3&gt;Herokuアカウントを作成する&lt;br /&gt;
+&lt;a href=&quot;https://www.heroku.com/&quot;&gt;Heroku | Cloud Application Platform&lt;/a&gt;&lt;/p&gt;&lt;p&gt;Heroku Toolbeltをインストール&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ brew install heroku-toolbelt&lt;/pre&gt;&lt;p&gt;Herokuにローカルの公開鍵(~/.ssh/id_ras.pub)を登録&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ heroku keys:add&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;heroku-deploy&quot;&gt;2. Herokuへデプロイ&lt;/h3&gt;既にRailsのアプリがあることが前提です。&lt;br /&gt;
+また、&lt;code&gt;database.yml&lt;/code&gt;を下記のようにしておくことで、環境変数で値を設定できる世にしておきます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# config/database.yml
+
+production:
+  adapter:  mysql2   # postgresの場合はadapterをpostgresql
+  encoding: utf8
+  database: &amp;lt;%= ENV[&amp;#39;DB_NAME&amp;#39;] %&amp;gt;
+  username: &amp;lt;%= ENV[&amp;#39;DB_USERNAME&amp;#39;] %&amp;gt;
+  password: &amp;lt;%= ENV[&amp;#39;DB_PASSWORD&amp;#39;] %&amp;gt;
+  host:     &amp;lt;%= ENV[&amp;#39;DB_HOSTNAME&amp;#39;] %&amp;gt;
+  port:     &amp;lt;%= ENV[&amp;#39;DB_PORT&amp;#39;] %&amp;gt;&lt;/pre&gt;&lt;p&gt;Herokuにコマンドライン上でログイン&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ heroku login&lt;/pre&gt;&lt;p&gt;Herokuアプリを作成&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ cd my-project/
+$ heroku apps:create [app_name]
+# ※ app_nameは小文字で始まり、小文字、数字、-のみしかつかえません&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+Herokuのリモートリポジトリを確認&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ git remote -v
+heroku https://git.heroku.com/mysterious-crag-1792.git (fetch)
+heroku  https://git.heroku.com/mysterious-crag-1792.git (push)
+origin  git@github.com:nipe0324/trough.git (fetch)
+origin  git@github.com:nipe0324/trough.git (push)&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+Herokuのリモートリポジトリが適切でない場合は、下記コマンドで設定&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ heroku git:remote -a [APP_NAME]&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+無料のDB(※)を追加する&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# MySQLの場合
+$ heroku addons:create cleardb:ignite
+
+# PostgreSQLの場合
+$ heroku addons:create heroku-postgresql&lt;/pre&gt;&lt;p&gt;&lt;i&gt;※ 無料ですが、クレジットカードの登録が必要です。また、5MB以上で自動でデータが消える？らしいです。&lt;/i&gt;&lt;/p&gt;&lt;p&gt;HerokuのアプリにDB情報の環境変数を設定する&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# 設定を確認する
+$ heroku config
+# DB接続の書式 mysql://[username]:[password]@[hostname]/[db_name]?reconnect=true
+
+# 環境変数を設定する
+$ heroku config:add DB_NAME=&amp;#34;[db_name]&amp;#34;
+$ heroku config:add DB_USERNAME=&amp;#34;[username]&amp;#34;
+$ heroku config:add DB_PASSWORD=&amp;#34;[password]&amp;#34;
+$ heroku config:add DB_HOSTNAME=&amp;#34;[hostname]&amp;#34;
+$ heroku config:add DB_PORT=&amp;#34;3306&amp;#34;
+# postgresの場合DB_PORTは5432
+
+# 設定できたことを確認する
+$ heroku config&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+ローカルリポジトリをHeorkuへプッシュ（デプロイ）&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ git push heroku master&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+Heroku上でコマンドの実行(Railsの場合は以下の通り)&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ heroku run rake db:migrate
+
+# 必要ならシードデータもいれておく
+$ heroku run rake db:seed&lt;/pre&gt;&lt;p&gt;デプロイしたアプリをブラウザで開く&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ heroku open&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+デプロイしたアプリのログ確認&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ heroku logs&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+以上です。&lt;/p&gt;
+
+&lt;/div&gt;</description>
+          <pubDate>Sat, 14 Mar 2015 20:32:31 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450088022039</guid>
+          
+            <category>インフラ</category>
+          
+            <category>Heroku</category>
+          
+        </item>
+      
+    
+  </channel>
+</rss>

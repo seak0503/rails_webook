@@ -1,0 +1,1003 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>UI/UX - Rails Webook</title>
+    <link>http://ruby-rails.hatenadiary.com/category/UI%2FUX</link>
+    <description>自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</description>
+    <lastBuildDate>Fri, 18 Dec 2015 02:44:31 +0900</lastBuildDate>
+    <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+    <generator>Hatena::Blog</generator>
+    
+      
+      
+        <item>
+          <title>Railsでjpostal.jpを使って住所を自動入力する</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20150112/1421029284</link>
+          <description>&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150110/20150110203636.jpg&quot; alt=&quot;f:id:nipe880324:20150110203636j:plain:w480&quot; title=&quot;f:id:nipe880324:20150110203636j:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+&lt;i&gt;Photo by &lt;a href=&quot;https://www.flickr.com/photos/bevgoodwin/&quot;&gt;Flickr: Bev Goodwin&amp;#39;s Photostream&lt;/a&gt;&lt;/i&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;郵便番号を入力することで、自動的に住所を入力できるjQueryプラグインの&lt;a href=&quot;https://github.com/ninton/jquery.jpostal.js/&quot; target=&quot;_blank&quot;&gt;jpostal.jp&lt;/a&gt;の導入方法と使い方について説明します。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails 4.2.0&lt;/li&gt;
+&lt;li&gt;jquery.jpostal.js 2.2&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#jpostaljp_compare&quot;&gt;郵便番号を自動入力するjQueryプラグインの簡単な比較&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#jpostaljp_install&quot;&gt;jquery.jpostal.js をインストール&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#jpostaljp_usage&quot;&gt;jquery.jpostal.js を使う&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#jpostaljp_prefecture&quot;&gt;プルダウンの都道府県に対応する&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;jpostaljp_compare&quot;&gt;1. 郵便番号を自動入力するjQueryプラグインの簡単な比較&lt;/h3&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/ninton/jquery.jpostal.js/&quot; target=&quot;_blank&quot;&gt;jpostal.jp&lt;/a&gt; - Nintonという日本の会社が開発している。定期的な郵便番号データの更新は必要なし。Commitログから2015/1月時点でも定期的にメンテナンスしていそう。&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://ninkigumi.com/ajaxzip3/&quot; target=&quot;_blank&quot;&gt;ajaxzip3.js&lt;/a&gt; - 人気組という日本の会社が開発している。ファイルの更新日からメンテされてなさそう。定期的な郵便番号データの更新は必要なしそうだが、ソースと同様に郵便番号データも更新されているかは不明。&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://yamitake.github.io/jquery.ajaxzip.js/&quot; target=&quot;_blank&quot;&gt;個人が開発。ボタンを押すことで郵便番号をサーバーから取得する方式。郵便番号データを自分でアップデートする必要がある。&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;jpostaljp_install&quot;&gt;2. jquery.jpostal.js をインストール&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/ninton/jquery.jpostal.js/&quot; target=&quot;_blank&quot;&gt;jpostal.jp - GitHub&lt;/a&gt;から&lt;code&gt;jquery.jposta.js&lt;/code&gt;というファイルを取得し、&lt;code&gt;vendor/assets/javascripts/&lt;/code&gt;に配置します。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;次に&lt;code&gt;assets/javascripts/application.js&lt;/code&gt;で&lt;code&gt;jquery.jpostal&lt;/code&gt;をロードするように記載します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;//= require jquery.jpostal &lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;jpostaljp_usage&quot;&gt;3. jquery.jpostal.js を使う&lt;/h3&gt;次のような「郵便番号入力欄が１つ」で、「都道府県、市町村、番地、建物」となっている画面に導入してみます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150110/20150110203958.jpg&quot; alt=&quot;f:id:nipe880324:20150110203958j:plain:w480&quot; title=&quot;f:id:nipe880324:20150110203958j:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;CoffeeScriptで&lt;code&gt;jpostal&lt;/code&gt;メソッドを呼び出します。&lt;br /&gt;
+&lt;code&gt;postcode&lt;/code&gt;オプションに「郵便番号の入力フィールドのID属性」を指定します。&lt;br /&gt;
+また、&lt;code&gt;address&lt;/code&gt;オプションに「自動入力される入力フィールドのID属性」を指定します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# CoffeeScript&lt;/span&gt;
+$ -&amp;gt;
+  &lt;span class=&quot;synError&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;#address_zipcode&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;).jpostal({
+    &lt;span class=&quot;synComment&quot;&gt;# 郵便番号の入力欄が１つの場合&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# 111-1111と1111111のどちらの入力形式でも住所を自動入力してくれる&lt;/span&gt;
+    postcode : [ &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;#address_zipcode&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; ],
+
+    &lt;span class=&quot;synComment&quot;&gt;# 郵便番号の入力欄が3桁-4桁で分かれている場合&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# postcode : [ &#39;#zipcode1&#39;, &#39;#zipcode2&#39; ]&lt;/span&gt;
+
+
+
+    &lt;span class=&quot;synComment&quot;&gt;# 入力項目フォーマット&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;#   %3  都道府県&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;#   %4  市区町村&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;#   %5  町域&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;#   %6  大口事業所の番地&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;#   %7  大口事業所の名称&lt;/span&gt;
+    address  : {
+                  &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;#address_prefecture_name&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; : &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;%3&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synComment&quot;&gt;# 都道府県が入力される&lt;/span&gt;
+                  &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;#address_city&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;            : &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;%4%5&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synComment&quot;&gt;# 市区町村と町域が入力される&lt;/span&gt;
+                  &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;#address_street&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;          : &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;%6%7&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# 大口事務所の番地と名称が入力される&lt;/span&gt;
+                }
+  })
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+これで&lt;b&gt;郵便番号を入力すると、自動的に住所が入力&lt;/b&gt;されます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150110/20150110204302.jpg&quot; alt=&quot;f:id:nipe880324:20150110204302j:plain:w480&quot; title=&quot;f:id:nipe880324:20150110204302j:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;しかし、「都道府県」がうまく入力されていません。&lt;br /&gt;
+これは、プルダウンの&lt;code&gt;option&lt;/code&gt;のvalue属性がPrefectureのidを表示しており、jpostal.jsで取得した都道府県は文字列（東京都、埼玉県など）のため、value属性がマッチせず、自動で選択されません。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Railsのビューのコード&lt;/span&gt;
+&amp;lt;%= f.label &lt;span class=&quot;synConstant&quot;&gt;:prefecture_id&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;都道府県&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; %&amp;gt;&amp;lt;br&amp;gt;
+&amp;lt;%= f.collection_select &lt;span class=&quot;synConstant&quot;&gt;:prefecture_id&lt;/span&gt;, &lt;span class=&quot;synType&quot;&gt;Prefecture&lt;/span&gt;.all, &lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;include_blank&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;  %&amp;gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;# 作祭されたHTMLソース&lt;/span&gt;
+&amp;lt;label &lt;span class=&quot;synStatement&quot;&gt;for&lt;/span&gt;=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;address_prefecture_id&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&amp;gt;都道府県&amp;lt;/label&amp;gt;&amp;lt;br&amp;gt;
+&amp;lt;select name=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;address[prefecture_id]&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; id=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;address_prefecture_id&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&amp;gt;
+  &amp;lt;option value=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;&amp;gt;&amp;lt;/option&amp;gt;
+  &amp;lt;option value=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&amp;gt;東京都&amp;lt;/option&amp;gt;
+  &amp;lt;option value=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&amp;gt;埼玉県&amp;lt;/option&amp;gt;
+  &amp;lt;option value=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&amp;gt;神奈川県&amp;lt;/option&amp;gt;
+  &amp;lt;option value=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;4&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&amp;gt;千葉県&amp;lt;/option&amp;gt;
+  &amp;lt;option value=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;5&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&amp;gt;茨城県&amp;lt;/option&amp;gt;
+  &amp;lt;option value=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;6&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&amp;gt;群馬県&amp;lt;/option&amp;gt;
+&amp;lt;/select&amp;gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+そのため、プルダウンの&lt;code&gt;option&lt;/code&gt;のvalue属性をidから都道府県に変更する必要があります。&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;jpostaljp_prefecture&quot;&gt;プルダウンの都道府県に対応する&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;まず、ビューのvalue属性をIDから都道府県にします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Railsのビューのコード&lt;/span&gt;
+&amp;lt;%= f.label &lt;span class=&quot;synConstant&quot;&gt;:prefecture_id&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;都道府県&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; %&amp;gt;&amp;lt;br&amp;gt;
+&amp;lt;%= f.collection_select &lt;span class=&quot;synConstant&quot;&gt;:prefecture_id&lt;/span&gt;, &lt;span class=&quot;synType&quot;&gt;Prefecture&lt;/span&gt;.all, &lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;include_blank&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;  %&amp;gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;# 作祭されたHTMLソース （value属性がIDから都道府県名になっている）&lt;/span&gt;
+&amp;lt;label &lt;span class=&quot;synStatement&quot;&gt;for&lt;/span&gt;=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;address_prefecture_name&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&amp;gt;都道府県&amp;lt;/label&amp;gt;&amp;lt;br&amp;gt;
+&amp;lt;select name=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;address[prefecture_name]&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; id=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;address_prefecture_name&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&amp;gt;
+  &amp;lt;option value=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;&amp;gt;&amp;lt;/option&amp;gt;
+  &amp;lt;option value=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;東京都&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&amp;gt;東京都&amp;lt;/option&amp;gt;
+  &amp;lt;option value=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;埼玉県&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&amp;gt;埼玉県&amp;lt;/option&amp;gt;
+  &amp;lt;option value=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;神奈川県&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&amp;gt;神奈川県&amp;lt;/option&amp;gt;
+  &amp;lt;option value=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;千葉県&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&amp;gt;千葉県&amp;lt;/option&amp;gt;
+  &amp;lt;option value=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;茨城県&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&amp;gt;茨城県&amp;lt;/option&amp;gt;
+  &amp;lt;option value=&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;群馬県&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&amp;gt;群馬県&amp;lt;/option&amp;gt;
+&amp;lt;/select&amp;gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+次に、このソースコードに対応するために、モデルに&lt;code&gt;prefecture_name&lt;/code&gt;メソッドを定義します。こうすることで、ビューやコントローラーから&lt;code&gt;prefecture_name&lt;/code&gt;を扱えるようになります。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/model/address.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Address&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  belongs_to &lt;span class=&quot;synConstant&quot;&gt;:prefecture&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;prefecture_name&lt;/span&gt;
+    prefecture.try(&lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;)
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;prefecture_name=&lt;/span&gt;(prefecture_name)
+    &lt;span class=&quot;synConstant&quot;&gt;self&lt;/span&gt;.prefecture = &lt;span class=&quot;synType&quot;&gt;Prefecture&lt;/span&gt;.find_by(&lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;: prefecture_name)
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+最後に、StrongParametersに&lt;code&gt;prefecture_name&lt;/code&gt;を追加しておきます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/addresses_controller.rb&lt;/span&gt;
+
+&lt;span class=&quot;synStatement&quot;&gt;private&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;address_params&lt;/span&gt;
+      params.require(&lt;span class=&quot;synConstant&quot;&gt;:address&lt;/span&gt;).permit(&lt;span class=&quot;synConstant&quot;&gt;:zipcode&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:prefecture_name&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:city&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:street&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:building&lt;/span&gt;)
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+では、郵便番号を入力してみましょう。「都道府県」も自動で入力されるようになりました。&lt;br /&gt;
+もちろん、作成、更新なども問題なく行えます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150110/20150110205249.jpg&quot; alt=&quot;f:id:nipe880324:20150110205249j:plain:w480&quot; title=&quot;f:id:nipe880324:20150110205249j:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;以上です。&lt;/p&gt;
+
+&lt;/div&gt;</description>
+          <pubDate>Mon, 12 Jan 2015 11:21:24 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450079839266</guid>
+          
+            <category>Rails入門</category>
+          
+            <category>UI/UX</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>Railsでページネーションを実装するGemのまとめ</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20141118/1416314608</link>
+          <description>&lt;p&gt;Railsでページネーションを実装するGemとして&lt;a href=&quot;https://www.ruby-toolbox.com/categories/pagination&quot; target=&quot;blank&quot;&gt;The Ruby Toolbox - Pagination&lt;/a&gt;で確認すると、有名どころとしては、&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Kaminari&lt;/li&gt;
+&lt;li&gt;Will Paginate&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;です。&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;比較&lt;/h3&gt;
+    &lt;p&gt;それぞれRails上で使ってみて、比較してみました。&lt;br /&gt;
+個人的には、&lt;code&gt;Kaminari&lt;/code&gt;をお勧めします。&lt;br /&gt;
+理由としては次の比較表をみれば、一目瞭然ですが、ドキュメントやカスタマイズ性が高いところがあげられます。&lt;/p&gt;&lt;p&gt;&lt;table class=&quot;table table-striped&quot;&gt;
+  &lt;tr&gt;
+    &lt;th style=&quot;width:80px;&quot;&gt;&lt;/th&gt;&lt;th&gt;kaminari&lt;/th&gt;&lt;th&gt;will_pagineta&lt;/th&gt;&lt;th&gt;所感&lt;/th&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;機能面&lt;/td&gt;
+    &lt;td&gt;◎&lt;/td&gt;
+    &lt;td&gt;◎&lt;/td&gt;
+    &lt;td&gt;どちらのGemも「ページのサマリー」、「ページネーションのリンク」をヘルパーで１行で追加できるので、機能的にはほぼ同じです。&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;国際化対応&lt;/td&gt;
+    &lt;td&gt;◯&lt;/td&gt;
+    &lt;td&gt;◯&lt;/td&gt;
+    &lt;td&gt;i18nはどちらも可能&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;ドキュメント&lt;/td&gt;
+    &lt;td&gt;◯&lt;/td&gt;
+    &lt;td&gt;△&lt;/td&gt;
+    &lt;td&gt;GitHubのトップページをみれば一目瞭然！kaminariの方が圧倒的に充実している。&lt;a href=&quot;https://github.com/amatsuda/kaminari&quot; target=&quot;_blank&quot;&gt;kaminri&lt;/a&gt; / &lt;a href=&quot;https://github.com/mislav/will_paginate&quot;&gt;will_pagination&lt;/a&gt;&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;カスタマイズ性&lt;/td&gt;
+    &lt;td&gt;◎&lt;/td&gt;
+    &lt;td&gt;△&lt;/td&gt;
+    &lt;td&gt;Bootstrapなどのテーマを適用できること、Viewファイルやページネーションの設定などのカスタマイズ性もあるのはKaminariです。will_paginateはページ辺りの表示件数を変えれるぐらい？&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;ページネーションの使い方&lt;/h3&gt;
+    &lt;p&gt;ページネーションの実装方法を下記に記載しましたので、興味ある方は一読ください。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20141113/1415874683&quot; target=&quot;_blank&quot;&gt;kaminariでページネーションを行う&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20141114/1415967206&quot; target=&quot;_blank&quot;&gt;will_paginateでページネーションを行う&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20141115/1416021886&quot; target=&quot;_blank&quot;&gt;kaminariとinfinite scrollを使って動的ページロードを行う&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;br /&gt;
+以上です。&lt;/p&gt;
+
+&lt;/div&gt;</description>
+          <pubDate>Tue, 18 Nov 2014 21:43:28 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450072957192</guid>
+          
+            <category>まとめ</category>
+          
+            <category>UI/UX</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>RailsでInfinite Scrollとkaminariを使いスクロールによる動的にページロード機能を実装する</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20141115/1416021886</link>
+          <description>
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;infinite scrollとは&lt;/h3&gt;
+    &lt;p&gt;&lt;a href=&quot;https://github.com/paulirish/infinite-scroll&quot; target=&quot;_blank&quot;&gt;infinite scroll&lt;/a&gt;とは、TwitterやFacebookのようにページの下までスクロールしたら、動的により下のコンテンツが表示されるようにするjQueryプラグインです。&lt;/p&gt;&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141108/20141108221903.png&quot; alt=&quot;f:id:nipe880324:20141108221903p:plain:w320&quot; title=&quot;f:id:nipe880324:20141108221903p:plain:w320&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:320px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認環境&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Ruby 2.1.0&lt;/li&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;li&gt;kaminari 0.16.1&lt;/li&gt;
+&lt;li&gt;infinite scroll 2.0.2&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#infinite-scroll-create&quot;&gt;Railsプロジェクトの作成&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#infinite-scroll-install&quot;&gt;スクロールによる動的ページロードの実装&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;infinite-scroll-create&quot;&gt;1. Railsプロジェクトの作成&lt;/h3&gt;まずはRailsプロジェクトを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rails new infinite_scrolling_kaminari_test
+cd infinite_scrolling_kaminari_test&lt;/pre&gt;&lt;p&gt;次にInfinite Scrollの挙動を確認するために、ShopをScaffoldで作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rails g scaffold Shop name zipcode address tel&lt;/pre&gt;&lt;p&gt;データをseeds.rbに記載します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# db/seeds.rb&lt;/span&gt;
+
+&lt;span class=&quot;synConstant&quot;&gt;1000&lt;/span&gt;.times &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;i&lt;/span&gt;|
+  &lt;span class=&quot;synType&quot;&gt;Shop&lt;/span&gt;.create!(
+    &lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;:    &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;店名&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;i&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;synConstant&quot;&gt;zipcode&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;111-&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;sprintf(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;%04d&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, i)&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;synConstant&quot;&gt;address&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;住所&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;i&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;synConstant&quot;&gt;tel&lt;/span&gt;:     &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;00-1234-&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;sprintf(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;%04d&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, i)&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt;
+  )
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;マイグレーションを実行し、データを投入します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rake db:migrate
+rake db:seed&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+では、&lt;code&gt;rails s&lt;/code&gt;でサーバーを起動してみましょう。&lt;br /&gt;
+縦になが〜くデータが1000件表示されていると思います。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141108/20141108210935.png&quot; alt=&quot;f:id:nipe880324:20141108210935p:plain:w320&quot; title=&quot;f:id:nipe880324:20141108210935p:plain:w320&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:320px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;infinite-scroll-install&quot;&gt;2. スクロールによる動的ページロードの実装&lt;/h3&gt;Gemfileに&lt;code&gt;kaminari&lt;/code&gt;を追加します&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Gemfile&lt;/span&gt;
+
+gem &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;jquery-turbolinks&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# Turbolinksで遷移したときもjQuery.ready()を呼び出してくれる&lt;/span&gt;
+gem &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;kaminari&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;そして、Bundlerでgemをインストールします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;bundle install&lt;/pre&gt;&lt;p&gt;infinitescroll.jsをGitHubのmasterから取得します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;curl -k -o vendor/assets/javascripts/jquery.infinitescroll.js https://raw.githubusercontent.com/paulirish/infinite-scroll/master/jquery.infinitescroll.js&lt;/pre&gt;&lt;p&gt;application.jsに&lt;code&gt;jquery.infinitescroll&lt;/code&gt;を追加します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# app/assets/javascripts/application.js
+
+...
+//= require jquery
+//= require jquery.turbolinks
+//= require jquery_ujs
+//= require jquery.infinitescroll
+//= require turbolinks
+//= require_tree .&lt;/pre&gt;&lt;p&gt;コントローラーのindexアクションを次のように変え、ページ単位で取得するようにします。&lt;br /&gt;
+params[:page]にはページ番号が入っているので、kaminariは自動的にオフセットを計算して値を取得してくれます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/shops_controller.rb&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;index&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@shops&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Shop&lt;/span&gt;.page(params[&lt;span class=&quot;synConstant&quot;&gt;:page&lt;/span&gt;])
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;ページネーションを一覧画面の一番下に追加します。&lt;br /&gt;
+また、データを表示している箇所を部分テンプレートにするため、&lt;code&gt;render&lt;/code&gt;に書き換えます。&lt;br /&gt;
+また、&lt;code&gt;id=&quot;shops&quot;&lt;/code&gt;と&lt;code&gt;class=&quot;page&quot;&lt;/code&gt;をjsで使うので忘れないでください。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/shops/index.html.erb
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Listing shops&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- 修正箇所 開始 --&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;table&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;shops&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- 修正箇所 終了 --&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;thead&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tr&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Name&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Zipcode&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Address&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Tel&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;colspan&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;3&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tr&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;thead&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- 修正箇所 開始 --&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tbody&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;page&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; render&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; @shops %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tbody&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- 修正箇所 終了 --&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;table&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;br&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;New Shop&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, new_shop_path %&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!--一番下に追加 --&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; paginate&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; @shops %&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;部分テンプレートを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/shops/_shop.html.erb
+
+&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- class=&amp;quot;shop&amp;quot; は重要なので忘れないように --&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tr&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;shop&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; shop.name&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; shop.zipcode&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; shop.address&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; shop.tel&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;Show&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, shop %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;Edit&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, edit_shop_path(shop) %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;Destroy&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, shop, &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;method&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;: :delete, &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;: { confirm: &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;Are you sure?&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; } %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tr&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;そして、JavaScriptリクエストのために、部分テンプレートをappendするビューを記載します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/views/shops/index.js.erb&lt;/span&gt;
+
+&lt;span class=&quot;synError&quot;&gt;$(&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;#shops&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;).append(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;lt;tbody class=&#39;page&#39;&amp;gt;&amp;lt;%= escape_javascript(render(@posts)) %&amp;gt;&amp;lt;/tbody&amp;gt;&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+そして、最後にinitial scrollで動的にページをロードするJavaScriptを記載します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ -&amp;gt;
+  $(&amp;#34;#shops .page&amp;#34;).infinitescroll
+    loading: {
+      img:     &amp;#34;http://www.mytreedb.com/uploads/mytreedb/loader/ajax_loader_blue_48.gif&amp;#34;
+      msgText: &amp;#34;ロード中...&amp;#34;
+    }
+    navSelector: &amp;#34;nav.pagination&amp;#34; # selector for the paged navigation (it will be hidden)
+    nextSelector: &amp;#34;nav.pagination a[rel=next]&amp;#34; # selector for the NEXT link (to page 2)
+    itemSelector: &amp;#34;#shops tr.shop&amp;#34; # selector for all items you&amp;#39;ll retrieve&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+ではサーバーを起動して、一覧画面を下にスクロールしましょう。&lt;br /&gt;
+すると、動的に画面が表示されます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141108/20141108221903.png&quot; alt=&quot;f:id:nipe880324:20141108221903p:plain:w320&quot; title=&quot;f:id:nipe880324:20141108221903p:plain:w320&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:320px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;以上です。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/mislav/will_paginate/wiki&quot;&gt;Home &amp;middot; mislav/will_paginate Wiki &amp;middot; GitHub&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://www.infinite-scroll.com/&quot;&gt;Infinite Scroll | jQuery plugin, Wordpress plugin, interaction design pattern&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Sat, 15 Nov 2014 12:24:46 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450072954966</guid>
+          
+            <category>Rails gem</category>
+          
+            <category>UI/UX</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>Railsでwill_paginateを使ってページネーションを実現する</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20141114/1415967206</link>
+          <description>
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;will_paginateとは&lt;/h3&gt;
+    &lt;p&gt;&lt;a href=&quot;https://github.com/mislav/will_paginate&quot; target=&quot;_blank&quot;&gt;will_pagenate&lt;/a&gt;とは、ページネーションを作成するGemです。&lt;/p&gt;&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141108/20141108212535.png&quot; alt=&quot;f:id:nipe880324:20141108212535p:plain:w320&quot; title=&quot;f:id:nipe880324:20141108212535p:plain:w320&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:320px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認環境&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Ruby 2.1.0&lt;/li&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;li&gt;will_paginate 3.0.7&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#will_paginate-create&quot;&gt;Railsプロジェクトの作成&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#will_paginate-install&quot;&gt;will_paginateのインストール&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#will_paginate-setting&quot;&gt;will_paginateの設定&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#will_paginate-i18n&quot;&gt;will_paginateのi18n&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;will_paginate-create&quot;&gt;1. Railsプロジェクトの作成&lt;/h3&gt;まずはRailsプロジェクトを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rails new will_paginate_test
+cd will_paginate_test&lt;/pre&gt;&lt;p&gt;次にwill_paginateによるページネーションの挙動を確認するために、ShopをScaffoldで作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rails g scaffold Shop name zipcode address tel&lt;/pre&gt;&lt;p&gt;データをseeds.rbに記載します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# db/seeds.rb&lt;/span&gt;
+
+&lt;span class=&quot;synConstant&quot;&gt;1000&lt;/span&gt;.times &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;i&lt;/span&gt;|
+  &lt;span class=&quot;synType&quot;&gt;Shop&lt;/span&gt;.create!(
+    &lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;:    &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;店名&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;i&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;synConstant&quot;&gt;zipcode&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;111-&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;sprintf(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;%04d&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, i)&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;synConstant&quot;&gt;address&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;住所&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;i&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;synConstant&quot;&gt;tel&lt;/span&gt;:     &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;00-1234-&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;sprintf(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;%04d&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, i)&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt;
+  )
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;マイグレーションを実行し、データを投入します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rake db:migrate
+rake db:seed&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+では、&lt;code&gt;rails s&lt;/code&gt;でサーバーを起動してみましょう。&lt;br /&gt;
+縦になが〜くデータが1000件表示されていると思います。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141108/20141108210935.png&quot; alt=&quot;f:id:nipe880324:20141108210935p:plain:w320&quot; title=&quot;f:id:nipe880324:20141108210935p:plain:w320&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:320px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;will_paginate-install&quot;&gt;2. will_paginateのインストール&lt;/h3&gt;まずは、Gemfileに&lt;code&gt;kaminari&lt;/code&gt;を追加します&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Gemfile&lt;/span&gt;
+
+gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;will_paginate&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;~&amp;gt; 3.0&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;そしてBundlerを実行します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;bundle install&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+次に、一覧画面のテーブルの上側に現在いくつ表示しているかを表示します。&lt;br /&gt;
+また、テーブルの一番下にページネーションのリンクを追加します。&lt;br /&gt;
+will_paginateではヘルパーが用意されているので、それぞれ1行ずつ追加するだけなので簡単です。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/shops/index.html.erb
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Listing shops&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- 追加箇所開始 --&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; page_entries_info&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; @shops %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- 追加箇所終了 --&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;table&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;thead&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tr&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Name&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Zipcode&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Address&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Tel&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;colspan&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;3&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tr&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;thead&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tbody&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% @shops.each do |shop| %&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tr&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; shop.name&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; shop.zipcode&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; shop.address&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; shop.tel&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;Show&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, shop %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;Edit&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, edit_shop_path(shop) %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;Destroy&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, shop, &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;method&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;: :delete, &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;: { confirm: &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;Are you sure?&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; } %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tr&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% end %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tbody&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;table&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;br&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;New Shop&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, new_shop_path %&amp;gt;&lt;/span&gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- 追加箇所開始 --&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; will_paginate&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; @shops %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- 追加箇所終了 --&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;そして、コントローラーのindexアクションを次のように変えます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/shops_controller.rb&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;index&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@shops&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Shop&lt;/span&gt;.page(params[&lt;span class=&quot;synConstant&quot;&gt;:page&lt;/span&gt;])
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+では、サーバーを再起動して一覧画面を確認してみましょう。&lt;br /&gt;
+画面下部にページのリンクが追加され、１ページあたり30件表示されています。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141108/20141108212553.png&quot; alt=&quot;f:id:nipe880324:20141108212553p:plain:w320&quot; title=&quot;f:id:nipe880324:20141108212553p:plain:w320&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:320px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;will_paginate-setting&quot;&gt;3. will_paginateの設定&lt;/h3&gt;次のようにモデル単位とアプリケーション単位での１ページあたりの項目表示数を設定できます。&lt;/p&gt;&lt;p&gt;モデル単位で設定&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Shop&lt;/span&gt;
+  &lt;span class=&quot;synConstant&quot;&gt;self&lt;/span&gt;.per_page = &lt;span class=&quot;synConstant&quot;&gt;10&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;アプリケーション単位で設定&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synType&quot;&gt;WillPaginate&lt;/span&gt;.per_page = &lt;span class=&quot;synConstant&quot;&gt;10&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;will_paginate-i18n&quot;&gt;will_paginateのi18n&lt;/h3&gt;i18nでは、次の項目が設定可能です。&lt;/p&gt;
+&lt;pre class=&quot;code lang-yaml&quot; data-lang=&quot;yaml&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;en&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;will_paginate&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;previous_label&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;&amp;amp;#8592; Previous&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;next_label&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Next &amp;amp;#8594;&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;page_gap&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;&amp;amp;hellip;&amp;quot;&lt;/span&gt;
+
+    &lt;span class=&quot;synIdentifier&quot;&gt;page_entries_info&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;single_page&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;zero&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt;  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;No %{model} found&amp;quot;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;one&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt;   &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Displaying 1 %{model}&amp;quot;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;other&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Displaying all %{count} %{model}&amp;quot;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;single_page_html&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;zero&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt;  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;No %{model} found&amp;quot;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;one&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt;   &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Displaying &amp;lt;b&amp;gt;1&amp;lt;/b&amp;gt; %{model}&amp;quot;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;other&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Displaying &amp;lt;b&amp;gt;all&amp;amp;nbsp;%{count}&amp;lt;/b&amp;gt; %{model}&amp;quot;&lt;/span&gt;
+
+      &lt;span class=&quot;synIdentifier&quot;&gt;multi_page&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Displaying %{model} %{from} - %{to} of %{count} in total&amp;quot;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;multi_page_html&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Displaying %{model} &amp;lt;b&amp;gt;%{from}&amp;amp;nbsp;-&amp;amp;nbsp;%{to}&amp;lt;/b&amp;gt; of &amp;lt;b&amp;gt;%{count}&amp;lt;/b&amp;gt; in total&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+以上です。&lt;br /&gt;
+もし、何か詰まったら、参考文献のページを確認してみてください。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/mislav/will_paginate/wiki&quot;&gt;Home &amp;middot; mislav/will_paginate Wiki &amp;middot; GitHub&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Fri, 14 Nov 2014 21:13:26 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450072950891</guid>
+          
+            <category>Rails gem</category>
+          
+            <category>UI/UX</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>Railsで検索可能なセレクトボックスのselect2を使う方法</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20141112/1415804076</link>
+          <description>
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;select2とは&lt;/h3&gt;
+    &lt;p&gt;&lt;a href=&quot;http://ivaynberg.github.io/select2/#top&quot; target=&quot;_blank&quot;&gt;select2&lt;/a&gt;とは、セレクトボックスを検索可能なセレクトボックスにしてくれるjQueryプラグインです。&lt;br /&gt;
+セレクトボックスの項目が多い場合、検索できないと選択が大変なのでとても便利です。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141108/20141108173340.png&quot; alt=&quot;f:id:nipe880324:20141108173340p:plain:w260&quot; title=&quot;f:id:nipe880324:20141108173340p:plain:w260&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:260px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;i&gt;※ Chosen という同じようなjQueryプラグインもあるのですが、Enterキーの処理がうまく動かなく日本語で検索しづらいのでこちらの方がオススメです。&lt;/i&gt;&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認環境&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;li&gt;select2-rails 3.5.9.1&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#select2-create&quot;&gt;Railsプロジェクトの作成&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#select2-install&quot;&gt;select2-railsのインストール&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#select2-install-with-bootstrap&quot;&gt;select2にtwitter-bootstrapをインストール&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;select2-create&quot;&gt;Railsプロジェクトの作成&lt;/h3&gt;まずはRailsプロジェクトを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rails new select2_test
+cd select2_test&lt;/pre&gt;&lt;p&gt;次にselect2の挙動を確認するために、PersonをScaffoldで作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rails g scaffold Person name:string&lt;/pre&gt;&lt;p&gt;セレクトボックスで表示するためのデータをseeds.rbに記載します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# db/seeds.rb&lt;/span&gt;
+
+&lt;span class=&quot;synType&quot;&gt;Person&lt;/span&gt;.create &lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;鈴木太郎&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Person&lt;/span&gt;.create &lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;鈴木一郎&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Person&lt;/span&gt;.create &lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;田中太郎&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Person&lt;/span&gt;.create &lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;田中一郎&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;マイグレーションを実行し、データを投入します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rake db:migrate
+rake db:seed&lt;/pre&gt;&lt;p&gt;そして、ここでは便宜上、一覧画面にセレクトボックスを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/people/index.html.erb
+
+&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- 一番下の行に追加 --&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;br&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; /&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;br&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; /&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; select_tag&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :person, options_from_collection_for_select(@people, :&lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, :&lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;), include_blank: true %&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+では、&lt;code&gt;rails s&lt;/code&gt;でサーバーを起動し、セレクトボックスを確認してみます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141108/20141108173202.png&quot; alt=&quot;f:id:nipe880324:20141108173202p:plain:w320&quot; title=&quot;f:id:nipe880324:20141108173202p:plain:w320&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:320px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;select2-install&quot;&gt;select2-railsのインストール&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;Gemfileに&lt;code&gt;select2-rails&lt;/code&gt;を追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Gemfile&lt;/span&gt;
+
+gem &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;jquery-turbolinks&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# Turbolinksで遷移したときもjQuery.ready()を呼び出してくれる&lt;/span&gt;
+gem &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;select2-rails&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;そして、Bundlerでgemをインストールします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;bundle install&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+次に、assetsのapplication.jsにjQuery-turbolinksとselect2を追加します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# app/assets/javascripts/application.js
+
+...
+//
+//= require jquery
+//= require jquery.turbolinks
+//= require jquery_ujs
+//= require select2
+//= require turbolinks
+//= require_tree .&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+assetsのapplication.cssにもselect2を追加します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# app/assets/stylesheets/application.css
+
+ ...
+ *= require select2
+ *= require_tree .
+ *= require_self
+ */&lt;/pre&gt;&lt;p&gt;そして、CofffeeScriptを追記します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# app/assets/javascripts/people.js.coffee
+
+$ -&amp;gt;
+  $(&amp;#34;.searchable&amp;#34;).select2({
+      width:      200,  # 横幅
+      allowClear: true  # x で選択したものを削除できる
+      # 詳細は http://ivaynberg.github.io/select2/#documentation
+    })
+&lt;/pre&gt;&lt;p&gt;これで、select2を使いたいセレクトボックスのclass属性に&lt;code&gt;searchable&lt;/code&gt;を追加するだけでselect2が使えるようになります。&lt;br /&gt;
+では、&lt;code&gt;searchable&lt;/code&gt;を追加しましょう。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/people/index.html.erb
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; select_tag&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :person, options_from_collection_for_select(@people, :&lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, :&lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;), include_blank: true, &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;searchable&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+再度&lt;code&gt;rails s&lt;/code&gt;でサーバーを起動し、セレクトボックスを確認してみます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141108/20141108173220.png&quot; alt=&quot;f:id:nipe880324:20141108173220p:plain:w320&quot; title=&quot;f:id:nipe880324:20141108173220p:plain:w320&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:320px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;ちなみに、次のように&lt;code&gt;multiple: true&lt;/code&gt;を追加することで、複数選択にも対応しています。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/people/index.html.erb
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; select_tag&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :person, options_from_collection_for_select(@people, :&lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, :&lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;), include_blank: true, &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;multiple&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;: true, &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;searchable&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141108/20141108173232.png&quot; alt=&quot;f:id:nipe880324:20141108173232p:plain:w320&quot; title=&quot;f:id:nipe880324:20141108173232p:plain:w320&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:320px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;もし、Twitter Bootstrapを使っている場合は、次の１行をapplication.cssに追加してください。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# app/assets/stylesheets/application.css
+
+ ...
+ *= require select2
+ *= require select2-bootstrap
+ *= require_tree .
+ *= require_self
+ */&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+以上です。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://ivaynberg.github.io/select2/#top&quot;&gt;Select2 has moved!&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/argerim/select2-rails&quot;&gt;argerim/select2-rails &amp;middot; GitHub&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://qiita.com/saboyutaka/items/bcc0966313c6f7399a6e&quot;&gt;Rails - Turbolinks&amp;#x3092;&amp;#x30AA;&amp;#x30D5;&amp;#x3057;&amp;#x306A;&amp;#x3044;&amp;#x305F;&amp;#x3081;&amp;#x306B;&amp;#x3084;&amp;#x3063;&amp;#x305F;&amp;#x4E8B; - Qiita&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Wed, 12 Nov 2014 23:54:36 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450072935634</guid>
+          
+            <category>Rails gem</category>
+          
+            <category>UI/UX</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>RailsにTwitter Bootstrapの導入と簡易な使い方</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20140801/1406818800</link>
+          <description>&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141215/20141215222604.jpg&quot; alt=&quot;f:id:nipe880324:20141215222604j:plain:w420&quot; title=&quot;f:id:nipe880324:20141215222604j:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;RailsでTwitter Bootstrap 3のインストール方法を説明します。&lt;br /&gt;
+また、Bootstrapのエラーメッセージの表示、ナビゲーションバーの追加、simple_formとの連携などの使い方を説明します。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;li&gt;twitter-bootstrap-rails 3.2.0&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#twitter-bootstrap-create-project&quot;&gt;Railsプロジェクトの作成&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#twitter-bootstrap-install1&quot;&gt;Twitter Bootstrapのインストール方法1&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#twitter-bootstrap-install2&quot;&gt;Twitter Bootstrapのインストール方法2&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#twitter-bootstrap-custmize-apply-views&quot;&gt;カスタマイズ（ViewファイルへのTwitter Bootstrapの適用）&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#twitter-bootstrap-custmize-messages&quot;&gt;カスタマイズ（サクセス、エラーメッセージの表示）&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#twitter-bootstrap-custmize-simple_form&quot;&gt;カスタマイズ（simple_formとの連携: フォーム上でのエラーメッセージの表示）&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#twitter-bootstrap-custmize-sidebar&quot;&gt;カスタマイズ（Sidebarの追加）&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#twitter-bootstrap-custmize-navigation&quot;&gt;カスタマイズ（NavigationBarの追加）&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;twitter-bootstrap-create-project&quot;&gt;1. Railsプロジェクトの作成&lt;/h3&gt;まずは、Railsプロジェクトを作成し、ScaffoldでProductを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rails new twitter-bootstrap
+5||&amp;lt;
+
+次に確認用にデータをScaffoldを実行します。
+&amp;gt;||
+rails g scaffold Product name:string price:integer
+rake db:migrate&lt;/pre&gt;&lt;p&gt;&lt;code&gt;rails s&lt;/code&gt;でサーバーを起動し現在の画面を確認しましょう。&lt;br /&gt;
+データを3件入れました。&lt;/p&gt;&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141215/20141215222616.jpg&quot; alt=&quot;f:id:nipe880324:20141215222616j:plain:w420&quot; title=&quot;f:id:nipe880324:20141215222616j:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;twitter-bootstrap-install1&quot;&gt;2. Twitter Bootstrapのインストール方法1&lt;/h3&gt;インストール方法1では、Gemを使って簡易にBootstrapを導入していきます。&lt;/p&gt;&lt;p&gt;Gemfileに下記の3つのgemを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Gemfile&lt;/span&gt;
+
+gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;therubyracer&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# javascript runtime。lessをコンパイルするために必要&lt;/span&gt;
+gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;less-rails&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# Railsでlessを使えるようにする。Bootstrapがlessで書かれているため&lt;/span&gt;
+gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;twitter-bootstrap-rails&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# Bootstrapの本体&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;そして、gemをインストールします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;bundle insatll
+&lt;/pre&gt;&lt;p&gt;では、Railsプロジェクトにbootstrapのファイルを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ rails g bootstrap&lt;span class=&quot;synConstant&quot;&gt;:install&lt;/span&gt;
+      insert  app/assets/javascripts/application.js
+      create  app/assets/javascripts/bootstrap.js.coffee
+      create  app/assets/stylesheets/bootstrap_and_overrides.css.less
+      create  config/locales/en.bootstrap.yml
+        gsub  app/assets/stylesheets/application.css
+        gsub  app/assets/stylesheets/application.css
+&lt;/pre&gt;&lt;p&gt;これで、RailsにTwitter Bootstrapを導入できました。&lt;br /&gt;
+&lt;code&gt;rails server&lt;/code&gt;で画面を確認してみましょう。&lt;br /&gt;
+上の画面と比べると、それっぽくなっているのではないでしょうか。&lt;/p&gt;&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141215/20141215222635.jpg&quot; alt=&quot;f:id:nipe880324:20141215222635j:plain:w420&quot; title=&quot;f:id:nipe880324:20141215222635j:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;twitter-bootstrap-install2&quot;&gt;3. Twitter Bootstrapのインストール方法2&lt;/h3&gt;インストール方法2では、LessやGemとかよく分からないという方に、&lt;br /&gt;
+Bootstrpeの公式ページからファイルをダウンロードし、Railsに追加する方法を説明します。&lt;/p&gt;&lt;p&gt;まず&lt;a href=&quot;http://getbootstrap.com/getting-started/#download&quot; target=&quot;_blank&quot;&gt;Bootstrapのダウンロードページ&lt;/a&gt;からBootstrapのソースコードをダウンロードします。&lt;/p&gt;&lt;p&gt;そして、解凍し、&lt;code&gt;dist&lt;/code&gt;内の下記のファイルをRailsプロジェクトにコピーします。&lt;table&gt;
+&lt;tr&gt;
+  &lt;th&gt;コピー元&lt;/th&gt;&lt;th&gt;コピー先&lt;/th&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+  &lt;td&gt;dist/css/bootstrap.min.css&lt;/td&gt;&lt;td&gt;vendor/assets/stylesheets/.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+  &lt;td&gt;dist/js/bootstrap.min.js&lt;/td&gt;&lt;td&gt;vendor/assets/javascripts/.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+  &lt;td&gt;dist/fonts&lt;/td&gt;&lt;td&gt;vendor/assets/.&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/table&gt;&lt;/p&gt;&lt;p&gt;そして、Railsに追加したbootstrapを読み込ませるようにします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# app/assets/javascripts/application.js
+
+...
+//
+//= require jquery
+//= require jquery_ujs
+//= require bootstrap.min
+//= require turbolinks
+//= require_tree .&lt;/pre&gt;&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;#app/assets/stylesheets/application.css
+
+ ...
+ *
+ *= require bootstrap.min
+ *= require_tree .
+ *= require_self
+ */&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;twitter-bootstrap-custmize-apply-views&quot;&gt;4. カスタマイズ（ViewファイルへのTwitter Bootstrapの適用）&lt;/h3&gt;では、ここからはカスタマイズをして行きましょう。&lt;br /&gt;
+基本的に、それぞれのカスタマイズ項目は独立していますが、少し依存関係がある箇所もありますのでご注意ください。&lt;/p&gt;&lt;p&gt;現在の画面は、まだまだTwitter Bootstrapさがでていないですね。&lt;/p&gt;&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141215/20141215222635.jpg&quot; alt=&quot;f:id:nipe880324:20141215222635j:plain:w420&quot; title=&quot;f:id:nipe880324:20141215222635j:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;これは、適切なTwitter Bootstrap用の&lt;code&gt;class値&lt;/code&gt;が設定されていないためです。&lt;br /&gt;
+そのため、Twitter Bootstrapを適用させます。ソースコードを変更してくれます。&lt;br /&gt;
+下記のファイルに何か修正を加えていた場合は上書きするかどうか聞かれます。&lt;br /&gt;
+※ インストール方法2で入れた場合は、このコマンドは使えません。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ rails g bootstrap&lt;span class=&quot;synConstant&quot;&gt;:themed&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Products&lt;/span&gt;
+       force  app/views/products/index.html.erb
+       force  app/views/products/new.html.erb
+       force  app/views/products/edit.html.erb
+       force  app/views/products/_form.html.erb
+       force  app/views/products/show.html.erb
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+では、サーバを起動して、画面を確認してみましょう。&lt;br /&gt;
+一気にそれっぽい雰囲気がでてきましたね。&lt;/p&gt;&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141215/20141215222722.jpg&quot; alt=&quot;f:id:nipe880324:20141215222722j:plain:w420&quot; title=&quot;f:id:nipe880324:20141215222722j:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;先ほどの少しだけソースコードを見てみましょう。&lt;br /&gt;
+&lt;code&gt;table table-striped&lt;/code&gt;や&lt;code&gt;btn btn-primary&lt;/code&gt;などTwitter Bootstrapのclass値が指定されていますね。&lt;br /&gt;
+実際にどのようなclass値が使えるかは&lt;a href=&quot;http://getbootstrap.com/css/&quot; target=&quot;_blank&quot;&gt;公式ドキュメント&lt;/a&gt;を参照して下さい。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/views/products/index.html.erb&lt;/span&gt;
+...
+&amp;lt;table &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt;=&amp;quot;table table-striped&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;   ...&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;&amp;lt;/table&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synConstant&quot;&gt;&amp;lt;%= link_to t(&#39;.new&#39;, :default =&amp;gt; t(&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;helpers.links.new&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;)),&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;            new_product_path,&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;            :class =&amp;gt; &#39;btn btn-primary&#39; %&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;twitter-bootstrap-custmize-messages&quot;&gt;5. カスタマイズ（サクセス、エラーメッセージの表示）&lt;/h3&gt;実は、現在２つ問題があります。&lt;br /&gt;
+・データを作成/更新したときにサクセスメッセージとエラーが発生したときにエラーメッセージが表示されない&lt;br /&gt;
+・フォームでエラーメッセージ表示されない&lt;/p&gt;&lt;p&gt;１つ目について、ここで解消します。２つ目は次の「simple_formとの連携」で解消します。&lt;br /&gt;
+サクセスメッセージやエラーメッセージは、&lt;code&gt;flash[:notice]&lt;/code&gt;か&lt;code&gt;flash[:error]&lt;/code&gt;のどちらかに入ってきます。&lt;br /&gt;
+また、Twitter Bootstrapでは、アラートは、&lt;code&gt;alert alert-success&lt;/codeや&lt;code&gt;alert alert-error&lt;/code&gt;で表示させます。&lt;br /&gt;
+そのため、下記のようなコードを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/views/layouts/application.html.erb&lt;/span&gt;
+  ...
+&amp;lt;body&amp;gt;
+&amp;lt;% flash.each &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;name&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;msg&lt;/span&gt;| %&amp;gt;
+  &amp;lt;div &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt;=&amp;quot;alert alert-&amp;lt;%= name == &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;notice&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; ? &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;success&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; : &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;error&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; %&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;    &amp;lt;a class=&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;close&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; data-dismiss=&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;alert&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;gt;×&amp;lt;/a&amp;gt; &amp;lt;!-- アラートダイアログに×ボタンをつける --&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;    &amp;lt;%= msg %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;  &amp;lt;/div&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;&amp;lt;% end %&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synConstant&quot;&gt;&amp;lt;%= yield %&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synConstant&quot;&gt;&amp;lt;/body&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;&amp;lt;/html&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;では、サーバを起動し、画面を確認します。&lt;br /&gt;
+データを登録すると上記にサクセスメッセージが表示されていますね。&lt;/p&gt;&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141215/20141215222742.jpg&quot; alt=&quot;f:id:nipe880324:20141215222742j:plain:w420&quot; title=&quot;f:id:nipe880324:20141215222742j:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;twitter-bootstrap-custmize-simple_form&quot;&gt;6. カスタマイズ（simple_formとの連携: フォーム上でのエラーメッセージの表示）&lt;/h3&gt;では、もう１つの問題の、フォーム上でエラーメッセージを表示しましょう。&lt;br /&gt;
+まず、エラーメッセージを出すために、ModelにValidationを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/models/product.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  validates &lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;,  &lt;span class=&quot;synConstant&quot;&gt;presence&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;
+  validates &lt;span class=&quot;synConstant&quot;&gt;:price&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;presence&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;次に、&lt;code&gt;simple_form&lt;/code&gt;を導入します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Gemfile&lt;/span&gt;
+gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;simple_form&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;そして、gemをインストールします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ bundle install
+&lt;/pre&gt;&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ rails g simple_form&lt;span class=&quot;synConstant&quot;&gt;:install&lt;/span&gt; --bootstrap
+      create  config/initializers/simple_form.rb
+      create  config/initializers/simple_form_bootstrap.rb
+       exist  config/locales
+      create  config/locales/simple_form.en.yml
+      create  lib/templates/erb/scaffold/_form.html.erb
+===============================================================================
+
+  &lt;span class=&quot;synType&quot;&gt;Be&lt;/span&gt; sure to have a copy of the &lt;span class=&quot;synType&quot;&gt;Bootstrap&lt;/span&gt; stylesheet available on your
+  application, you can get it on http&lt;span class=&quot;synConstant&quot;&gt;:/&lt;/span&gt;/twitter.github.com/bootstrap.
+
+  &lt;span class=&quot;synType&quot;&gt;Inside&lt;/span&gt; your views, use the &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;simple_form_for&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; with one of the &lt;span class=&quot;synType&quot;&gt;Bootstrap&lt;/span&gt; form
+  classes, &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;.form-horizontal&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;.form-inline&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;.form-search&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;or&lt;/span&gt;
+  &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;.form-vertical&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, as the following:
+
+    = simple_form_for(&lt;span class=&quot;synIdentifier&quot;&gt;@user&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;html&lt;/span&gt;: {&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;form-horizontal&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; }) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;form&lt;/span&gt;|
+
+===============================================================================
+&lt;/pre&gt;&lt;p&gt;フォームをsimple_formで書き換えます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/products/_form.html.erb
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; simple_form_for&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; @product, :html =&amp;gt;&lt;/span&gt; { :class =&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt; &#39;form-horizontal&#39; } do |f| %&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.input&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :&lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.input&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :price %&amp;gt;&lt;/span&gt;
+
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;form-actions&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.submit&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; nil, :&lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; =&amp;gt;&lt;/span&gt; &#39;btn btn-primary&#39; %&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; t(&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;.cancel&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, :default =&amp;gt;&lt;/span&gt; t(&amp;quot;helpers.links.cancel&amp;quot;)),
+                products_path, :class =&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt; &#39;btn&#39; %&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% end %&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+これで、完成です。画面を開き、エラーメッセージを表示させましょう。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141215/20141215222817.jpg&quot; alt=&quot;f:id:nipe880324:20141215222817j:plain:w420&quot; title=&quot;f:id:nipe880324:20141215222817j:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;もし、&lt;code&gt;simple_form&lt;/code&gt;について、より詳しく知りたい場合は、&lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20140730/1406700205&quot;&gt;Rails&amp;#x306E;gem&amp;#x30D5;&amp;#x30A9;&amp;#x30FC;&amp;#x30E0;&amp;#x30B3;&amp;#x30FC;&amp;#x30C9;&amp;#x3092;&amp;#x3059;&amp;#x3063;&amp;#x304D;&amp;#x308A;&amp;#x3055;&amp;#x305B;&amp;#x308B; simple_form - Rails Webook&lt;/a&gt;を参照ください。&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;twitter-bootstrap-custmize-sidebar&quot;&gt;7. カスタマイズ（Sidebarの追加）&lt;/h3&gt;サイドバーを追加して行きますが、Twitter Bootstrapでは、&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;fixed：940pxで横幅が要素の位置が固定される&lt;/li&gt;
+&lt;li&gt;fluid：ブラウザサイズに応じてと要素が広がる&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;の２つがあります。&lt;/p&gt;&lt;p&gt;今回は、&lt;code&gt;fixed&lt;/code&gt;でサイドバーを追加して行きます。&lt;br /&gt;
+Twitter Bootstrapでは、下記のような構成でレイアウトを作っていきます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;...
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;container&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- container で全体を囲む --&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;row&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- row で列を作る --&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;span8&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- 12分割のグリッドシステムの8を使用 --&amp;gt;&lt;/span&gt;
+      ... メインコンンツを記載 ...
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;span4&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- 12分割のグリッドシステムの4を使用 --&amp;gt;&lt;/span&gt;
+      ... サイドバーコンンツを記載 ...
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+では、上記の構成を全体のレイアウトファイルに適用させましょう。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/layouts/application.html.erb
+....
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;container&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;row&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% flash.each do |&lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, msg| %&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;alert alert-&amp;lt;%= name == &amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;notice&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot; ? &amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;success&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot; : &amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;error&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot; %&amp;gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;close&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;-dismiss=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;alert&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;×&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; msg&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% end %&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;span8&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; yield&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;span4&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h2&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Side bar&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h2&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;html&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+では、サイドバーが追加されたことがわかると思います。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141215/20141215222844.jpg&quot; alt=&quot;f:id:nipe880324:20141215222844j:plain:w420&quot; title=&quot;f:id:nipe880324:20141215222844j:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;ちなみに、ブラウザの横幅を狭めていくと、サイドバーが下側に移動すると思います。既に、レスポンシブデザインが適用されている証拠です。&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;twitter-bootstrap-custmize-navigation&quot;&gt;8. カスタマイズ（NavigationBarの追加）&lt;/h3&gt;可読性を上げるために、headerを外部ファイル化します。&lt;br /&gt;
+&lt;code&gt;renderメソッド&lt;/code&gt;でheaderを呼び出ます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/views/layouts/application.html.erb&lt;/span&gt;
+...
+&amp;lt;body&amp;gt;
+&amp;lt;%= render &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;layouts/header&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; %&amp;gt;
+&amp;lt;div &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt;=&amp;quot;container&amp;quot;&amp;gt;
+  &amp;lt;div &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt;=&amp;quot;row&amp;quot;&amp;gt;
+    &amp;lt;div &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt;=&amp;quot;span8&amp;quot;&amp;gt;
+...
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+では、headerファイルを作ります。&lt;br /&gt;
+Twitter Bootstrapの&lt;a href=&quot;http://getbootstrap.com/components/#navbar&quot; target=&quot;_blank&quot;&gt;Navigation Barの項目&lt;/a&gt;を参考に作成します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/layouts/_haeder.html.erb
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;header&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;navbar navbar-default&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; role=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;navigation&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;navbar-inner&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;container&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;btn btn-navbar&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;-toggle=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;collapse&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;data&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;target&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;.nav-collapse&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+          &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;span&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;icon-bar&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;span&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+          &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;span&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;icon-bar&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;span&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+          &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;span&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;icon-bar&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;span&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;brand&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;href&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;#&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;synUnderlined&quot;&gt;Some Store&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;nav-collapse&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+          &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;ul&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;nav&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+            &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;li&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Products&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, products_path %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;li&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+            &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;li&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Price List&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;li&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+            &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;li&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Contact Us&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;li&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+            &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;li&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Cart&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;li&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+          &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;ul&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;header&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+また、IEの古いバージョンだとHTML5が上手く動かないので、それに対処するコードを追加します。&lt;br /&gt;
+さらに、モバイル端末での表示が良くするために、viewportを指定します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/layouts/application.html.erb
+...
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;head&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;title&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;TwitterBootstrap&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;title&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; stylesheet_link_tag&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;    &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;application&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;media&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;all&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;data-turbolinks-track&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; =&amp;gt;&lt;/span&gt;&lt;span class=&quot;synPreProc&quot;&gt; true %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; javascript_include_tag&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;application&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;data-turbolinks-track&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; =&amp;gt;&lt;/span&gt;&lt;span class=&quot;synPreProc&quot;&gt; true %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; csrf_meta_tags&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!--[if lt IE 9]&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;    &amp;lt;script src=&amp;quot;http://html5shim.googlecode.com/svn/trunk/html5.js&amp;quot; type=&amp;quot;text/javascript&amp;quot;&amp;gt;&amp;lt;/script&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;  &amp;lt;![endif]--&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;meta&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;viewport&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;content&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;width=device-width, initial-scale=1.0&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;head&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+...
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+では、画面にナビゲーションバーが表示されていることを確認しましょう。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141215/20141215222917.jpg&quot; alt=&quot;f:id:nipe880324:20141215222917j:plain:w420&quot; title=&quot;f:id:nipe880324:20141215222917j:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    &lt;p&gt;&lt;a href=&quot;http://getbootstrap.com/&quot;&gt;Bootstrap &amp;middot; The world&amp;#39;s most popular mobile-first and responsive front-end framework.&lt;/a&gt;&lt;br /&gt;
+&lt;a href=&quot;https://github.com/seyhunak/twitter-bootstrap-rails&quot;&gt;seyhunak/twitter-bootstrap-rails &amp;middot; GitHub&lt;/a&gt;&lt;/p&gt;
+
+&lt;/div&gt;</description>
+          <pubDate>Fri, 01 Aug 2014 00:00:00 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/12921228815729118316</guid>
+          
+            <category>Rails gem</category>
+          
+            <category>UI/UX</category>
+          
+        </item>
+      
+    
+  </channel>
+</rss>

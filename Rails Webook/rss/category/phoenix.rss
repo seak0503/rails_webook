@@ -1,0 +1,1387 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>phoenix - Rails Webook</title>
+    <link>http://ruby-rails.hatenadiary.com/category/phoenix</link>
+    <description>自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</description>
+    <lastBuildDate>Fri, 18 Dec 2015 02:44:31 +0900</lastBuildDate>
+    <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+    <generator>Hatena::Blog</generator>
+    
+      
+      
+        <item>
+          <title>Phoenix入門3 - WebSocketのチャット機能</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20151016/1444930756</link>
+          <description>&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151011/20151011193641.png&quot; alt=&quot;f:id:nipe880324:20151011193641p:plain:w420&quot; title=&quot;f:id:nipe880324:20151011193641p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;前々回の記事は「&lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20151011/1444560106&quot;&gt;Phoenix環境のセットアップから、静的ページを作成し、表示&lt;/a&gt;」させました。&lt;br /&gt;
+前回の記事では、「&lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20151013/1444662887&quot;&gt;Phoenixで認証機能を実装&lt;/a&gt;」しました。&lt;br /&gt;
+今回の記事では、入門最後として「&lt;b&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Phoenix&quot;&gt;Phoenix&lt;/a&gt;でチャット機能を実装&lt;/b&gt;」します。&lt;br /&gt;
+&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Phoenix&quot;&gt;Phoenix&lt;/a&gt;でソケット、チャネル、トークン、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;作成、モデルのアソシエーションなどを行っていきます。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;サンプル&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://tranquil-mesa-7338.herokuapp.com/login&quot; target=&quot;_blank&quot;&gt;ChatPhoenix - Heroku&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/nipe0324/chat_phoenix&quot; target=&quot;_blank&quot;&gt;ChatPhoenix - GitHub&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#phoenix-tutorial-3-terms&quot;&gt;ソケットの基礎用語&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#phoenix-tutorial-3-chat&quot;&gt;チャット機能の追加&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#phoenix-tutorial-3-integration&quot;&gt;チャット機能をログイン機能と統合&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#phoenix-tutorial-3-persist&quot;&gt;チャットメッセージの永続化&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Erlang&quot;&gt;Erlang&lt;/a&gt; 7.1&lt;/li&gt;
+&lt;li&gt;Elixir 1.1.1&lt;/li&gt;
+&lt;li&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Phoenix&quot;&gt;Phoenix&lt;/a&gt; 10.0.3&lt;/li&gt;
+&lt;li&gt;Hex 0.9.0&lt;/li&gt;
+&lt;li&gt;node.js 0.12.7&lt;/li&gt;
+&lt;li&gt;npm 2.14.2&lt;/li&gt;
+&lt;li&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/PostgreSQL&quot;&gt;PostgreSQL&lt;/a&gt; 9.4.4&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;phoenix-tutorial-3-terms&quot;&gt;1. ソケットの基礎用語&lt;/h3&gt;ソケットの基本的な用語について簡単に記載します。&lt;/p&gt;&lt;p&gt;&lt;h4&gt;ソケットハンドラ(Socket Handlers)&lt;/h4&gt;ソケットハンドラは、ソケット接続の認証や識別を行うモジュールです。&lt;br /&gt;
+そして、すべてのチャネルで使用されるデフォルトのソケットを設定します。&lt;br /&gt;
+デフォルトで&lt;code&gt;web/channels/user_socket.ex&lt;/code&gt;というソケットハンドラが用意されています。&lt;/p&gt;&lt;p&gt;&lt;h4&gt;チャネルルート(Channel Routes)&lt;/h4&gt;ソケットハンドラ内で定義され、トピック文字列にマッチしたリクエストを、特定のチャネルモジュールにルートさせます。&lt;br /&gt;
+また、&lt;code&gt;*&lt;/code&gt;は&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%EF%A5%A4%A5%EB%A5%C9%A5%AB%A1%BC%A5%C9&quot;&gt;ワイルドカード&lt;/a&gt;を示します。&lt;br /&gt;
+例えば次のようにチャネルルートを定義した場合、&lt;code&gt;rooms:music&lt;/code&gt;や&lt;code&gt;rooms:sports&lt;/code&gt;は&lt;code&gt;RoomChannel&lt;/code&gt;にディスパッチされます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;channel &amp;#34;rooms:*&amp;#34;, HelloPhoenix.RoomChannel&lt;/pre&gt;&lt;p&gt;&lt;h4&gt;チャネル(Channels)&lt;/h4&gt;チャネルはクライアントからのイベントを扱います。Webの&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/MVC&quot;&gt;MVC&lt;/a&gt;でいうコントローラのようなものです。&lt;/p&gt;&lt;p&gt;&lt;h4&gt;パブサブ(PubSub)&lt;/h4&gt;出版-購読型モデル(Publish/Subscribe)で、あるチャネルに誰かがイベントを発行(Publish)すると、そのチャネルを購読(Subscribe)している人すべてにそのイベントが通知されるというモデルです。&lt;/p&gt;&lt;p&gt;&lt;h4&gt;メッセージ&lt;/h4&gt;チャネルでやりとりされるデータ。&lt;br /&gt;
+&lt;a href=&quot;http://hexdocs.pm/phoenix/Phoenix.Socket.Message.html&quot; target=&quot;_blank&quot;&gt;Phoenix.Socket.Message&lt;/a&gt;モジュールで定義されていて、下記のデータを保持しています。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;topic - &lt;code&gt;&lt;トピック名&gt;&lt;/code&gt; か &lt;code&gt;&lt;トピック名&gt;:&lt;サブトピック名&gt;&lt;/code&gt;の文字列で保持。例：&quot;rooms&quot;、&quot;rooms:sport&quot;&lt;/li&gt;
+&lt;li&gt;event - イベント名の文字列で保持。。例: &quot;new:message&quot;&lt;/li&gt;
+&lt;li&gt;payload - メッセージ本体を&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/JSON&quot;&gt;JSON&lt;/a&gt;形式の文字列で保持。&lt;/li&gt;
+&lt;li&gt;ref - incoming evnetに返信するためのユニーク文字列で保持。&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;h4&gt;クライアントライブラリ&lt;/h4&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Phoenix&quot;&gt;Phoenix&lt;/a&gt;は&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Javascript&quot;&gt;Javascript&lt;/a&gt;クライアントを提供しています。また、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/iOS&quot;&gt;iOS&lt;/a&gt;、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Android&quot;&gt;Android&lt;/a&gt;、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/C%23&quot;&gt;C#&lt;/a&gt;クライアントもVer. 1.0から提供しています。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;phoenix-tutorial-3-chat&quot;&gt;2. チャット機能の追加&lt;/h3&gt;基礎用語をさくっと記載しましたので、チャット機能を実装します。&lt;/p&gt;&lt;p&gt;&lt;h4&gt;ソケットルートを定義&lt;/h4&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Phoenix&quot;&gt;Phoenix&lt;/a&gt;アプリを新規作成すると次のように&lt;code&gt;endpoint.ex&lt;/code&gt;に&lt;code&gt;UserSocket&lt;/code&gt;というソケットハンドラを使うように定義されています。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# lib/chat_phoenix/endpoint.ex
+defmodule HelloPhoenix.Endpoint do
+  use Phoenix.Endpoint, otp_app: :chat_phoenix
+
+  # ソケットハンドラ
+  # &amp;#34;/socket&amp;#34; につなぐと、ソケットハンドラ UserSocket に接続されます
+  socket &amp;#34;/socket&amp;#34;, ChatPhoenix.UserSocket
+  ...
+end&lt;/pre&gt;&lt;p&gt;ソケットハンドラのUserSocketでは、チャネルルートを定義します。&lt;br /&gt;
+&lt;code&gt;channel &quot;rooms:*&quot;, ChatPhoenix.RoomChannel&lt;/code&gt;が&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%E1%A5%F3%A5%C8%A5%A2%A5%A6%A5%C8&quot;&gt;コメントアウト&lt;/a&gt;されているのでコメントを外します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# web/channels/user_socket.ex
+defmodule HelloPhoenix.UserSocket do
+  use Phoenix.Socket
+
+  ## Channels
+  # クライアントが&amp;#34;rooms:&amp;#34;で始まるトピックにメッセージを送るとRoomChannelモジュールにルートされる
+  channel &amp;#34;rooms:*&amp;#34;, ChatPhoenix.RoomChannel
+  ...
+end&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;チャット画面を追加&lt;/h4&gt;次にチャット画面を追加します。&lt;code&gt;page/index.html.eex&lt;/code&gt;を下記に置き換えます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- web/templates/page/index.html.eex --&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;messages&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;br&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;/&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;col-xs-3 form-group&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Username&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;input&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;username&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;text&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;form-control&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; /&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;col-xs-9 form-group&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Messenger&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;input&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;message&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;type&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;text&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;form-control&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; /&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;次に、&lt;code&gt;app.html.eex&lt;/code&gt;で&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/jQuery&quot;&gt;jQuery&lt;/a&gt;を読み込むようにします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- web/templates/layout/app.html.eex --&amp;gt;&lt;/span&gt;
+    ...
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- /container --&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;script&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;src&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;//code.jquery.com/jquery-2.1.4.min.js&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;script&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;script&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;src&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;&amp;lt;%= static_path(@conn, &amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;/js/app.js&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;) %&amp;gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;script&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;html&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;code&gt;web/static/js/app.js&lt;/code&gt;で&lt;code&gt;my_socket.js&lt;/code&gt;を読み込むようにします。&lt;br /&gt;
+&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Phoenix&quot;&gt;Phoenix&lt;/a&gt;では、デフォルトでは、ES6の文法ででJSを記載し、branch.ioでビルドしています。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;// web/static/js/app.js
+
+// ローカルファイルをインポート
+//
+// ローカルファイルを相対パス(&amp;#34;./socket&amp;#34;)か絶対パス(&amp;#34;web/static/js/socket&amp;#34;)で
+// 指定してインポートできます。
+
+// web/static/js/my_socket.js をインポート
+import &amp;#34;./my_socket&amp;#34;&lt;/pre&gt;&lt;p&gt;そして、&lt;code&gt;my_socket.js&lt;/code&gt;を作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;// web/static/js/app.js
+
+// Phoenisではデフォルトで&amp;#34;deps/phoenix/web/static/js/phoenix&amp;#34;に
+// JSのSocketクラスが実装されています。そのSocketクラスをimportします。
+import {Socket} from &amp;#34;deps/phoenix/web/static/js/phoenix&amp;#34;
+
+// チャットを行うクラス
+class MySocket {
+
+  // newのときに呼ばれるコンストラクタ
+  constructor() {
+    console.log(&amp;#34;Initialized&amp;#34;)
+
+    // 入力フィールド
+    this.$username = $(&amp;#34;#username&amp;#34;)
+    this.$message  = $(&amp;#34;#message&amp;#34;)
+
+    // 表示領域
+    this.$messagesContainer = $(&amp;#34;#messages&amp;#34;)
+
+    // キー入力イベントの登録
+    this.$message.off(&amp;#34;keypress&amp;#34;).on(&amp;#34;keypress&amp;#34;, e =&amp;gt; {
+      if (e.keyCode === 13) { // 13: Enterキー
+        // `${変数}` は式展開
+        console.log(`[${this.$username.val()}]${this.$message.val()}`)
+        // メッセージの入力フィールドをクリア(空)にする
+        this.$message.val(&amp;#34;&amp;#34;)
+      }
+    })
+  }
+}
+
+$(
+  () =&amp;gt; {
+    new MySocket()
+  }
+)
+
+export default MySocket&lt;/pre&gt;&lt;p&gt;&lt;code&gt;my_socket.js&lt;/code&gt;を保存すると自動的に&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%D1%A5%A4%A5%EB&quot;&gt;コンパイル&lt;/a&gt;されます。&lt;br /&gt;
+画面をリロードし、UsernameとMessengerに値をいれて、Enterキーを押すと、JSコンソールに内容が表示されると思います。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151016/20151016022228.png&quot; alt=&quot;f:id:nipe880324:20151016022228p:plain:w420&quot; title=&quot;f:id:nipe880324:20151016022228p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h4&gt;JSでソケットに接続&lt;/h4&gt;&lt;code&gt;my_socket.js&lt;/code&gt;でソケットに接続します。&lt;br /&gt;
+&lt;code&gt;Socket&lt;/code&gt;クラスを作成し、&lt;code&gt;connect()&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;で接続できます。&lt;br /&gt;
+ソケット接続を&lt;code&gt;connectSocket()&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;として切り出しておきます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// web/static/app.js&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;// チャットを行うクラス&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;class&lt;/span&gt; MySocket &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  constructor() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; ... &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;// ソケットに接続&lt;/span&gt;
+  connectSocket(socket_path) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;// &amp;quot;lib/chat_phoenix/endpoint.ex&amp;quot;　に定義してあるソケットパス(&amp;quot;/socket&amp;quot;)で&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;// ソケットに接続すると、UserSocketに接続されます&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.socket = &lt;span class=&quot;synStatement&quot;&gt;new&lt;/span&gt; Socket(socket_path)
+    &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.socket.connect()
+    &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.socket.onClose( e =&amp;gt; console.log(&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Closed connection&amp;quot;&lt;/span&gt;) )
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+
+$(
+  () =&amp;gt; &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;let&lt;/span&gt; my_socket = &lt;span class=&quot;synStatement&quot;&gt;new&lt;/span&gt; MySocket()
+    my_socket.connectSocket(&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;/socket&amp;quot;&lt;/span&gt;)
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+)
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;サーバーでチャネルモジュールを定義&lt;/h4&gt;ソケットに接続できましたので、チャネルのRoomChannelを定義します。&lt;br /&gt;
+クライアントがチャネルに入るためにはサーバーのチャネルモジュールで&lt;code&gt;join&lt;/code&gt;関数を実装する必要があり、&lt;code&gt;{:ok, socket}&lt;/code&gt;を返ことでチャネルに入ることができます。&lt;br /&gt;
+また、&lt;code&gt;join&lt;/code&gt;関数の第一引数ではトピック名を指定し、トピックごとに&lt;code&gt;join&lt;/code&gt;関数を定義します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# web/channels/room_channel.ex
+defmodule ChatPhoenix.RoomChannel do
+  use Phoenix.Channel
+
+  # &amp;#34;rooms:lobby&amp;#34;トピックのjoin関数
+  # {:ok, socket} を返すだけなのですべてのクライアントが接続可能
+  def join(&amp;#34;rooms:lobby&amp;#34;, message, socket) do
+    {:ok, socket}
+  end
+end&lt;/pre&gt;&lt;p&gt;許可するには、&lt;code&gt;{:ok, socket}&lt;/code&gt; か &lt;code&gt;{:ok, reply, socket}&lt;/code&gt; を返します。&lt;br /&gt;
+拒否するには、&lt;code&gt;{:error, reply}&lt;/code&gt; を返します。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h4&gt;JSでチャネルに接続&lt;/h4&gt;いま作成したRoomChannelモジュールに接続します。接続するトピックは&lt;code&gt;&quot;rooms:lobby&quot;&lt;/code&gt;です。&lt;br /&gt;
+&lt;code&gt;socket.channel(&quot;&lt;トピック名&gt;&quot;, {})&lt;/code&gt;でチャネルを作成し、&lt;code&gt;channel.join()&lt;/code&gt;でチャネルにジョインします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;// web/static/app.js
+
+class MySocket {
+  ...
+  // チャネルに接続
+  connectChannel(chanel_name) {
+    this.channel = this.socket.channel(chanel_name, {})
+    this.channel.join()
+      .receive(&amp;#34;ok&amp;#34;, resp =&amp;gt; { // チャネルに入れたときの処理
+        console.log(&amp;#34;Joined successfully&amp;#34;, resp)
+      })
+      .receive(&amp;#34;error&amp;#34;, resp =&amp;gt; { // チャネルに入れなかった時の処理
+        console.log(&amp;#34;Unable to join&amp;#34;, resp)
+      })
+  }
+}
+
+$(
+  () =&amp;gt; {
+    // ソケット/チャネルに接続
+    let my_socket = new MySocket()
+    my_socket.connectSocket(&amp;#34;/socket&amp;#34;)
+    my_socket.connectChannel(&amp;#34;rooms:lobby&amp;#34;)
+  }
+)&lt;/pre&gt;&lt;p&gt;画面をリロードすると、うまくいけばJSコンソールに次のように表示されると思います。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;Initialized
+Joined successfully Object {}&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;JSでチャネルにメッセージを送る&lt;/h4&gt;&lt;code&gt;channel.push(event名, メッセージ)&lt;/code&gt;でチャネルにメッセージを送ります。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// web/static/app.js&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;// キー入力イベントの登録&lt;/span&gt;
+message.off(&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;keypress&amp;quot;&lt;/span&gt;).on(&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;keypress&amp;quot;&lt;/span&gt;, e =&amp;gt; &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; (e.keyCode === 13) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;// 13: Enterキー&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;// `${変数}` は式展開&lt;/span&gt;
+    console.log(`&lt;span class=&quot;synIdentifier&quot;&gt;[&lt;/span&gt;$&lt;span class=&quot;synIdentifier&quot;&gt;{this&lt;/span&gt;.$username.val()&lt;span class=&quot;synIdentifier&quot;&gt;}]&lt;/span&gt;$&lt;span class=&quot;synIdentifier&quot;&gt;{this&lt;/span&gt;.$message.val()&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;`)
+    &lt;span class=&quot;synComment&quot;&gt;// サーバーに&amp;quot;new:messege&amp;quot;というイベント名で、ユーザ名とメッセージを送る&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.channel.push(&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;new:message&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; user: &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.$username.val(), body: &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.$message.val() &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;)
+    &lt;span class=&quot;synComment&quot;&gt;// メッセージの入力フィールドをクリア(空)にする&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.$message.val(&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;)
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;)
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;サーバーでIncoming eventsを処理する&lt;/h4&gt;クライアントからサーバーへ入ってくるイベントをIncoming eventsと呼びます。&lt;br /&gt;
+Incoming eventsは、チャネルに&lt;code&gt;handle_in&lt;/code&gt;関数を定義することで処理をすることができます。&lt;br /&gt;
+&lt;code&gt;handle_in&lt;/code&gt;関数の第一引数にイベント名を記載し、送られてきたイベント名に対応した&lt;code&gt;handle_in&lt;/code&gt;関数が呼ばれます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# web/channels/room_channel.ex
+
+# イベント名&amp;#34;new:message&amp;#34;のIncoming eventsを処理する
+def handle_in(&amp;#34;new:message&amp;#34;, message, socket) do
+  # broadcat!は同じチャネルのすべてのサブスクライバーにメッセージを送る
+  broadcast! socket, &amp;#34;new:message&amp;#34;, %{user: message[&amp;#34;user&amp;#34;], body: message[&amp;#34;body&amp;#34;]}
+  {:noreply, socket}
+end&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;JSでメッセージをサーバーから受け取る&lt;/h4&gt;&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// web/static/js/my_socket.js&lt;/span&gt;
+
+&lt;span class=&quot;synStatement&quot;&gt;class&lt;/span&gt; MySocket &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  ...
+
+  &lt;span class=&quot;synComment&quot;&gt;// チャネルに接続&lt;/span&gt;
+  connectChannel(chanel_name) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    ...
+    &lt;span class=&quot;synComment&quot;&gt;// チャネルの&amp;quot;new:message&amp;quot;イベントを受け取った時のイベント処理&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.channel.on(&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;new:message&amp;quot;&lt;/span&gt;, message =&amp;gt; &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;._renderMessage(message) )
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;// メッセージを画面に表示&lt;/span&gt;
+  _renderMessage(message) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;let&lt;/span&gt; user = &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;._sanitize(message.user || &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;New User&amp;quot;&lt;/span&gt;)
+    &lt;span class=&quot;synIdentifier&quot;&gt;let&lt;/span&gt; body = &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;._sanitize(message.body)
+
+    &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.$messagesContainer.append(`&amp;lt;p&amp;gt;&amp;lt;b&amp;gt;&lt;span class=&quot;synIdentifier&quot;&gt;[&lt;/span&gt;$&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;user&lt;span class=&quot;synIdentifier&quot;&gt;}]&lt;/span&gt;&amp;lt;/b&amp;gt;: $&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;body&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;&amp;lt;/p&amp;gt;`)
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;// メッセージをサニタイズする&lt;/span&gt;
+  _sanitize(str) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; $(&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;&amp;lt;div/&amp;gt;&amp;quot;&lt;/span&gt;).text(str).html()
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;チャネルの動作確認&lt;/h4&gt;2つブラウザを開き、&lt;a href=&quot;http://localhost:4000/&quot; target=&quot;_blank&quot;&gt;http://localhost:4000/&lt;/a&gt;にアクセスします。&lt;br /&gt;
+UsernameとMessengerを入力してEnterキーを押すとリアルタイムでメッセージが表示されます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151016/20151016022846.png&quot; alt=&quot;f:id:nipe880324:20151016022846p:plain:w420&quot; title=&quot;f:id:nipe880324:20151016022846p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;phoenix-tutorial-3-integration&quot;&gt;3. チャット機能をログイン機能と統合&lt;/h3&gt;チャット機能ができましたので、前回の記事で作成したログイン機能と統合します。&lt;br /&gt;
+具体的には、ログインしないとチャット機能を使えないようにします。&lt;br /&gt;
+また、そのときに、UsernameにUserのemailを設定するようにしてみます。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h4&gt;チャット画面でログインを必須にする&lt;/h4&gt;チャット画面を開く前にログインをしているかチェックする&lt;code&gt;authenticate_user!&lt;/code&gt;関数を作成し、アクション前に呼びだすようにします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# web/controllers/page_controller.ex
+defmodule ChatPhoenix.PageController do
+  use ChatPhoenix.Web, :controller
+
+  # アクションの前に実行される
+  plug :authenticate_user!
+
+  @doc &amp;#34;&amp;#34;&amp;#34;
+  チャット画面を表示
+  &amp;#34;&amp;#34;&amp;#34;
+  def index(conn, _params) do
+    render conn, &amp;#34;index.html&amp;#34;
+  end
+
+  # ログインしていない場合は、ログインページにリダイレクトさせる
+  defp authenticate_user!(conn, _params) do
+    unless logged_in?(conn) do
+      conn
+        |&amp;gt; put_flash(:info, &amp;#34;チャット機能を行うにはログインが必要です&amp;#34;)
+        |&amp;gt; redirect(to: session_path(conn, :new))
+    end
+    conn  # plug は connを返す必要がある
+  end
+end&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+PageContorollerで&lt;code&gt;current_user&lt;/code&gt;と&lt;code&gt;logged_in?&lt;/code&gt;関数を使えるようにするために、&lt;code&gt;web/web.ex&lt;/code&gt;のcontrollerの箇所にimportを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# web/web.ex
+def controller do
+  quote do
+    ...
+
+    import ChatPhoenix.Router.Helpers
+    # Sessionモジュールのcurrent_userとlogged_in?をWebのcontrollerに追加
+    import ChatPhoenix.Session, only: [current_user: 1, logged_in?: 1]
+  end
+end&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+ログインしていない状態で&lt;a href=&quot;http://localhost:4000&quot; target=&quot;_blank&quot;&gt;チャット画面(http://localhost:4000)&lt;/a&gt;にアクセスすると次のようにログイン画面にリダイレクトされるようになります。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151016/20151016023042.png&quot; alt=&quot;f:id:nipe880324:20151016023042p:plain:w420&quot; title=&quot;f:id:nipe880324:20151016023042p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h4&gt;ソケットとチャネルの認証&lt;/h4&gt;画面としては、ログインしていない場合チャット画面を開けないようにしました。&lt;br /&gt;
+しかし、まだJSでソケットにつなぎ、チャネルに入ることができます。&lt;br /&gt;
+そのため、ソケットとチャネルもログインしていないと繋げないようにします。&lt;/p&gt;&lt;p&gt;まずは、&lt;code&gt;Phoenix.Token&lt;/code&gt;モジュールを利用し、トークンを作成し、チャット画面に埋め込みます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# web/router.ex
+
+pipeline :browser do
+  ...
+  // ブラウザの場合、ユーザーのトークンを設定
+  plug :put_user_token
+end
+
+...
+
+// ログインしている場合、user_tokenキーにユーザーのトークンを設定します
+defp put_user_token(conn, _) do
+  if logged_in?(conn) do
+    token = Phoenix.Token.sign(conn, &amp;#34;user&amp;#34;, current_user(conn).id)
+    assign(conn, :user_token, token)
+  else
+    conn
+  end
+end&lt;/pre&gt;&lt;p&gt;Routerモジュールで&lt;code&gt;logged_in?&lt;/code&gt;と&lt;code&gt;current_user&lt;/code&gt;関数を利用できるようにするために、&lt;code&gt;web/web.ex&lt;/code&gt;のrouterにimoprtを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# web/web.ex
+def router do
+  quote do
+    use Phoenix.Router
+
+    # Sessionモジュールのcurrent_userとlogged_in?をWebのviewに追加
+    import ChatPhoenix.Session, only: [current_user: 1, logged_in?: 1]
+  end
+end&lt;/pre&gt;&lt;p&gt;そして、レイアウトの箇所で&lt;code&gt;userToken&lt;/code&gt;にトークン値を設定します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- web/templates/layout/app.html.eex --&amp;gt;&lt;/span&gt;
+
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- /container --&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;script&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;window&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;.userToken = &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;&amp;lt;%= assigns[:user_token] %&amp;gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;script&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;script&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;src&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;//code.jquery.com/jquery-2.1.4.min.js&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;script&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;script&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;src&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;&amp;lt;%= static_path(@conn, &amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;/js/app.js&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;) %&amp;gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;script&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;html&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+UserSocketの&lt;code&gt;connect&lt;/code&gt;関数を実装し、チャネルへの接続可否を制御します。&lt;br /&gt;
+&lt;code&gt;Phoenix.Token.verify&lt;/code&gt;でトークン値を検証し、成功した場合は:ok(ソケットに接続)を返し、:&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/error&quot;&gt;error&lt;/a&gt;(ソケットに接続拒否)を返します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# web/channels/user_socket.ex
+
+def connect(%{&amp;#34;token&amp;#34; =&amp;gt; token}, socket) do
+  # Max age of 2 weeks (1209600 seconds)
+  case Phoenix.Token.verify(socket, &amp;#34;user&amp;#34;, token, max_age: 1209600) do
+    {:ok, user_id} -&amp;gt;
+      {:ok, assign(socket, :user_id, user_id)}
+    {:error, _} -&amp;gt;
+      :error
+  end
+end&lt;/pre&gt;&lt;p&gt;RoomChannelの&lt;code&gt;join&lt;/code&gt;関数でソケット接続の接続可否を制御します。&lt;br /&gt;
+userがある場合は :ok(接続許可)、userがない場合は :&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/error&quot;&gt;error&lt;/a&gt;(接続拒否) を返します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# web/channels/room_channel.ex
+
+defmodule ChatPhoenix.RoomChannel do
+  use Phoenix.Channel
+  alias ChatPhoenix.Repo
+  alias ChatPhoenix.User
+
+  # &amp;#34;rooms:lobby&amp;#34;トピックのjoin関数
+  def join(&amp;#34;rooms:lobby&amp;#34;, message, socket) do
+    user = Repo.get(User, socket.assigns[:user_id])
+    if user do
+      {:ok, %{email: user.email}, socket}
+    else
+      {:error, %{reason: &amp;#34;unauthorized&amp;#34;}}
+    end
+  end
+
+end&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+サーバー側の認証処理を実装したので、JS側の処理を追加します。&lt;br /&gt;
+&lt;code&gt;my_socket.js&lt;/code&gt;のソケット接続時に画面から受け取ったトークンを送るようにします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// web/static/js/my_socket.js&lt;/span&gt;
+
+&lt;span class=&quot;synStatement&quot;&gt;class&lt;/span&gt; MySocket &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;// ソケットに接続&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;// トークンを受け取り、トークンがない場合はアラートを表示&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;// new Socketで接続するときにトークンをサーバー側に送る&lt;/span&gt;
+  connectSocket(socket_path, token) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; (!token) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;synStatement&quot;&gt;alert&lt;/span&gt;(&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;ソケットにつなぐにはトークンが必要です&amp;quot;&lt;/span&gt;)
+      &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+
+    &lt;span class=&quot;synComment&quot;&gt;// &amp;quot;lib/chat_phoenix/endpoint.ex&amp;quot;　に定義してあるソケットパス(&amp;quot;/socket&amp;quot;)で&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;// ソケットに接続すると、UserSocketに接続されます&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.socket = &lt;span class=&quot;synStatement&quot;&gt;new&lt;/span&gt; Socket(socket_path, &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; params: &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; token: token &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;)
+    &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.socket.connect()
+    &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.socket.onClose( e =&amp;gt; console.log(&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Closed connection&amp;quot;&lt;/span&gt;) )
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;// チャネルに接続&lt;/span&gt;
+  connectChannel(chanel_name) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.channel = &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.socket.channel(chanel_name, &lt;span class=&quot;synIdentifier&quot;&gt;{}&lt;/span&gt;)
+    &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.channel.join()
+      .receive(&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;ok&amp;quot;&lt;/span&gt;, resp =&amp;gt; &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+        console.log(&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Joined successfully&amp;quot;&lt;/span&gt;, resp)
+        &lt;span class=&quot;synComment&quot;&gt;// Username入力フィールドにユーザのemailを自動的にセットするようにする&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.$username.val(resp.email)
+      &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;)
+      .receive(&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;error&amp;quot;&lt;/span&gt;, resp =&amp;gt; &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+        console.log(&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Unable to join&amp;quot;&lt;/span&gt;, resp)
+      &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;)
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+
+
+$(
+  () =&amp;gt; &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;// userTokenがある場合のみソケットにつなぐ&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;// 本来は、app.html.eexでこのJSを読み込まなくするほうがよさそう&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;// そのためにはJSを分割し、PageControllerのindexアクションで読みこむように&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;// render_existingを行う必要がある&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; (&lt;span class=&quot;synStatement&quot;&gt;window&lt;/span&gt;.userToken) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;let&lt;/span&gt; my_socket = &lt;span class=&quot;synStatement&quot;&gt;new&lt;/span&gt; MySocket()
+      &lt;span class=&quot;synComment&quot;&gt;// app.html.eexでセットしたトークンを使ってソケットに接続&lt;/span&gt;
+      my_socket.connectSocket(&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;/socket&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synStatement&quot;&gt;window&lt;/span&gt;.userToken)
+      my_socket.connectChannel(&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;rooms:lobby&amp;quot;&lt;/span&gt;)
+    &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+)
+
+&lt;span class=&quot;synStatement&quot;&gt;export&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;default&lt;/span&gt; MySocket
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+画面をリロードすると、ログインしているユーザのemailが入力フィールドに設定された状態で表示されます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151016/20151016023423.png&quot; alt=&quot;f:id:nipe880324:20151016023423p:plain:w420&quot; title=&quot;f:id:nipe880324:20151016023423p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;phoenix-tutorial-3-persist&quot;&gt;4. チャットメッセージの永続化&lt;/h3&gt;チャットで送信したメッセージ文を保持するMessageモデルを作成し、メッセージを永続化できるようにします。&lt;br /&gt;
+こうすることで画面をリロードしても、投稿したメッセージが表示された状態になります。&lt;/p&gt;&lt;p&gt;&lt;h4&gt;Messageモデルを作成&lt;/h4&gt;&lt;code&gt;mix phoenix.gen.model&lt;/code&gt;コマンドでMessageモデルを作成します。&lt;br /&gt;
+UserモデルとMessageモデルは1対n関係を作成します。そのとき、&lt;code&gt;user_id:references:users&lt;/code&gt;と記載します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ mix phoenix.gen.model Message messages content:string user_id:references:users
+* creating priv/repo/migrations/20151015152654_create_message.exs
+* creating web/models/message.ex
+* creating test/models/message_test.exs&lt;/pre&gt;&lt;p&gt;&lt;code&gt;mix ecto.migrate&lt;/code&gt;で&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%DE%A5%A4%A5%B0%A5%EC%A1%BC%A5%B7%A5%E7%A5%F3&quot;&gt;マイグレーション&lt;/a&gt;を実行し、&lt;code&gt;messages&lt;/code&gt;テーブルを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ mix ecto.migrate
+00:30:08.602 [info]  == Running ChatPhoenix.Repo.Migrations.CreateMessage.change/0 forward
+00:30:08.602 [info]  create table messages
+00:30:08.637 [info]  create index messages_user_id_index
+00:30:08.644 [info]  == Migrated in 0.3s&lt;/pre&gt;&lt;p&gt;&lt;h4&gt;UserモデルとMessageモデルのアソシエーション&lt;/h4&gt;UserモデルとMessageモデルは、1対N関連です。&lt;br /&gt;
+Userモデルの&lt;code&gt;schema&lt;/code&gt;で&lt;code&gt;has_many&lt;/code&gt;を追加します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# web/models/user.ex
+defmodule ChatPhoenix.User do
+
+  schema &amp;#34;users&amp;#34; do
+    field :email, :string
+    field :crypted_password, :string
+    # passwordフィールドを追加。virtual: trueとすることでデータベースには保存されない
+    field :password, :string, virtual: true
+
+    has_many :messages, ChatPhoenix.Message
+    timestamps
+  end
+  ...&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+Messageモデルの&lt;code&gt;schema&lt;/code&gt;には&lt;code&gt;belongs_to&lt;/code&gt;があります。&lt;br /&gt;
+これは、&lt;code&gt;mix phoenix.gen.model&lt;/code&gt;コマンドのときに&lt;code&gt;references&lt;/code&gt;を指定していたためです。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# web/models/message.ex
+defmodule ChatPhoenix.Message do
+  use ChatPhoenix.Web, :model
+
+  schema &amp;#34;messages&amp;#34; do
+    field :content, :string
+    belongs_to :user, ChatPhoenix.User
+
+    timestamps
+  end
+  ...&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+モデルに1対Nのアソシエーションが定義できたので、軽くアソシエーションの使い方を説明します。&lt;br /&gt;
+&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%A4%A5%F3%A5%BF%A5%E9%A5%AF%A5%C6%A5%A3%A5%D6&quot;&gt;インタラクティブ&lt;/a&gt;コンソールを開きます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ iex -S mix phoenix.server
+
+# aliasでChatPhoneixを省略可能にしておきます
+&amp;gt; alias ChatPhoenix.Repo
+&amp;gt; alias ChatPhoenix.User
+&amp;gt; alias ChatPhoenix.Message
+
+# 登録されているユーザを取得(自分の登録したユーザのemailを入力してください)
+&amp;gt; user = Repo.get_by(User, email: &amp;#34;test@example.com&amp;#34;)
+# 関連するメッセージを作成
+&amp;gt; message = Ecto.Model.build(user, :messages, content: &amp;#34;How are you?&amp;#34;)
+# メッセージをDBにインサートする
+&amp;gt; Repo.insert!(message)
+
+# ユーザと関連するメッセージを取得
+&amp;gt; user = Repo.get_by(User, email: &amp;#34;test@example.com&amp;#34;) |&amp;gt; Repo.preload(:messages)
+&amp;gt; user.messages #=&amp;gt; メッセージが表示される&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+その他、モデルの&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/CRUD&quot;&gt;CRUD&lt;/a&gt;の&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;を確認したい場合、&lt;a href=&quot;http://qiita.com/yoavlt/items/2faa2107eedd8c82ff8f&quot; target=&quot;_blank&quot;&gt;Elixir Phoenixのデータベース操作モジュールEcto入門2&lt;/a&gt;を参考にしてください。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h4&gt;Message &lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;コントローラを作成&lt;/h4&gt;Messageモデルを作成したので、Messageの一覧を取得する&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;コントローラを作成します。&lt;br /&gt;
+まず、ルートを作成しておきます。&lt;br /&gt;
+&lt;code&gt;scope &quot;/api&quot;内にルートを追加します。また、上の方に、&lt;code&gt;pipeline :api&lt;/code&gt;が記載されており、jsonと記載されています。これは、このAPIはJSON形式でやりとりすることを意味しています。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# web/router.ex
+pipeline :api do
+  plug :accepts, [&amp;#34;json&amp;#34;]
+end
+
+# Other scopes may use custom stacks.
+scope &amp;#34;/api&amp;#34;, ChatPhoenix do
+  pipe_through :api
+
+  # メッセージ一覧取得(:index)
+  get  &amp;#34;/messages&amp;#34;, MessageController, :index
+end&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+MessageControllerを作成します。いまはアクションは未定義でおいておきます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# web/controllers/message_controller.ex
+defmodule ChatPhoenix.MessageController do
+  use ChatPhoenix.Web, :controller
+  alias ChatPhoenix.Repo
+  alias ChatPhoenix.Message
+
+  @doc &amp;#34;&amp;#34;&amp;#34;
+  メッセージ一覧取得API
+  &amp;#34;&amp;#34;&amp;#34;
+  def index(conn, _params) do
+    # TODO: 実装する
+  end
+
+  # TODO: authentication（本記事で実施しない）
+end&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+空のMessageViewも作成しておきます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# web/views/message_view.ex
+defmodule ChatPhoenix.MessageView do
+  use ChatPhoenix.Web, :view
+end&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;Message 一覧取得API&lt;/h4&gt;&lt;code&gt;Repo.all(Message)&lt;/code&gt;関数ですべてのメッセージをDBから取得して、&lt;code&gt;render&lt;/code&gt;関数でViewに渡します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# web/controllers/message_controller.ex
+@doc &amp;#34;&amp;#34;&amp;#34;
+メッセージ一覧取得API
+&amp;#34;&amp;#34;&amp;#34;
+def index(conn, _params) do
+  # すべてのメッセージを取得。userも一緒にロードしておく
+  messages = Repo.all(Message) |&amp;gt; Repo.preload(:user)
+  render conn, :index, messages: messages
+end&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+MessageViewでは、JSONに変換します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# web/views/message_view.ex
+defmodule ChatPhoenix.MessageView do
+  use ChatPhoenix.Web, :view
+
+  def render(&amp;#34;index.json&amp;#34;, %{messages: messages}) do
+    # messagesの各messageを下記のmessage.jsonで表示する
+    %{messages: render_many(messages, ChatPhoenix.MessageView, &amp;#34;message.json&amp;#34;)}
+  end
+
+  def render(&amp;#34;message.json&amp;#34;, %{message: message}) do
+    # messageのid, content, messageのuserのemail をJSON形式で表示する
+    %{id: message.id, body: message.content, user: message.user.email}
+  end
+end&lt;/pre&gt;&lt;p&gt;今のままだとログインしていなくてもメッセージ一覧取得APIにアクセスできてしまいますが、認証機能はここでは割愛します。&lt;br /&gt;
+Plugを作成し、router.exのpipelineに追加する流れです。&lt;br /&gt;
+参考: &lt;a href=&quot;http://www.jonathanbirkholz.com/authenticating-users-using-a-token-with-phoenix/&quot; target=&quot;_blank&quot;&gt;Authenticating Users using a Token with Phoenix&lt;/a&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h4&gt;JSでメッセージ一覧を取得/表示&lt;/h4&gt;若干雑ですが、MySocketクラスにメッセージの一覧を取得する&lt;code&gt;all()&lt;/code&gt;メソッドを定義し、呼び出します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;// web/static/js/my_socket.js
+
+class mySocket {
+  // メッセージを取得
+  all() {
+    $.ajax({
+      url: &amp;#34;/api/messages&amp;#34;
+    }).done((data) =&amp;gt; {
+      console.log(data)
+      // 取得したデータをレンダーする
+      data.messages.forEach((message) =&amp;gt; this._renderMessage(message))
+    }).fail((data) =&amp;gt; {
+      alert(&amp;#34;エラーが発生しました&amp;#34;)
+      console.log(data)
+    })
+  }
+}
+
+$(
+  () =&amp;gt; {
+    if (window.userToken) {
+      ...
+      // メッセージを取得
+      my_socket.all()
+    }
+  }
+)&lt;/pre&gt;&lt;p&gt;これで画面をリロードすると、次のように画面上部にDBのメッセージが表示されます&lt;br /&gt;
+（DBのメッセージをJSで取得して、JSがappendしている）&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151016/20151016023622.png&quot; alt=&quot;f:id:nipe880324:20151016023622p:plain:w420&quot; title=&quot;f:id:nipe880324:20151016023622p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h4&gt;Message 作成API&lt;/h4&gt;メッセージの作成は、RoomChannelの&lt;code&gt;new:message&lt;/code&gt;イベント側でメッセージを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# web/channel/room_channel.ex
+
+# イベント名&amp;#34;new:message&amp;#34;のIncoming eventsを処理する
+def handle_in(&amp;#34;new:message&amp;#34;, message, socket) do
+# メッセージを作成
+user = Repo.get(User, socket.assigns[:user_id]) |&amp;gt; Repo.preload(:messages)
+message = Ecto.Model.build(user, :messages, content: message[&amp;#34;body&amp;#34;])
+Repo.insert!(message)
+
+# broadcastする値も、作成した値を使用するようにする
+broadcast! socket, &amp;#34;new:message&amp;#34;, %{user: user.email, body: message.content}
+{:noreply, socket}
+end&lt;/pre&gt;&lt;p&gt;これで画面からメッセージを投稿するとDBにメッセージが書き込まれ、画面をリロードしてもメッセージが表示されるようになります。もちろん、WebSocketにより他の人の投稿がリアルタイムにメッセージが表示されます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151016/20151016023811.png&quot; alt=&quot;f:id:nipe880324:20151016023811p:plain:w420&quot; title=&quot;f:id:nipe880324:20151016023811p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;以上です。これで終わりです。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;参考文献&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://qiita.com/FL4TLiN3/items/41ca80cdbfca1956ed78&quot;&gt;Elixir - Phoenix&amp;#x3067;JSON&amp;#x3092;&amp;#x8FD4;&amp;#x3059;Web API&amp;#x3092;&amp;#x4F5C;&amp;#x308B; - Qiita&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://hexdocs.pm/ecto/Ecto.html&quot;&gt;Ecto &amp;ndash; Ecto v1.0.4&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Fri, 16 Oct 2015 02:39:16 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/6653458415124742795</guid>
+          
+            <category>phoenix</category>
+          
+            <category>elixer</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>Phoenix入門2 - Phonixで認証機能</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20151013/1444662887</link>
+          <description>&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151011/20151011193641.png&quot; alt=&quot;f:id:nipe880324:20151011193641p:plain:w420&quot; title=&quot;f:id:nipe880324:20151011193641p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;前回の記事は「&lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20151011/1444560106&quot;&gt;Phonix環境のセットアップから、静的ページを作成し、表示&lt;/a&gt;」させました。&lt;br /&gt;
+今回の記事では、「&lt;b&gt;Phoneixで認証機能を実装&lt;/b&gt;」します。&lt;br /&gt;
+それを通して、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%DE%A5%A4%A5%B0%A5%EC%A1%BC%A5%B7%A5%E7%A5%F3&quot;&gt;マイグレーション&lt;/a&gt;、モデル、外部ライブラリ利用などのWebアプリケーションを作るための基本的な箇所を説明します。&lt;br /&gt;
+次回は「&lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20151016/1444930756&quot;&gt;チャット機能を実装&lt;/a&gt;」します。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;サンプル&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://tranquil-mesa-7338.herokuapp.com/login&quot; target=&quot;_blank&quot;&gt;ChatPhoenix - Heroku&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/nipe0324/chat_phoenix&quot; target=&quot;_blank&quot;&gt;ChatPhoenix - GitHub&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#phoenix-tutorial-2-signup&quot;&gt;ユーザ登録機能&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#phoenix-tutorial-2-login-logout&quot;&gt;ログイン・ログアウト機能&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Erlang&quot;&gt;Erlang&lt;/a&gt; 7.1&lt;/li&gt;
+&lt;li&gt;Elixir 1.1.1&lt;/li&gt;
+&lt;li&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Phoenix&quot;&gt;Phoenix&lt;/a&gt; 10.0.3&lt;/li&gt;
+&lt;li&gt;Hex 0.9.0&lt;/li&gt;
+&lt;li&gt;node.js 0.12.7&lt;/li&gt;
+&lt;li&gt;npm 2.14.2&lt;/li&gt;
+&lt;li&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/PostgreSQL&quot;&gt;PostgreSQL&lt;/a&gt; 9.4.4&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;phoenix-tutorial-2-signup&quot;&gt;1. ユーザ登録機能&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;&lt;h4&gt;ユーザモデルの作成&lt;/h4&gt;まず、最初にユーザモデルを作成します。&lt;br /&gt;
+メールとパスワードでログインをできるようにし、パスワードは平文ではなくハッシュ化してデータベースに保存します。&lt;br /&gt;
+モデルや&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%DE%A5%A4%A5%B0%A5%EC%A1%BC%A5%B7%A5%E7%A5%F3&quot;&gt;マイグレーション&lt;/a&gt;ファイルを作成するコマンドは&lt;code&gt;mix phoenix.gen.model&lt;/code&gt;です。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ mix phoenix.gen.model User users email:string crypted_password:string
+* creating priv/repo/migrations/20151010202152_create_user.exs
+* creating web/models/user.ex
+* creating test/models/user_test.exs&lt;/pre&gt;&lt;p&gt;&lt;code&gt;mix phoenix.gen.model&lt;/code&gt;の引数で、&lt;br /&gt;
+&lt;code&gt;User&lt;/code&gt;はモデル名、&lt;code&gt;users&lt;/code&gt;はテーブル名、&lt;code&gt;email&lt;/code&gt;や&lt;code&gt;crypted_password&lt;/code&gt;はフィールド名、&lt;code&gt;string&lt;/code&gt;はデータ型です。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;作成された&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%DE%A5%A4%A5%B0%A5%EC%A1%BC%A5%B7%A5%E7%A5%F3&quot;&gt;マイグレーション&lt;/a&gt;ファイルにnull制約(&lt;code&gt;null: false&lt;/code&gt;)とunique制約(&lt;code&gt;unique_index&lt;/code&gt;)をつけます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# priv/repo/migrations/YYYYMMDDhhmmdd_create_user.exs
+defmodule ChatPhoenix.Repo.Migrations.CreateUser do
+  use Ecto.Migration
+
+  def change do
+    # usersテーブルを作成
+    create table(:users) do
+      # emailとcrypted_passwordフィールドをstring型でnull制約で作成
+      add :email, :string, null: false
+      add :crypted_password, :string, null: false
+
+      # created_atとupdated_atフィールドを作成
+      timestamps
+    end
+
+    # emailフィールドにunique制約をつける
+    create unique_index(:users, [:email])
+  end
+end&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%DE%A5%A4%A5%B0%A5%EC%A1%BC%A5%B7%A5%E7%A5%F3&quot;&gt;マイグレーション&lt;/a&gt;を実行し、usersテーブルを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ mix ecto.migrate
+Compiled web/models/user.ex
+Generated chat_phoenix app
+17:07:58.973 [info]  == Running ChatPhoenix.Repo.Migrations.CreateUser.change/0 forward
+17:07:58.973 [info]  create table users
+17:07:59.001 [info]  create index users_email_index
+17:07:59.005 [info]  == Migrated in 0.2s||&amp;lt;&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;ルートの追加&lt;/h4&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%EB%A1%BC%A5%BF%A1%BC&quot;&gt;ルーター&lt;/a&gt;にユーザーの登録画面と登録処理のルートを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# web/router.ex
+
+scope &amp;#34;/&amp;#34;, ChatPhoenix do
+  pipe_through :browser # Use the default browser stack
+
+  ...
+  # 登録画面表示(new)と登録処理(create)
+  get  &amp;#34;/register&amp;#34;, RegistrationController, :new
+  post &amp;#34;/register&amp;#34;, RegistrationController, :create
+end&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+現在設定されているルートを確認すると次のようになっていると思います。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ mix phoenix.routes
+Generated chat_phoenix app
+        page_path  GET   /          ChatPhoenix.PageController :index
+       hello_path  GET   /hello     ChatPhoenix.HelloController :index
+registration_path  GET   /register  ChatPhoenix.RegistrationController :new
+registration_path  POST  /register  ChatPhoenix.RegistrationController :create&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+ユーザ登録画面へ遷移できるようにするために、ヘッダーにユーザ登録画面へのリンクを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- web/templates/layout/app.html.eex --&amp;gt;&lt;/span&gt;
+...
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;header&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;ul&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;nav nav-pills pull-right&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- registration_pathはヘルパーメソッドで、&amp;quot;GET /register&amp;quot;に変換される --&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;li&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;ユーザ登録&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, to: registration_path(@conn, :new) %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;li&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;ul&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;span&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;logo&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;span&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+...
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;ユーザ登録コントローラーの追加&lt;/h4&gt;ルートに追記したRegistrationControllerの&lt;code&gt;new&lt;/code&gt;アクションの&quot;ユーザ登録画面の表示処理&quot;を追加します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# web/controllers/registration_controller.ex
+defmodule ChatPhoenix.RegistrationController do
+  use ChatPhoenix.Web, :controller
+  alias ChatPhoenix.User
+
+  @doc &amp;#34;&amp;#34;&amp;#34;
+  ユーザ登録画面の表示
+  &amp;#34;&amp;#34;&amp;#34;
+  def new(conn, _params) do
+    # chnageset関数は、newメソッドのようなもので、Userのデータを返す
+    changeset = User.changeset(%User{})
+    # renderの第三引数に値を渡すことで、ビューやテンプレートで値を使用できる
+    render conn, &amp;#34;new.html&amp;#34;, changeset: changeset
+  end
+end&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;ユーザ登録ビューの追加&lt;/h4&gt;空のビューモジュールを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# web/views/registration_view.ex
+defmodule ChatPhoenix.RegistrationView do
+  use ChatPhoenix.Web, :view
+end&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;ユーザ登録画面のテンプレート作成&lt;/h4&gt;ユーザ登録画面を作成します。&lt;br /&gt;
+&lt;code&gt;@changeset&lt;/code&gt;となっている箇所は、コントローラーの&lt;code&gt;render&lt;/code&gt;関数で渡した値です。&lt;br /&gt;
+詳しくは説明しませんが、フォームやinput要素はこんなふうに記載するんだなと思っていただければと思います。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;&amp;lt;!-- web/templates/registration/new.html.eex --&amp;gt;
+&amp;lt;h1&amp;gt;ユーザ登録&amp;lt;/h1&amp;gt;
+
+&amp;lt;%= form_for @changeset, registration_path(@conn, :create), fn form -&amp;gt; %&amp;gt;
+  &amp;lt;%= if form.errors != [] do %&amp;gt;
+    &amp;lt;div class=&amp;#34;alert alert-danget&amp;#34;&amp;gt;
+      &amp;lt;p&amp;gt;エラーが発生しました。&amp;lt;/p&amp;gt;
+      &amp;lt;ul&amp;gt;
+        &amp;lt;%= for {attr, message} &amp;lt;- form.errors do %&amp;gt;
+          &amp;lt;li&amp;gt;&amp;lt;%= humanize(attr) %&amp;gt; &amp;lt;%= message %&amp;gt;&amp;lt;/li&amp;gt;
+        &amp;lt;% end %&amp;gt;
+      &amp;lt;/ul&amp;gt;
+    &amp;lt;/div&amp;gt;
+  &amp;lt;% end %&amp;gt;
+
+  &amp;lt;div class=&amp;#34;form-group&amp;#34;&amp;gt;
+    &amp;lt;label&amp;gt;メールアドレス&amp;lt;/label&amp;gt;
+    &amp;lt;%= email_input form, :email, class: &amp;#34;form-control&amp;#34; %&amp;gt;
+  &amp;lt;/div&amp;gt;
+
+  &amp;lt;div class=&amp;#34;form-group&amp;#34;&amp;gt;
+    &amp;lt;label&amp;gt;パスワード&amp;lt;/label&amp;gt;
+    &amp;lt;%= password_input form, :password, class: &amp;#34;form-control&amp;#34; %&amp;gt;
+  &amp;lt;/div&amp;gt;
+
+  &amp;lt;div class=&amp;#34;form-group&amp;#34;&amp;gt;
+    &amp;lt;%= submit &amp;#34;ユーザ登録&amp;#34;, class: &amp;#34;btn btn-primary&amp;#34; %&amp;gt;
+  &amp;lt;/div&amp;gt;
+&amp;lt;% end %&amp;gt;&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;ユーザ登録画面の確認&lt;/h4&gt;&lt;a href=&quot;http://localhost:4000/register&quot; target=&quot;_blank&quot;&gt;http://localhost:4000/register&lt;/a&gt;にアクセスすると、次のようにユーザ登録画面が表示されます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151012/20151012042356.png&quot; alt=&quot;f:id:nipe880324:20151012042356p:plain:w420&quot; title=&quot;f:id:nipe880324:20151012042356p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h4&gt;ユーザ登録処理の追加&lt;/h4&gt;ユーザ登録画面が表示されるようになったので次は、ユーザ登録処理を追加します。&lt;br /&gt;
+RegistrationControllerにユーザ登録処理の&lt;code&gt;create&lt;/code&gt;アクションを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# web/controllers/registration_controller.ex
+defmodule ChatPhoenix.RegistrationController do
+  ...
+
+  @doc &amp;#34;&amp;#34;&amp;#34;
+  ユーザ登録処理
+  &amp;#34;&amp;#34;&amp;#34;
+  def create(conn, %{&amp;#34;user&amp;#34; =&amp;gt; user_params}) do
+    # フォーム情報user_paramsの値でuserデータを作成
+    changeset = User.changeset(%User{}, user_params)
+
+    # ユーザ登録
+    case User.create(changeset, ChatPhoenix.Repo) do
+      {:ok, user} -&amp;gt;
+        # バリデーションに成功した場合、userレコードを作成し、ログインし、&amp;#34;/&amp;#34;にリダイレクト
+        conn
+        |&amp;gt; put_flash(:info, &amp;#34;ようこそ&amp;#34; &amp;lt;&amp;gt; changeset.params[&amp;#34;email&amp;#34;])
+        |&amp;gt; redirect(to: &amp;#34;/&amp;#34;)
+      {:error, changeset} -&amp;gt;
+        # バリデーションに失敗した場合、&amp;#34;new.html&amp;#34;を表示
+        conn
+        |&amp;gt; put_flash(:info, &amp;#34;アカウントを作成できませんでした&amp;#34;)
+        |&amp;gt; render(&amp;#34;new.html&amp;#34;, changeset: changeset)
+    end
+  end
+end&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;Userモデルにvirtual属性、バリデーションの定義&lt;/h4&gt;データベースに保存されないpasswordフィールドというvirtualフィールドを追加します。&lt;br /&gt;
+また、必須のフィールド(@required_fields)として、emailとpasswordに変更します。&lt;br /&gt;
+最後に、ユニーク制約やフォーマットなどのバリデーションを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# web/models/user.ex
+defmodule ChatPhoenix.User do
+  use ChatPhoenix.Web, :model
+
+  schema &amp;#34;users&amp;#34; do
+    field :email, :string
+    field :crypted_password, :string
+    # passwordフィールドを追加。virtual: trueとすることでデータベースには保存されない
+    field :password, :string, virtual: true
+
+    timestamps
+  end
+
+  # crypted_passwordの代わりにpasswordに変更
+  # @required_fields ~w(email crypted_password)
+  @required_fields ~w(email password)
+  @optional_fields ~w()
+
+  @doc &amp;#34;&amp;#34;&amp;#34;
+  &amp;#34;model&amp;#34;と&amp;#34;params&amp;#34;に基づいたchangesetを作成する
+  &amp;#34;params&amp;#34;がない場合は、invalidなchangesetを返します。
+
+  castはparamsの値でモデルの値を設定
+  update_changeは、&amp;#34;email&amp;#34;の値をフィールドの値を小文字に変更
+  unique_constraintは、&amp;#34;email&amp;#34;にユニーク制約のバリデーション
+  validate_formatは、&amp;#34;email&amp;#34;に&amp;#34;@&amp;#34;が含まれているかバリデーション
+  validate_lengthは、&amp;#34;password&amp;#34;が5文字以上であるかバリデーション
+  &amp;#34;&amp;#34;&amp;#34;
+  def changeset(model, params \\ :empty) do
+    model
+    |&amp;gt; cast(params, @required_fields, @optional_fields)
+    |&amp;gt; update_change(:email, &amp;amp;String.downcase/1)
+    |&amp;gt; unique_constraint(:email)
+    |&amp;gt; validate_format(:email, ~r/@/)
+    |&amp;gt; validate_length(:password, min: 5)
+  end
+end&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;Userモデルにcreate&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;の追加&lt;/h4&gt;RegistrationControllerで追加した、&lt;code&gt;create&lt;/code&gt;関数を作成します。&lt;br /&gt;
+&lt;code&gt;create&lt;/code&gt;関数はusersテーブルにユーザレコードを1件作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# web/models/user.ex
+defmodule ChatPhoenix.User do
+  ...
+
+  @doc &amp;#34;&amp;#34;&amp;#34;
+  userレコードを1件作成する
+
+  put_changeは、crypated_passwordに値を設定
+  insert()は、テーブルにレコードを作成(SQLのinsert文が走る)
+  ectoの関数であり、より詳細を知りたい場合は、http://www.phoenixframework.org/docs/ecto-models を参照してください
+  &amp;#34;&amp;#34;&amp;#34;
+  def create(changeset, repo) do
+    changeset
+    |&amp;gt; put_change(:crypted_password, hashed_password(changeset.params[&amp;#34;password&amp;#34;]))
+    |&amp;gt; repo.insert()
+  end
+
+  @doc &amp;#34;&amp;#34;&amp;#34;
+  パスワードをハッシュ値にする
+  Comeoninという値をハッシュ化するライブラリを使用しています
+  defpはプライベートメソッド
+  &amp;#34;&amp;#34;&amp;#34;
+  defp hashed_password(password) do
+    Comeonin.Bcrypt.hashpwsalt(password)
+  end
+end&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;Comeoninのインストール&lt;/h4&gt;&lt;a href=&quot;https://github.com/elixircnx/comeonin&quot; target=&quot;_blank&quot;&gt;comeonin&lt;/a&gt;パスワードをハッシュ化するライブラリ)をインストールします。&lt;br /&gt;
+依存ライブラリを記載するファイルの&lt;code&gt;mix.exs&lt;/code&gt;に&lt;code&gt;comeonin&lt;/code&gt;を追加します。&lt;br /&gt;
+ライブラリ名とバージョンをTuple(長さがあらかじめ決まっている配列のようなもの)で記載します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# mix.exs
+
+# Specifies your project dependencies.
+#
+# Type `mix help deps` for examples and options.
+defp deps do
+  [{:phoenix, &amp;#34;~&amp;gt; 1.0.3&amp;#34;},
+   {:phoenix_ecto, &amp;#34;~&amp;gt; 1.1&amp;#34;},
+   {:postgrex, &amp;#34;&amp;gt;= 0.0.0&amp;#34;},
+   {:phoenix_html, &amp;#34;~&amp;gt; 2.1&amp;#34;},
+   {:phoenix_live_reload, &amp;#34;~&amp;gt; 1.0&amp;#34;, only: :dev},
+   {:comeonin, &amp;#34;~&amp;gt; 1.2&amp;#34;},
+   {:cowboy, &amp;#34;~&amp;gt; 1.0&amp;#34;}]
+end&lt;/pre&gt;&lt;p&gt;そして、&lt;code&gt;mix.exs&lt;/code&gt;のアプリケーションの依存関係のリストに&lt;code&gt;:comeonin&lt;/code&gt;を追加します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# mix.exs
+
+# Configuration for the OTP application.
+#
+# Type `mix help compile.app` for more information.
+def application do
+  [mod: {ChatPhoenix, []},
+   applications: [:phoenix, :phoenix_html, :cowboy, :logger,
+                  :phoenix_ecto, :postgrex, :comeonin]]
+end&lt;/pre&gt;&lt;p&gt;そして、comeoninをインストールし、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%D1%A5%A4%A5%EB&quot;&gt;コンパイル&lt;/a&gt;します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;mix do deps.get, compile&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;ユーザ登録処理の確認&lt;/h4&gt;&lt;a href=&quot;http://localhost:4000/register&quot; target=&quot;_blank&quot;&gt;http://localhost:4000/register&lt;/a&gt;にアクセスし、「ユーザ登録」ボタンを押すと、&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151012/20151012042428.png&quot; alt=&quot;f:id:nipe880324:20151012042428p:plain:w420&quot; title=&quot;f:id:nipe880324:20151012042428p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;ユーザが登録され、ルートページ(&quot;/&quot;)にリダイレクトされます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151012/20151012042444.png&quot; alt=&quot;f:id:nipe880324:20151012042444p:plain&quot; title=&quot;f:id:nipe880324:20151012042444p:plain&quot; class=&quot;hatena-fotolife&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;phoenix-tutorial-2-login-logout&quot;&gt;3. ログイン・ログアウト機能&lt;/h3&gt;ユーザを登録できるようになりましたので、次はログインとログアウト機能を追加します。&lt;/p&gt;&lt;p&gt;&lt;h4&gt;ログイン/ログアウトのルートを追加&lt;/h4&gt;&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# web/router.ex
+scope &amp;#34;/&amp;#34;, ChatPhoenix do
+  ...
+
+  # ログイン画面表示(:new)、ログイン処理(create)、ログアウト処理(delete)
+  get    &amp;#34;/login&amp;#34;,  SessionController, :new
+  post   &amp;#34;/login&amp;#34;,  SessionController, :create
+  delete &amp;#34;/logout&amp;#34;, SessionController, :delete
+end&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;コントローラーを追加&lt;/h4&gt;SessionControllerを追加し、&lt;code&gt;new&lt;/code&gt;アクションを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# web/controllers/session_controller.ex
+defmodule ChatPhoenix.SessionController do
+  use ChatPhoenix.Web, :controller
+  alias ChatPhoenix.User
+
+  @doc &amp;#34;&amp;#34;&amp;#34;
+  ログイン画面の表示
+  &amp;#34;&amp;#34;&amp;#34;
+  def new(conn, _params) do
+    render conn, &amp;#34;new.html&amp;#34;
+  end
+end&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;ビューの追加&lt;/h4&gt;空のSessionViweを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# web/views/session_view.ex
+defmodule ChatPhoenix.RegistrationView do
+  use ChatPhoenix.Web, :view
+end&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;ログイン画面のテンプレートの追加&lt;/h4&gt;ログイン画面を作成します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# web/templates/session/new.html.eex
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;ログイン&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; form_for&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; @conn, session_path(@conn, :create), [&lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;: :session], fn form -&amp;gt;&lt;/span&gt; %&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;form-group&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;メールアドレス&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; email_input&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; form, :email, &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;form-control&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;form-group&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;パスワード&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; password_input&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; form, :password, &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;form-control&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;form-group&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; submit&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;ログイン&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;btn btn-primary&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% end %&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;ログイン画面の確認&lt;/h4&gt;&lt;a href=&quot;http://localhost:4000/login&quot; target=&quot;_blank&quot;&gt;http://localhost:4000/login&lt;/a&gt;を開くと、ログイン画面が表示されます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151012/20151012042535.png&quot; alt=&quot;f:id:nipe880324:20151012042535p:plain:w420&quot; title=&quot;f:id:nipe880324:20151012042535p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h4&gt;ログイン処理アクションの追加&lt;/h4&gt;ログイン画面を表示できましたので、ここからは、ログイン処理を追加します。&lt;br /&gt;
+コントローラーにログイン処理を行う&lt;code&gt;create&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;を追加します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# web/controllers/session_controller.ex
+defmodule ChatPhoenix.SessionController do
+  ...
+
+  @doc &amp;#34;&amp;#34;&amp;#34;
+  ログイン処理
+  &amp;#34;&amp;#34;&amp;#34;
+  def create(conn, %{&amp;#34;session&amp;#34; =&amp;gt; session_params}) do
+    # Sessionモジュールのlogin関数でログイン可否を判定する
+    case ChatPhoenix.Session.login(session_params, ChatPhoenix.Repo) do
+      # ログイン成功の場合、セッションにuser.idを設定し、ホーム(&amp;#34;/&amp;#34;)にリダイレクトする
+      {:ok, user} -&amp;gt;
+        conn
+        |&amp;gt; put_session(:current_user, user.id)
+        |&amp;gt; put_flash(:info, &amp;#34;ログインしました&amp;#34;)
+        |&amp;gt; redirect(to: &amp;#34;/&amp;#34;)
+      # errorの場合、ログイン画面を再表示する
+      :error -&amp;gt;
+        conn
+        |&amp;gt; put_flash(:info, &amp;#34;メールアドレスかパスワードが間違っています&amp;#34;)
+        |&amp;gt; render(&amp;#34;new.html&amp;#34;)
+    end
+  end
+end&lt;/pre&gt;&lt;p&gt;&lt;h4&gt;セッションモジュールを追加&lt;/h4&gt;&lt;code&gt;create&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;内で読んでいる&lt;code&gt;login&lt;/code&gt;関数を実装します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# web/models/session.ex
+defmodule ChatPhoenix.Session do
+  alias ChatPhoenix.User
+
+  @doc &amp;#34;&amp;#34;&amp;#34;
+  ログイン処理をする
+
+  get_by関数でUserモデルをemailで取得します
+  authenticateが成功すれば、{:ok, user}を返し、失敗すれば:errorを返します
+  &amp;#34;&amp;#34;&amp;#34;
+  def login(params, repo) do
+    user = repo.get_by(User, email: String.downcase(params[&amp;#34;email&amp;#34;]))
+    case authenticate(user, params[&amp;#34;password&amp;#34;]) do
+      true -&amp;gt; {:ok, user}
+      _    -&amp;gt; :error
+    end
+  end
+
+  @doc &amp;#34;&amp;#34;&amp;#34;
+  認証処理をする
+
+  Comeonin.Bcrypt.checkpw関数でpasswordをハッシュ化してデータベースのハッシュ値と比較します
+  &amp;#34;&amp;#34;&amp;#34;
+  defp authenticate(user, password) do
+    case user do
+      nil -&amp;gt; false
+      _   -&amp;gt; Comeonin.Bcrypt.checkpw(password, user.crypted_password)
+    end
+  end
+end&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;ヘルパー関数を追加&lt;/h4&gt;Sessionモジュールにヘルパー関数を追加します。&lt;br /&gt;
+追加するヘルパー関数は、&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;現在のログインユーザを取得する &lt;code&gt;current_user&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;現在ログインをしているか確認する &lt;code&gt;logged_in?&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;です。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# web/models/session.ex
+defmodule ChatPhoenix.Session do
+  alias ChatPhoenix.User
+
+  ...
+
+  @doc &amp;#34;&amp;#34;&amp;#34;
+  現在のログインユーザを取得するヘルパー関数
+
+  get_session関数で:current_userからidを取得し、idが存在する場合はDBからUser情報を取得します
+  &amp;#34;&amp;#34;&amp;#34;
+  def current_user(conn) do
+    id = Plug.Conn.get_session(conn, :current_user)
+    if id, do: ChatPhoenix.Repo.get(User, id)
+  end
+
+
+  @doc &amp;#34;&amp;#34;&amp;#34;
+  ログインしているかどうかを返すヘルパー関数
+  &amp;#34;&amp;#34;&amp;#34;
+  def logged_in?(conn) do
+    !!current_user(conn)
+  end
+end&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+ヘルパー関数をビューやテンプレートで使えるようにします。&lt;br /&gt;
+そのためには、&lt;code&gt;web/web.ex&lt;/code&gt;の&lt;code&gt;view&lt;/code&gt;ブロック内でimportをします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# web/web.ex
+
+def view do
+  quote do
+    use Phoenix.View, root: &amp;#34;web/templates&amp;#34;
+
+    # Import convenience functions from controllers
+    import Phoenix.Controller, only: [get_csrf_token: 0, get_flash: 2, view_module: 1]
+
+    # Use all HTML functionality (forms, tags, etc)
+    use Phoenix.HTML
+
+    import ChatPhoenix.Router.Helpers
+    # Sessionモジュールのcurrent_userとlogged_in?をWebのviewに追加
+    import ChatPhoenix.Session, only: [current_user: 1, logged_in?: 1]
+  end
+end&lt;/pre&gt;&lt;p&gt;こうすることで、&lt;code&gt;use ChatPhoenix.Web, :view&lt;/code&gt;の箇所で&lt;code&gt;current_user&lt;/code&gt;と&lt;colde&gt;logged_in?&lt;/colde&gt;関数がインポートされるようになるので、ビューやテンプレートでこれらの関数が使えるよになります。&lt;/p&gt;&lt;p&gt;では、実際に&lt;code&gt;logged_in?&lt;/code&gt;関数と&lt;code&gt;current_user&lt;/code&gt;関数をテンプレートで使用します。&lt;br /&gt;
+レイアウトファイルのヘッダー部分をログインしているときと、していないときで表示を修正します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;&amp;lt;!-- web/templates/layout/app.html.eex --&amp;gt;
+&amp;lt;div class=&amp;#34;header&amp;#34;&amp;gt;
+  &amp;lt;ul class=&amp;#34;nav nav-pills pull-right&amp;#34;&amp;gt;
+    &amp;lt;%= if logged_in?(@conn) do %&amp;gt;
+      &amp;lt;li&amp;gt;&amp;lt;%= current_user(@conn).email %&amp;gt;&amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;&amp;lt;%= link &amp;#34;ログアウト&amp;#34;, to: session_path(@conn, :delete), method: :delete %&amp;gt;&amp;lt;/li&amp;gt;
+    &amp;lt;% else %&amp;gt;
+      &amp;lt;li&amp;gt;&amp;lt;%= link &amp;#34;ユーザ登録&amp;#34;, to: registration_path(@conn, :new) %&amp;gt;&amp;lt;/li&amp;gt;
+      &amp;lt;li&amp;gt;&amp;lt;%= link &amp;#34;ログイン&amp;#34;, to: session_path(@conn, :new) %&amp;gt;&amp;lt;/li&amp;gt;
+    &amp;lt;% end %&amp;gt;
+  &amp;lt;/ul&amp;gt;
+  &amp;lt;span class=&amp;#34;logo&amp;#34;&amp;gt;&amp;lt;/span&amp;gt;
+&amp;lt;/div&amp;gt;&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;ログアウト関数の追加&lt;/h4&gt;SessionControllerにログアウト処理の&lt;code&gt;delete&lt;/code&gt;関数を追加します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# web/controllers/session_controller.ex
+defmodule ChatPhoenix.SessionController do
+  ...
+
+  @doc &amp;#34;&amp;#34;&amp;#34;
+  ログアウト処理
+
+  delete_sessionでセッション情報を削除し、ホーム(&amp;#34;/&amp;#34;)にリダイレクトする
+  &amp;#34;&amp;#34;&amp;#34;
+  def delete(conn, _) do
+    conn
+    |&amp;gt; delete_session(:current_user)
+    |&amp;gt; put_flash(:info, &amp;#34;ログアウトしました&amp;#34;)
+    |&amp;gt; redirect(to: &amp;#34;/&amp;#34;)
+  end
+end&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+セッション情報の&lt;code&gt;current_user&lt;/code&gt;があるとログインしているということなので、最後にユーザ登録時にもログインするようにセッションに&lt;code&gt;current_user&lt;/code&gt;を作成するようにします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# web/controllers/registration_controller.ex
+def create(conn, %{&amp;#34;user&amp;#34; =&amp;gt; user_params}) do
+  ...
+  # ユーザ登録
+  case User.create(changeset, ChatPhoenix.Repo) do
+    {:ok, user} -&amp;gt;
+      # バリデーションに成功した場合、userレコードを作成し、ログインし、&amp;#34;/&amp;#34;にリダイレクト
+      conn
+      |&amp;gt; put_session(:current_user, user.id)
+      |&amp;gt; put_flash(:info, &amp;#34;ようこそ&amp;#34; &amp;lt;&amp;gt; changeset.params[&amp;#34;email&amp;#34;])
+      |&amp;gt; redirect(to: &amp;#34;/&amp;#34;)
+  ...
+end&lt;/pre&gt;&lt;p&gt;&lt;h4&gt;ログイン/ログアウト処理の確認&lt;/h4&gt;ログインやログアウト、ユーザ登録ができることを確認します。&lt;/p&gt;&lt;p&gt;これで簡単ですが&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Phoenix&quot;&gt;Phoenix&lt;/a&gt;で認証機能を実装できました。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://www.phoenixframework.org/docs&quot;&gt;Overview &amp;middot; Phoenix&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://hexdocs.pm/ecto/Ecto.html&quot;&gt;Ecto &amp;ndash; Ecto v1.0.4&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://nithinbekal.com/posts/phoenix-authentication/&quot;&gt;Adding user authentication to a Phoenix app&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://qiita.com/niku/items/729ece76d78057b58271&quot;&gt;Elixir &amp;#x57FA;&amp;#x790E;&amp;#x6587;&amp;#x6CD5;&amp;#x6700;&amp;#x901F;&amp;#x30DE;&amp;#x30B9;&amp;#x30BF;&amp;#x30FC; - Qiita&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/elixircnx/comeonin&quot;&gt;elixircnx/comeonin &amp;middot; GitHub&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Tue, 13 Oct 2015 00:14:47 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/6653458415124299016</guid>
+          
+            <category>phoenix</category>
+          
+            <category>elixer</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>Phoenix入門1 - Hello Phoenix</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20151011/1444560106</link>
+          <description>&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151011/20151011193641.png&quot; alt=&quot;f:id:nipe880324:20151011193641p:plain:w420&quot; title=&quot;f:id:nipe880324:20151011193641p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;a href=&quot;http://www.phoenixframework.org/&quot; target=&quot;_blank&quot;&gt;Phoneix&lt;/a&gt;とは、elixer(※1)という言語で書かれたWebフレームワークです。&lt;br /&gt;
+最近の&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/iOS&quot;&gt;iOS&lt;/a&gt;や&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Android&quot;&gt;Android&lt;/a&gt;アプリやSPI(シングルページアプリケーショん)が普及してきたため、サーバーサイドは&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;やリアルタイムストリーミングの機能を提供することが増えてきました。&lt;br /&gt;
+Phonixは一般的なWebの&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/MVC&quot;&gt;MVC&lt;/a&gt;に加え、&lt;b&gt;デフォルトで&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;やソケットによるリアルタイムストリーミング機能&lt;/b&gt;を提供していて、このようなニーズに対応しやすくなっています。&lt;/p&gt;&lt;p&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%EC%A5%A4%A5%C6%A5%F3%A5%B7%A1%BC&quot;&gt;レイテンシー&lt;/a&gt;がとても低く、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Phoenix&quot;&gt;Phoenix&lt;/a&gt;のレスポンスタイムはミリセカンドの代わりにマイクロセカンドで表示されるぐらい早さが段違いと言われています。&lt;br /&gt;
+また、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;のコントリビュータが作っているだけありかなり&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;の仕組みに似ているので、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;などの&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/MVC&quot;&gt;MVC&lt;/a&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%D5%A5%EC%A1%BC%A5%E0%A5%EF%A1%BC%A5%AF&quot;&gt;フレームワーク&lt;/a&gt;に触れている方には、かなり理解しやすいと思います。&lt;br /&gt;
+若干、elixirの独特な文法があるため、必要に応じて&lt;a href=&quot;http://qiita.com/niku/items/729ece76d78057b58271&quot; target=&quot;_blank&quot;&gt;Elixir 基礎文法最速マスター&lt;/a&gt;や&lt;a href=&quot;http://elixir-lang.org/&quot; target=&quot;_blank&quot;&gt;elixier - 公式&lt;/a&gt;を参考にしてください。&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;i&gt;&lt;br /&gt;
+※1 &lt;a href=&quot;http://www.erlang.org/&quot; target=&quot;_blank&quot;&gt;earlang&lt;/a&gt;(アーラン)は、高可用性で大規模な並列処理が可能なリアル&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%BF%A5%A4%A5%E0%A5%B7%A5%B9%A5%C6%A5%E0&quot;&gt;タイムシステム&lt;/a&gt;を構築するためにの&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%B4%D8%BF%F4%B7%BF%B8%C0%B8%EC&quot;&gt;関数型言語&lt;/a&gt;です。例えば、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Facebook&quot;&gt;Facebook&lt;/a&gt;が買収したWhat&#39;s Appという月間アクティブユーザ8億人以上のメッセージアプリ（LINEのようなもの）でも使われています。&lt;br /&gt;
+しかし、文法が独特で書きづらいというところ不満点があり、それを解決するために、&lt;a href=&quot;http://elixir-lang.org/&quot; target=&quot;_blank&quot;&gt;elixer&lt;/a&gt;という&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Ruby&quot;&gt;Ruby&lt;/a&gt;風のわかりやすい&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B7%A5%F3%A5%BF%A5%C3%A5%AF%A5%B9&quot;&gt;シンタックス&lt;/a&gt;で書きやすく、読みやすくした言語が作られました。exlixerはearlang &lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/VM&quot;&gt;VM&lt;/a&gt;上で動く&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%D0%A5%A4%A5%C8%A5%B3%A1%BC%A5%C9&quot;&gt;バイトコード&lt;/a&gt;に変換されて実行されます。&lt;/i&gt;&lt;/p&gt;&lt;p&gt;この記事では、「&lt;b&gt;Phonix環境のセットアップから、静的ページを作成し、表示させる&lt;/b&gt;」ことを行います。&lt;br /&gt;
+次回の記事では、「&lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20151013/1444662887&quot; target=&quot;_blank&quot;&gt;Phoneixで認証機能&lt;/a&gt;」を実装します。&lt;br /&gt;
+そして、最後に、WebSocketを使った次回は「&lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20151016/1444930756&quot;&gt;チャット機能&lt;/a&gt;」を実装します。&lt;/p&gt;&lt;p&gt;サンプル&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://tranquil-mesa-7338.herokuapp.com/login&quot; target=&quot;_blank&quot;&gt;ChatPhoenix - Heroku&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/nipe0324/chat_phoenix&quot; target=&quot;_blank&quot;&gt;ChatPhoenix - GitHub&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#phoenix-tutorial-1-insatall-phonix&quot;&gt;Phoenix環境のセットアップ&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#phoenix-tutorial-1-create-project&quot;&gt;Phoenixプロジェクトの作成とサーバー起動&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#phoenix-tutorial-1-static-page&quot;&gt;静的ページの作成&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Erlang&quot;&gt;Erlang&lt;/a&gt; 7.1&lt;/li&gt;
+&lt;li&gt;Elixir 1.1.1&lt;/li&gt;
+&lt;li&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Phoenix&quot;&gt;Phoenix&lt;/a&gt; 10.0.3&lt;/li&gt;
+&lt;li&gt;Hex 0.9.0&lt;/li&gt;
+&lt;li&gt;node.js 0.12.7&lt;/li&gt;
+&lt;li&gt;npm 2.14.2&lt;/li&gt;
+&lt;li&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/PostgreSQL&quot;&gt;PostgreSQL&lt;/a&gt; 9.4.4&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;phoenix-tutorial-1-insatall-phonix&quot;&gt;1. &lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Phoenix&quot;&gt;Phoenix&lt;/a&gt;環境のセットアップ&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;&lt;h4&gt;Elixerをインストール&lt;/h4&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Phoenix&quot;&gt;Phoenix&lt;/a&gt;はElixerで書かれています。そのため、まずElixerをインストールします。&lt;/p&gt;&lt;p&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/mac&quot;&gt;mac&lt;/a&gt;でHomebrewを使ってインストールする場合は&lt;code&gt;brew&lt;/code&gt;コマンドを使います。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ brew update
+$ brew install elixir&lt;/pre&gt;&lt;p&gt;他のOSや方法でインストールしたい場合は、&lt;a href=&quot;http://elixir-lang.org/install.html&quot; target=&quot;_blank&quot;&gt;Elixerのインストールページ&lt;/a&gt;を参照してインストールしてください。&lt;/p&gt;&lt;p&gt;&lt;h4&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Erlang&quot;&gt;Erlang&lt;/a&gt;のインストール&lt;/h4&gt;Elixirは&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Erlang&quot;&gt;Erlang&lt;/a&gt;に&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%D1%A5%A4%A5%EB&quot;&gt;コンパイル&lt;/a&gt;されて、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Erlang&quot;&gt;Erlang&lt;/a&gt; &lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/VM&quot;&gt;VM&lt;/a&gt;上で動きます。そのため、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Erlang&quot;&gt;Erlang&lt;/a&gt;のインストールが必要です。&lt;br /&gt;
+&lt;code&gt;brew&lt;/code&gt;コマンドでElixerをインストールした場合、一緒に&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Erlang&quot;&gt;Erlang&lt;/a&gt;もインストールされていれますので、インストールされていることを確認します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ which erl
+/usr/local/bin/erl&lt;/pre&gt;&lt;p&gt;インストールされていない場合は、&lt;a href=&quot;http://elixir-lang.org/install.html#installing-erlang&quot; target=&quot;_blank&quot;&gt;Erlangのインストール方法&lt;/a&gt;を参照してインストールしてください。&lt;/p&gt;&lt;p&gt;&lt;h4&gt;Hex（パッケージマネージャ）のインストール&lt;/h4&gt;&lt;code&gt;mix local.hex&lt;/code&gt;でHexという&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Erlang&quot;&gt;Erlang&lt;/a&gt;のパッケージマネージャをインストールします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ mix local.hex&lt;/pre&gt;&lt;p&gt;&lt;h4&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Phoenix&quot;&gt;Phoenix&lt;/a&gt;のインストール&lt;/h4&gt;Phonixのアーカイブをローカルに取得します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ mix archive.install https://github.com/phoenixframework/phoenix/releases/download/v1.0.3/phoenix_new-1.0.3.ez&lt;/pre&gt;&lt;p&gt;&lt;h4&gt;node.js (&gt;=0.12.0) のインストール&lt;/h4&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Phoenix&quot;&gt;Phoenix&lt;/a&gt;は&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Javascript&quot;&gt;Javascript&lt;/a&gt;や&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/CSS&quot;&gt;CSS&lt;/a&gt;などのアセット管理に&lt;a href=&quot;http://brunch.io/&quot; target=&quot;_blank&quot;&gt;branch.io&lt;/a&gt;というビルド&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%C4%A1%BC%A5%EB&quot;&gt;ツール&lt;/a&gt;を使っています。(他に有名なビルド&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%C4%A1%BC%A5%EB&quot;&gt;ツール&lt;/a&gt;として、gruntやgulpというものがあります。)&lt;br /&gt;
+その&lt;code&gt;branch.io&lt;/code&gt;がnpm（node用のパッケージマネージャ）を使っているのでnode.jsとnpmが必要になります。&lt;/p&gt;&lt;p&gt;nodeとnpmコマンドが使えるか確認し、使えな場合はインストールします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ which node
+/usr/local/bin/node
+$ which npm
+/usr/local/bin/npm
+
+# nodeやnpmがない場合はインストール
+$ brew install node&lt;/pre&gt;&lt;p&gt;その他のOSや方法の場合は、&lt;a href=&quot;https://nodejs.org/en/download/&quot; target=&quot;_blank&quot;&gt;node.jsのインストール&lt;/a&gt;を参照してインストールしてください。&lt;/p&gt;&lt;p&gt;&lt;h4&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/PostgreSQL&quot;&gt;PostgreSQL&lt;/a&gt;のインストール&lt;/h4&gt;PhonexはデフォルトでPostgresを使う設定になっています。そのため、Postgresが必要になります。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;brew install postgres&lt;/pre&gt;&lt;p&gt;もし&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/MySQL&quot;&gt;MySQL&lt;/a&gt;を使いたい場合は、プロジェクトを作成するときに&lt;code&gt;--database mysql&lt;/code&gt;を指定すればよいようです。&lt;/p&gt;&lt;p&gt;これで一通りPhonix環境がセットアップ出来ました。&lt;br /&gt;
+簡単にまとめると、&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Phonixは、Elixerで書かれていて、ElixerはEarlang &lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/VM&quot;&gt;VM&lt;/a&gt;上で動作するのでEarlangも必要&lt;/li&gt;
+&lt;li&gt;Phonixの依存ライブラリのパッケージ管理は、HexというEarlangのパッケージマネージャを使う&lt;/li&gt;
+&lt;li&gt;Phonixのアセット管理は、branch.ioというビルド&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%C4%A1%BC%A5%EB&quot;&gt;ツール&lt;/a&gt;を使っている。branch.ioを使うためには、node.jsやnpmが必要&lt;/li&gt;
+&lt;li&gt;PhonixのデフォルトのDBは、Postgresを使う。もちろん、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/MySQL&quot;&gt;MySQL&lt;/a&gt;や他のDBも使える&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;という形になっていて、これらの&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%C4%A1%BC%A5%EB&quot;&gt;ツール&lt;/a&gt;をインストールしました。&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;phoenix-tutorial-1-create-project&quot;&gt;2. &lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Phoenix&quot;&gt;Phoenix&lt;/a&gt;プロジェクトの作成とサーバー起動&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;&lt;h4&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Phoenix&quot;&gt;Phoenix&lt;/a&gt;プロジェクトの作成&lt;/h4&gt;&lt;code&gt;mix phonnix.new&lt;/code&gt;コマンドで新規の&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Phoenix&quot;&gt;Phoenix&lt;/a&gt;プロジェクトを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ mix phoenix.new chat_phoenix
+* creating chat_phoenix/config/config.exs
+* creating chat_phoenix/config/dev.exs
+...
+
+Fetch and install dependencies? [Yn] Y
+* running npm install &amp;amp;&amp;amp; node node_modules/brunch/bin/brunch build
+* running mix deps.get
+...&lt;/pre&gt;&lt;p&gt;&lt;h4&gt;Postgresのセットアップ&lt;/h4&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Phoenix&quot;&gt;Phoenix&lt;/a&gt;はデフォルトでPostgresを使います。&lt;br /&gt;
+また、ユーザ名:&lt;code&gt;postgres&lt;/code&gt;、パスワード:&lt;code&gt;postgres&lt;/code&gt;のアカウントが必要になります。&lt;br /&gt;
+&lt;code&gt;createuser&lt;/code&gt;コマンドで&lt;code&gt;postgres&lt;/code&gt;アカウントをパスワード&lt;code&gt;postgres&lt;/code&gt;で作成します。一応、DB、ロール作成権限をつけておきます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;createuser postgres --createdb --createrole --encrypted --password
+Password: postgres&lt;/pre&gt;&lt;p&gt;既にpostgresアカウントがある場合や別のアカウントを使いたい場合は、&lt;code&gt;config/dev.exs&lt;/code&gt;の一番下にユーザ名とパスワードが記載されていますので、こちらを変更してください。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# config/dev.exs
+
+# Configure your database
+config :chat_phoenix, ChatPhoenix.Repo,
+  adapter: Ecto.Adapters.Postgres,
+  username: &amp;#34;postgres&amp;#34;,
+  password: &amp;#34;postgres&amp;#34;,
+  database: &amp;#34;chat_phoenix_dev&amp;#34;,
+  hostname: &amp;#34;localhost&amp;#34;,
+  pool_size: 10&lt;/pre&gt;&lt;p&gt;&lt;h4&gt;データベースの作成&lt;/h4&gt;&lt;code&gt;mix ecto.create&lt;/code&gt;コマンドでdev環境用のデータベースを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;cd chat_phoenix
+mix ecto.create
+=&amp;gt; chat_phoenix_devデータベースが作成される
+
+# また、MIX_ENV=testを指定することでtest環境用のデータベースが作成できます
+env MIX_ENV=test mix ecto.create
+=&amp;gt; chat_phoenix_testデータベースが作成される&lt;/pre&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/elixir-lang/ecto&quot; target=&quot;_blank&quot;&gt;ecto&lt;/a&gt;は、データベース操作や&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/SQL&quot;&gt;SQL&lt;/a&gt;クエリを簡単に記載できるElixerの&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/DSL&quot;&gt;DSL&lt;/a&gt;です。&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Ruby&quot;&gt;Ruby&lt;/a&gt;でいう&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/ActiveRecord&quot;&gt;ActiveRecord&lt;/a&gt;のようなものです。&lt;/p&gt;&lt;p&gt;&lt;h4&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Phoenix&quot;&gt;Phoenix&lt;/a&gt;サーバーの起動&lt;/h4&gt;&lt;code&gt;mix phoenix.server&lt;/code&gt;でサーバーを起動します。&lt;b&gt;Ctrl + c&lt;/b&gt;を2回おすとサーバーを停止できます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;mix phoenix.server&lt;/pre&gt;&lt;p&gt;&lt;a href=&quot;http://localhost:4000&quot; target=&quot;_blank&quot;&gt;http://localhost:4000&lt;/a&gt;にアクセスすれば、次のようが画面が表示されます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151011/20151011193832.png&quot; alt=&quot;f:id:nipe880324:20151011193832p:plain:w420&quot; title=&quot;f:id:nipe880324:20151011193832p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h4&gt;開発で有用なコマンド&lt;/h4&gt;これで、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Phoenix&quot;&gt;Phoenix&lt;/a&gt;でWebアプリケーションを動かすことができました。&lt;br /&gt;
+次は静的ページを追加しますが、その前に開発で使える有用なコマンドを記載します。&lt;/p&gt;&lt;p&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Phoenix&quot;&gt;Phoenix&lt;/a&gt;の環境設定で&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%A4%A5%F3%A5%BF%A5%E9%A5%AF%A5%C6%A5%A3%A5%D6&quot;&gt;インタラクティブ&lt;/a&gt;にElixerコマンドを実行するには&lt;code&gt;iex -S mix phoenix.server&lt;/code&gt;と実行します。&lt;code&gt;iex&lt;/code&gt;はinteractive elixerの略です。&lt;b&gt;Ctrl + c&lt;/b&gt;を2回押すと停止できます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ iex -S mix phoenix.server
+iex(1)&amp;gt; IO.puts &amp;#34;こんにちは&amp;#34;
+こんにちは
+:ok&lt;/pre&gt;&lt;p&gt;&lt;code&gt;mix phoenix.routes&lt;/code&gt;コマンドで、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Phoenix&quot;&gt;Phoenix&lt;/a&gt;に定義されたすべてのルートを確認できます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ mix phoenix.routes
+page_path  GET  /  ChatPhoenix.PageController :index&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;phoenix-tutorial-1-static-page&quot;&gt;3. 静的ページの作成&lt;/h3&gt;Phonixで静的ページを追加します。それを通し、ルート、コントローラ、ビュー、テンプレートについて簡単に説明します。&lt;/p&gt;&lt;p&gt;&lt;h4&gt;Phonixのディレクトリ構成&lt;/h4&gt;Phonixのディレクトリ構成は次のようになっています。&lt;br /&gt;
+主に&lt;code&gt;web&lt;/code&gt;にコントローラやモデル、テンプレートなどのアプリケーションのメインとなるファイルを配置します。&lt;br /&gt;
+また、&lt;code&gt;priv/static&lt;/code&gt;にJSや&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/CSS&quot;&gt;CSS&lt;/a&gt;、イメージなどのアセットファイルを配置します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;chat_phoenix
+├── README.md
+├── _build
+├── brunch-config.js
+├── config
+├── deps
+├── lib
+├── mix.exs
+├── mix.lock
+├── node_modules
+├── package.json
+├── priv
+├── test
+└── web&lt;/pre&gt;&lt;p&gt;また、&lt;code&gt;lib/chat_phoenix/endpoint.ex&lt;/code&gt;がアプリケーションのエンドポイントになります。&lt;br /&gt;
+また、&lt;code&gt;lib/chat_phoenix.ex&lt;/code&gt;がアプリケーションファイルになります。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;chat_phoenix
+├── lib
+│   ├── chat_phoenix
+│   │   ├── endpoint.ex
+│   │   └── repo.ex
+│   └── chat_phoenix.ex
+...&lt;/pre&gt;&lt;p&gt;&lt;h4&gt;ルートの追加&lt;/h4&gt;&lt;code&gt;web/router.ex&lt;/code&gt;にルートを記載します。&lt;br /&gt;
+ルートの記載方法は、HTTP&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;(GET,POSTなど)とパスをコントローラとアクションにひも付けます。&lt;br /&gt;
+デフォルトで次のように記載されています。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# web/router.ex
+defmodule ChatPhoenix.Router do
+  use ChatPhoenix.Web, :router
+
+  pipeline :browser do
+    plug :accepts, [&amp;#34;html&amp;#34;]
+    plug :fetch_session
+    plug :fetch_flash
+    plug :protect_from_forgery
+    plug :put_secure_browser_headers
+  end
+
+  # api用のスコープ(jsonをaccept)
+  pipeline :api do
+    plug :accepts, [&amp;#34;json&amp;#34;]
+  end
+
+  # htmlページ用のスコープ(htmlをaccept)
+  scope &amp;#34;/&amp;#34;, ChatPhoenix do
+    pipe_through :browser # 上記の :browser の処理を行う
+
+    # &amp;#34;GET /&amp;#34;にアクセスすると、PageControllerのindexアクションが呼ばれる
+    get &amp;#34;/&amp;#34;, PageController, :index
+  end
+
+  # Other scopes may use custom stacks.
+  # scope &amp;#34;/api&amp;#34;, ChatPhoenix do
+  #   pipe_through :api
+  # end
+end&lt;/pre&gt;&lt;p&gt;では&lt;code&gt;get &quot;/hello&quot;, HelloController, :index&lt;/code&gt;という新しいルートを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;scope &amp;#34;/&amp;#34;, ChatPhoenix do
+  pipe_through :browser # 上記の :browser の処理を行う
+
+  get &amp;#34;/&amp;#34;, PageController, :index
+  # &amp;#34;GET /hello&amp;#34;にアクセスすると、HelloControllerのindexアクションが呼ばれる
+  get &amp;#34;/hello&amp;#34;, HelloController, :index
+end&lt;/pre&gt;&lt;p&gt;&lt;h4&gt;コントローラの追加&lt;/h4&gt;コントローラは、ルートで定義したURLからコントローラとアクションが呼ばれます。&lt;br /&gt;
+そのため、先ほど追加したルートの、&lt;code&gt;HelloController&lt;/code&gt;の&lt;code&gt;index&lt;/code&gt;アクションを作成します。&lt;/p&gt;&lt;p&gt;ファイルの命名は、&lt;code&gt;web/controllers/&lt;コントローラ名&gt;.ex&lt;/code&gt;となります。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# web/controllers/hello_controller.ex
+defmodule ChatPhoenix.HelloController do
+  # Webのcontrollerモジュールを使用できるようにする(おまじないのようなもの)
+  use ChatPhoenix.Web, :controller
+
+  # indexアクション
+  #  conn - リクエスト情報を保持
+  #  params - クエリストリングやフォーム入力などのパラメータ
+  def index(conn, _params) do
+    # index.html.eexテンプレートを表示する
+    render conn, &amp;#34;index.html&amp;#34;
+  end
+end&lt;/pre&gt;&lt;p&gt;※引数を&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;内で使っていない場合は、引数名の前に&lt;code&gt;_&lt;/code&gt;を追加することで、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%D1%A5%A4%A5%E9&quot;&gt;コンパイラ&lt;/a&gt;でwarningが発生しなくなります。&lt;/p&gt;&lt;p&gt;&lt;h4&gt;ビューを追加&lt;/h4&gt;ビューは、コントローラとテンプレートの中間に位置し、プレゼンテーション層としての役割を持ちます。&lt;br /&gt;
+コントローラから渡されたデータを表示用にフォーマットなどしてテンプレートに渡します。&lt;/p&gt;&lt;p&gt;ビューの&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%CC%BF%CC%BE%B5%AC%C2%A7&quot;&gt;命名規則&lt;/a&gt;は、&lt;code&gt;web/views/&lt;コントローラ名&gt;_view.ex&lt;/code&gt;となります。&lt;br /&gt;
+特にリプレゼンテーションする必要もないので空のビューを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# web/views/hello_view.ex
+defmodule ChatPhoenix.HelloView do
+  # Webのviewモジュールを使用できるようにする(おまじないのようなもの)
+  use ChatPhoenix.Web, :view
+end&lt;/pre&gt;&lt;p&gt;&lt;h4&gt;テンプレートを追加&lt;/h4&gt;テンプレートは、HTMLや&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/JSON&quot;&gt;JSON&lt;/a&gt;を記載します。&lt;br /&gt;
+&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Phoenix&quot;&gt;Phoenix&lt;/a&gt;はデフォルトのテンプレートエンジンを&lt;code&gt;eex&lt;/code&gt;(&lt;a href=&quot;http://elixir-lang.org/docs/stable/eex/EEx.html&quot; target=&quot;_blank&quot;&gt;Embedded Elixir&lt;/a&gt;)を使っています。そのため、ファイルの&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%B3%C8%C4%A5%BB%D2&quot;&gt;拡張子&lt;/a&gt;は&lt;code&gt;.eex&lt;/code&gt;になります。&lt;/p&gt;&lt;p&gt;テンプレートは基本的には&lt;code&gt;web/templates/&lt;コントローラ名&gt;/&lt;アクション名&gt;.html.eex&lt;/code&gt;に配置します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- web/templates/hello/index.html.eex --&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;jumbotron&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h2&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Hello Phoenix!!&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h2&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;静的ページの確認&lt;/h4&gt;&lt;a href=&quot;http://localhost:4000/hello&quot; target=&quot;_blank&quot;&gt;http://localhost:4000/hello&lt;/a&gt;にアクセスすると、次のようにページが表示されます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151011/20151011193853.png&quot; alt=&quot;f:id:nipe880324:20151011193853p:plain:w420&quot; title=&quot;f:id:nipe880324:20151011193853p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;code&gt;index.html.eex&lt;/code&gt;のテンプレートファイルに少ししか書いてませんが、ヘッダやフッターが表示されています。&lt;br /&gt;
+これは、&lt;code&gt;web/templates/layout/app.html.eex&lt;/code&gt;にヘッダーやフッターが記載されているためです。&lt;br /&gt;
+Phonixはこの&lt;code&gt;app.html.eex&lt;/code&gt;を表示し、このファイル内に、&lt;code&gt;&lt;%= @inner %&gt;&lt;/code&gt;があり、ここに&lt;code&gt;index.html.eex&lt;/code&gt;テンプレートの内容が表示されています。&lt;/p&gt;&lt;p&gt;これで、静的ページを表示させることができました。&lt;br /&gt;
+まとめると、&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;web/router.ex&lt;/code&gt;でルートを追加し、HTTP&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;とURLをコントローラーとアクションにつなげます。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;web/controllers/&lt;コントローラ名&gt;.ex&lt;/code&gt;にコントローラを作成し、アクションの&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;を定義します。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;web/views/&lt;コントローラ名&gt;_view.ex&lt;/code&gt;でビューを作成します。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;web/templates/&lt;コントローラ名&gt;/&lt;アクション名&gt;.html.eex&lt;/code&gt;にテンプレートを作成し、htmlを記載します。&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;という流れでした。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://www.phoenixframework.org/docs&quot;&gt;Overview &amp;middot; Phoenix&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://hexdocs.pm/ecto/Ecto.html&quot;&gt;Ecto &amp;ndash; Ecto v1.0.4&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://nithinbekal.com/posts/phoenix-authentication/&quot;&gt;Adding user authentication to a Phoenix app&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://qiita.com/niku/items/729ece76d78057b58271&quot;&gt;Elixir &amp;#x57FA;&amp;#x790E;&amp;#x6587;&amp;#x6CD5;&amp;#x6700;&amp;#x901F;&amp;#x30DE;&amp;#x30B9;&amp;#x30BF;&amp;#x30FC; - Qiita&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/elixircnx/comeonin&quot;&gt;elixircnx/comeonin &amp;middot; GitHub&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Sun, 11 Oct 2015 19:41:46 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/6653458415124257812</guid>
+          
+            <category>phoenix</category>
+          
+            <category>elixer</category>
+          
+        </item>
+      
+    
+  </channel>
+</rss>

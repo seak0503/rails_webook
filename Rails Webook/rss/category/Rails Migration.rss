@@ -1,0 +1,569 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>Rails Migration - Rails Webook</title>
+    <link>http://ruby-rails.hatenadiary.com/category/Rails%20Migration</link>
+    <description>自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</description>
+    <lastBuildDate>Fri, 18 Dec 2015 02:44:31 +0900</lastBuildDate>
+    <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+    <generator>Hatena::Blog</generator>
+    
+      
+      
+        <item>
+          <title>Postgresqlのデータ型一覧とRailsのマイグレーションの指定方法</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20150607/1433606267</link>
+          <description>&lt;p&gt;Postgresqlの各データ型とRailsのマイグレーションでの指定方法をまとめました。&lt;br /&gt;
+次の目次にある、データ型についてまとめました。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#postgresql-migration-int&quot;&gt;数値データ型&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#postgresql-migration-money&quot;&gt;通貨型&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#postgresql-migration-str&quot;&gt;文字型&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#postgresql-migration-date&quot;&gt;日付/時刻データ型&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#postgresql-migration-bool&quot;&gt;論理値データ型&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Ruby 2.2.0&lt;/li&gt;
+&lt;li&gt;Rails 4.2.1&lt;/li&gt;
+&lt;li&gt;Postgresql 9.4.1&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;postgresql-migration-int&quot;&gt;数値データ型&lt;/h3&gt;数値データ型には2、4、8バイト整数と、4、8バイト浮動小数点、精度設定が可能な数があります。&lt;/p&gt;&lt;p&gt;&lt;table border=&quot;1&quot; class=&quot;CALSTABLE&quot;&gt;
+  &lt;colgroup&gt;&lt;col&gt;&lt;col&gt;&lt;col&gt;&lt;col&gt;&lt;/colgroup&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;
+      &lt;th&gt;型名&lt;/th&gt;&lt;th&gt;格納サイズ&lt;/th&gt;&lt;th&gt;説明&lt;/th&gt;&lt;th&gt;範囲&lt;/th&gt;
+    &lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;smallint&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;2バイト&lt;/td&gt;&lt;td&gt;狭範囲の整数&lt;/td&gt;&lt;td&gt;-32768から+32767&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;integer&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;4バイト&lt;/td&gt;&lt;td&gt;典型的に使用する整数&lt;/td&gt;&lt;td&gt;-2147483648から+2147483647&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;bigint&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;8バイト&lt;/td&gt;&lt;td&gt;広範囲整数&lt;/td&gt;&lt;td&gt;-9223372036854775808から+9223372036854775807&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;decimal&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;可変長&lt;/td&gt;&lt;td&gt;ユーザ指定精度、正確、通貨などに使用&lt;/td&gt;&lt;td&gt;小数点前までは131072桁、小数点以降は16383桁&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;numeric&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;可変長&lt;/td&gt;&lt;td&gt;decimalと同じ&lt;/td&gt;&lt;td&gt;小数点前までは131072桁、小数点以降は16383桁&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;real&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;4バイト&lt;/td&gt;&lt;td&gt;可変精度、不正確&lt;/td&gt;&lt;td&gt;6桁精度&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;double precision&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;8バイト&lt;/td&gt;&lt;td&gt;可変精度、不正確&lt;/td&gt;&lt;td&gt;15桁精度&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;smallserial&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;2バイト&lt;/td&gt;&lt;td&gt;狭範囲自動整数&lt;/td&gt;&lt;td&gt;1から32767&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;serial&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;4バイト&lt;/td&gt;&lt;td&gt;自動増分整数&lt;/td&gt;&lt;td&gt;1から2147483647&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;bigserial&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;8バイト&lt;/td&gt;&lt;td&gt;広範囲自動増分整数&lt;/td&gt;&lt;td&gt;1から9223372036854775807&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# マイグレーションファイル&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;CreateHoges&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Migration&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;change&lt;/span&gt;
+    create_table &lt;span class=&quot;synConstant&quot;&gt;:hoges&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;t&lt;/span&gt;|
+      t.integer &lt;span class=&quot;synConstant&quot;&gt;:int2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;limit&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# smallint型&lt;/span&gt;
+      t.integer &lt;span class=&quot;synConstant&quot;&gt;:int4&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;limit&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;4&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# integer型&lt;/span&gt;
+      t.integer &lt;span class=&quot;synConstant&quot;&gt;:int&lt;/span&gt;            &lt;span class=&quot;synComment&quot;&gt;# integer型&lt;/span&gt;
+      t.integer &lt;span class=&quot;synConstant&quot;&gt;:int8&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;limit&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;8&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# bigint型&lt;/span&gt;
+
+      t.decimal &lt;span class=&quot;synConstant&quot;&gt;:decimal&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;precision&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;10&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;scale&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# decimal/numeric(10,2)型&lt;/span&gt;
+
+      t.float &lt;span class=&quot;synConstant&quot;&gt;:real&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;limit&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;4&lt;/span&gt;   &lt;span class=&quot;synComment&quot;&gt;# real型&lt;/span&gt;
+      t.float &lt;span class=&quot;synConstant&quot;&gt;:double_precision&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# double precision型&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;参考：&lt;a href=&quot;https://www.postgresql.jp/document/9.4/html/datatype-numeric.html#DATATYPE-INT&quot; target=&quot;_blank&quot;&gt;数値データ型の詳細な説明&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;postgresql-migration-money&quot;&gt;通貨型&lt;/h3&gt;money型は貨幣金額を固定精度の小数点で格納します。&lt;br /&gt;
+範囲は小数点2桁を想定しています。出力形式は通常は&quot;典型的な&quot;通貨書式となりますが、ロケールによって異なります。&lt;/p&gt;&lt;p&gt;&lt;table border=&quot;1&quot; class=&quot;CALSTABLE&quot;&gt;
+  &lt;colgroup&gt;&lt;col&gt;&lt;col&gt;&lt;col&gt;&lt;col&gt;&lt;/colgroup&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;&lt;th&gt;型名&lt;/th&gt;&lt;th&gt;格納サイズ&lt;/th&gt;&lt;th&gt;説明&lt;/th&gt;&lt;th&gt;範囲&lt;/th&gt;&lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;money&lt;/td&gt;&lt;td&gt;8バイト&lt;/td&gt;&lt;td&gt;貨幣金額&lt;/td&gt;&lt;td&gt;-92233720368547758.08 から +92233720368547758.07&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# マイグレーションファイル&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;CreateHoges&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Migration&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;change&lt;/span&gt;
+    create_table &lt;span class=&quot;synConstant&quot;&gt;:hoges&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;t&lt;/span&gt;|
+      t.money &lt;span class=&quot;synConstant&quot;&gt;:money&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# money型&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;参考：&lt;a href=&quot;https://www.postgresql.jp/document/9.4/html/datatype-money.html&quot; target=&quot;_blank&quot;&gt;通貨型の詳細な説明&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;postgresql-migration-str&quot;&gt;文字型&lt;/h3&gt;&lt;table border=&quot;1&quot; class=&quot;CALSTABLE&quot;&gt;
+  &lt;colgroup&gt;&lt;col&gt;&lt;col&gt;&lt;/colgroup&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;&lt;th&gt;型名&lt;/th&gt;&lt;th&gt;説明&lt;/th&gt;&lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;character varying(&lt;tt class=&quot;REPLACEABLE&quot;&gt;&lt;i&gt;n&lt;/i&gt;&lt;/tt&gt;)&lt;/tt&gt;、&lt;tt class=&quot;TYPE&quot;&gt;varchar(&lt;tt class=&quot;REPLACEABLE&quot;&gt;&lt;i&gt;n&lt;/i&gt;&lt;/tt&gt;)&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;上限付き可変長&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;character(&lt;tt class=&quot;REPLACEABLE&quot;&gt;&lt;i&gt;n&lt;/i&gt;&lt;/tt&gt;)&lt;/tt&gt;、&lt;tt class=&quot;TYPE&quot;&gt;char(&lt;tt class=&quot;REPLACEABLE&quot;&gt;&lt;i&gt;n&lt;/i&gt;&lt;/tt&gt;)&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;空白で埋められた固定長&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;text&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;制限なし可変長&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# マイグレーションファイル&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;CreateHoges&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Migration&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;change&lt;/span&gt;
+    create_table &lt;span class=&quot;synConstant&quot;&gt;:hoges&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;t&lt;/span&gt;|
+      t.string &lt;span class=&quot;synConstant&quot;&gt;:str&lt;/span&gt;                &lt;span class=&quot;synComment&quot;&gt;# character varying型&lt;/span&gt;
+      t.string &lt;span class=&quot;synConstant&quot;&gt;:str128&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;limit&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;128&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# character varying(128)型&lt;/span&gt;
+      t.text   &lt;span class=&quot;synConstant&quot;&gt;:text&lt;/span&gt;               &lt;span class=&quot;synComment&quot;&gt;# text型&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;参考：&lt;a href=&quot;https://www.postgresql.jp/document/9.4/html/datatype-character.html&quot; target=&quot;_blank&quot;&gt;日付/時刻データ型の詳細な説明&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;postgresql-migration-date&quot;&gt;日付/時刻データ型&lt;/h3&gt;&lt;table border=&quot;1&quot; class=&quot;CALSTABLE&quot;&gt;
+  &lt;colgroup&gt;&lt;col&gt;&lt;col&gt;&lt;col&gt;&lt;col&gt;&lt;col&gt;&lt;col&gt;&lt;/colgroup&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;&lt;th&gt;型名&lt;/th&gt;&lt;th&gt;格納サイズ&lt;/th&gt;&lt;th&gt;説明&lt;/th&gt;&lt;th&gt;最遠の過去&lt;/th&gt;&lt;th&gt;最遠の未来&lt;/th&gt;&lt;th&gt;精度&lt;/th&gt;&lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;timestamp [ (&lt;tt class=&quot;REPLACEABLE&quot;&gt;&lt;i&gt;p&lt;/i&gt;&lt;/tt&gt;) ] [ without time zone ]&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;8 バイト&lt;/td&gt;&lt;td&gt;日付と時刻両方（時間帯なし）&lt;/td&gt;&lt;td&gt;4713 BC&lt;/td&gt;&lt;td&gt;294276 AD&lt;/td&gt;&lt;td&gt;1μ秒、14桁&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;timestamp [ (&lt;tt class=&quot;REPLACEABLE&quot;&gt;&lt;i&gt;p&lt;/i&gt;&lt;/tt&gt;) ] with time zone&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;8バイト&lt;/td&gt;&lt;td&gt;日付と時刻両方、時間帯付き&lt;/td&gt;&lt;td&gt;4713 BC&lt;/td&gt;&lt;td&gt;294276 AD&lt;/td&gt;&lt;td&gt;1μ秒、14桁&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;date&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;4バイト&lt;/td&gt;&lt;td&gt;日付（時刻なし）&lt;/td&gt;&lt;td&gt;4713 BC&lt;/td&gt;&lt;td&gt;5874897 AD&lt;/td&gt;&lt;td&gt;1日&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;time [ (&lt;tt class=&quot;REPLACEABLE&quot;&gt;&lt;i&gt;p&lt;/i&gt;&lt;/tt&gt;) ] [ without time zone ]&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;8バイト&lt;/td&gt;&lt;td&gt;時刻（日付なし）&lt;/td&gt;&lt;td&gt;00:00:00&lt;/td&gt;&lt;td&gt;24:00:00&lt;/td&gt;&lt;td&gt;1μ秒、14桁&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;time [ (&lt;tt class=&quot;REPLACEABLE&quot;&gt;&lt;i&gt;p&lt;/i&gt;&lt;/tt&gt;) ] with time zone&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;12バイト&lt;/td&gt;&lt;td&gt;その日の時刻のみ、時間帯付き&lt;/td&gt;&lt;td&gt;00:00:00+1459&lt;/td&gt;&lt;td&gt;24:00:00-1459&lt;/td&gt;&lt;td&gt;1μ秒、14桁&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;interval [ &lt;tt class=&quot;REPLACEABLE&quot;&gt;&lt;i&gt;fields&lt;/i&gt;&lt;/tt&gt; ] [ (&lt;tt class=&quot;REPLACEABLE&quot;&gt;&lt;i&gt;p&lt;/i&gt;&lt;/tt&gt;) ]&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;16バイト&lt;/td&gt;&lt;td&gt;時間間隔&lt;/td&gt;&lt;td&gt;-178000000年&lt;/td&gt;&lt;td&gt;178000000年&lt;/td&gt;&lt;td&gt;1μ秒、14桁&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# マイグレーションファイル&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;CreateHoges&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Migration&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;change&lt;/span&gt;
+    create_table &lt;span class=&quot;synConstant&quot;&gt;:hoges&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;t&lt;/span&gt;|
+      t.datetime  &lt;span class=&quot;synConstant&quot;&gt;:datetime&lt;/span&gt;  &lt;span class=&quot;synComment&quot;&gt;# timestamp without time zone型&lt;/span&gt;
+      t.timestamp &lt;span class=&quot;synConstant&quot;&gt;:timestamp&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# timestamp without time zone型&lt;/span&gt;
+      t.timestamp &lt;span class=&quot;synConstant&quot;&gt;:timestamp&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# timestamp without time zone型&lt;/span&gt;
+      t.time      &lt;span class=&quot;synConstant&quot;&gt;:time&lt;/span&gt;      &lt;span class=&quot;synComment&quot;&gt;# date型&lt;/span&gt;
+      t.date      &lt;span class=&quot;synConstant&quot;&gt;:date&lt;/span&gt;      &lt;span class=&quot;synComment&quot;&gt;# time without time zone型&lt;/span&gt;
+      t.column    &lt;span class=&quot;synConstant&quot;&gt;:duration&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:interval&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# interval型&lt;/span&gt;
+      t.column &lt;span class=&quot;synConstant&quot;&gt;:timestamp_with_tz&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;timestamp with time zone&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+      t.column &lt;span class=&quot;synConstant&quot;&gt;:time_with_tz&lt;/span&gt;,      &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;time with time zone&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;参考：&lt;a href=&quot;https://www.postgresql.jp/document/9.4/html/datatype-datetime.html&quot; target=&quot;_blank&quot;&gt;日付/時刻データ型の詳細な説明&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;postgresql-migration-bool&quot;&gt;論理値データ型&lt;/h3&gt;boolean型はいくつかの状態を取ることができます。 &quot;真&quot;もしくは&quot;偽&quot;、そして第3の状態はSQLではNULL値で表現される&quot;不明&quot;の状態です。&lt;/p&gt;&lt;p&gt;&lt;table border=&quot;1&quot; class=&quot;CALSTABLE&quot;&gt;
+  &lt;colgroup&gt;&lt;col&gt;&lt;col&gt;&lt;col&gt;&lt;/colgroup&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;&lt;th&gt;名前&lt;/th&gt;&lt;th&gt;格納サイズ&lt;/th&gt;&lt;th&gt;説明&lt;/th&gt;&lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;&lt;tt class=&quot;TYPE&quot;&gt;boolean&lt;/tt&gt;&lt;/td&gt;&lt;td&gt;1バイト&lt;/td&gt;&lt;td&gt;真または偽の状態&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# マイグレーションファイル&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;CreateHoges&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Migration&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;change&lt;/span&gt;
+    create_table &lt;span class=&quot;synConstant&quot;&gt;:hoges&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;t&lt;/span&gt;|
+      t.boolean   &lt;span class=&quot;synConstant&quot;&gt;:bool&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# boolean型&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;参考：&lt;a href=&quot;https://www.postgresql.jp/document/9.4/html/datatype-boolean.html&quot; target=&quot;_blank&quot;&gt;論理値データ型の詳細な説明&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;他にもバイナリ型やJSON型などのデータ型もあるので気にになる方は、参考のURLを一度読んでみてください。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://www.postgresql.jp/document/9.4/html/datatype.html&quot;&gt;https://www.postgresql.jp/document/9.4/html/datatype.html&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Sun, 07 Jun 2015 00:57:47 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450096729801</guid>
+          
+            <category>Rails Migration</category>
+          
+            <category>Rails中級</category>
+          
+            <category>DB</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>Railsのmigrationの基本とレシピ集</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20140810/1407634200</link>
+          <description>&lt;p&gt;RailsのMigrationの基本的なことから、カラム追加/削除、インデックス追加、NULL制約、カラム名変更などのレシピ集をまとめました。&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;1. &lt;a href=&quot;#migration-basic&quot;&gt;Migrationの基礎&lt;/a&gt;&lt;/h4&gt;
+    &lt;p&gt;1.1. &lt;a href=&quot;#migration-create&quot;&gt;migrationファイルの作成&lt;/a&gt;&lt;br /&gt;
+1.2. &lt;a href=&quot;#migration-migrate&quot;&gt;マイグレートの実施 rake db:migrateコマンド&lt;/a&gt;&lt;br /&gt;
+1.3. &lt;a href=&quot;#migration-migrate-status&quot;&gt;マイグレートの適用状況確認 rake db:migrate:statusコマンド&lt;/a&gt;&lt;br /&gt;
+1.4. &lt;a href=&quot;#migration-seeds&quot;&gt;データの投入 rake db:seedコマンド&lt;/a&gt;&lt;br /&gt;
+1.5. &lt;a href=&quot;#migration-datatypes&quot;&gt;マイグレーションで使えるデータ型一覧&lt;/a&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;2. &lt;a href=&quot;#migration-recipes&quot;&gt;Migrationのレシピ集&lt;/a&gt;&lt;/h4&gt;
+    &lt;p&gt;2.1. &lt;a href=&quot;#migration-add-column&quot;&gt;カラムの追加（add_column）&lt;/a&gt;&lt;br /&gt;
+2.2. &lt;a href=&quot;#migration-remove-column&quot;&gt;カラムの削除（remove_column）&lt;/a&gt;&lt;br /&gt;
+2.3. &lt;a href=&quot;#migration-change-datatype&quot;&gt;データ型の変更（change_column）&lt;/a&gt;&lt;br /&gt;
+2.4. &lt;a href=&quot;#migration-add-remove-index&quot;&gt;インデックスやユニーク制約の追加/削除（add_index/remove_index）&lt;/a&gt;&lt;br /&gt;
+2.5. &lt;a href=&quot;#migration-change-column-null&quot;&gt;NULL制約の追加/削除（change_column_null)&lt;/a&gt;&lt;br /&gt;
+2.6. &lt;a href=&quot;#migration-change-column-default&quot;&gt;デフォルト値の追加/削除（change_column_default)&lt;/a&gt;&lt;br /&gt;
+2.7. &lt;a href=&quot;#migration-rename-column&quot;&gt;カラム名の変更（rename_column）&lt;/a&gt;&lt;br /&gt;
+2.8. &lt;a href=&quot;#migration-create-table&quot;&gt;テーブルの作成（create_table）&lt;/a&gt;&lt;br /&gt;
+2.9. &lt;a href=&quot;#migration-drop-table&quot;&gt;テーブルの削除（drop_table）&lt;/a&gt;&lt;br /&gt;
+2.10. &lt;a href=&quot;#migration-rename-tabel&quot;&gt;テーブル名の変更（rename_table）&lt;/a&gt;&lt;br /&gt;
+2.11. &lt;a href=&quot;#migration-add-initial-data&quot;&gt;商用リリース後の初期データの投入&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;migration-basic&quot;&gt;1. Migrationの基礎&lt;/h3&gt;&lt;h4 id=&quot;migration-create&quot;&gt;1.1. migrationファイルの作成&lt;/h4&gt;Railsのmigrationはデータベースのスキーマの設定管理を一貫して規則正しく行うための基盤です。&lt;br /&gt;
+migrationファイルを作成するには、「手動でファイルを作成する方法」と「&lt;code&gt;$ rails generate&lt;/code&gt;コマンドで作成する方法」の２つの作成方法があります。&lt;br /&gt;
+&lt;code&gt;$ rails generate&lt;/code&gt;コマンドで作成する方がエラーが発生しづらいためそちらの方法でのファイル作成方法を説明します。&lt;/p&gt;&lt;p&gt;Railsジェネレートコマンドも&lt;br /&gt;
+「モデルとマイグレーションファイルを作成する&lt;code&gt;$ rails g model&lt;/code&gt;」&lt;br /&gt;
+「マイグレーションファイルのみを作成する&lt;code&gt;$ rails g migration&lt;/code&gt;」&lt;br /&gt;
+があります。&lt;/p&gt;&lt;p&gt;&lt;i&gt;※&lt;code&gt;g&lt;/code&gt;は&lt;code&gt;generate&lt;/code&gt;のショートカットです。&lt;/i&gt;&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;モデルとマイグレーションファイルを作成&lt;/h5&gt;
+    &lt;p&gt;以下のコマンドで&lt;code&gt;Article&lt;/code&gt;モデルとマイグレーションファイルを作成します。&lt;br /&gt;
+また、&lt;code&gt;Article&lt;/code&gt;モデルには、String型のtitle、Text型のcontentカラムがあります。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ rails g model &lt;span class=&quot;synType&quot;&gt;Article&lt;/span&gt; title&lt;span class=&quot;synConstant&quot;&gt;:string&lt;/span&gt; content&lt;span class=&quot;synConstant&quot;&gt;:text&lt;/span&gt;
+      invoke  active_record
+      create    db/migrate/20140808181112_create_articles.rb
+      create    app/models/article.rb
+      invoke    test_unit
+      create      test/models/article_test.rb
+      create      test/fixtures/articles.yml
+&lt;/pre&gt;&lt;p&gt;マイグレートファイルは&lt;code&gt;db/migrate&lt;/code&gt;配下に作成されます。&lt;br /&gt;
+また、ファイル名には、YYYYMMDDHHmmSSが付与され、ファイル名の重複や、マイグレートファイルがDBに適用済みかどうかを確認するために使われます。&lt;/p&gt;&lt;p&gt;では、上記のコマンドで作成されたマイグレーションファイルを見てみましょう。&lt;br /&gt;
+マイグレーションファイルは、&lt;code&gt;ActiveRecord::Migration&lt;/code&gt;を継承している必要があります。&lt;br /&gt;
+メソッドは、&lt;code&gt;change&lt;/code&gt;メソッド、もしくは、&lt;code&gt;up&lt;/code&gt;と&lt;code&gt;down&lt;/code&gt;メソッを定義している必要があります。&lt;br /&gt;
+その中で、テーブル作成/削除、カラム追加/削除などを行います。今回は、&lt;code&gt;create_table&lt;/code&gt;メソッドで&lt;code&gt;articles&lt;/code&gt;というテーブルを作成し、ブロック内でカラムを追加しています。&lt;/p&gt;&lt;p&gt;&lt;i&gt;※&lt;code&gt;timestamps&lt;/code&gt;は、レコードの作成時刻の&lt;code&gt;created_at&lt;/code&gt;と更新時刻の&lt;code&gt;updated_at&lt;/code&gt;をカラムを作成してくれます。明示的に追加しなくても自動でマイグレーションファイルに追加され、また、カラムの値は自動で更新されます。&lt;/i&gt;&lt;/p&gt;&lt;p&gt;各メソッドの詳細は、本ページのレシピ集に記載してます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# db/migrate/20140808181112_create_articles.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;CreateArticles&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Migration&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;change&lt;/span&gt;
+    create_table &lt;span class=&quot;synConstant&quot;&gt;:articles&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;t&lt;/span&gt;|
+      t.string &lt;span class=&quot;synConstant&quot;&gt;:title&lt;/span&gt;
+      t.text &lt;span class=&quot;synConstant&quot;&gt;:content&lt;/span&gt;
+
+      t.timestamps
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;i&gt;※&lt;code&gt;up&lt;/code&gt;と&lt;code&gt;down&lt;/code&gt;は、&lt;code&gt;change&lt;/code&gt;メソッドの代わりに使います。&lt;br /&gt;
+&lt;code&gt;up&lt;/code&gt;は&lt;code&gt;rake db:migrate&lt;/code&gt;の実行時に実行され、&lt;code&gt;down&lt;/code&gt;は&lt;code&gt;rake db:rollback&lt;/code&gt;時に実行されます。&lt;br /&gt;
+&lt;code&gt;change&lt;/code&gt;メソッドのときは、内部的に可逆性を推定して実施しますが、必ずしも推定できない場合は&lt;code&gt;up/down&lt;/code&gt;で定義しておくことによりロールバックができるようになります。ロールバックは必須ではないので、わざわざ&lt;code&gt;up/down&lt;/code&gt;を実施しなくてもよいです。&lt;br /&gt;
+上記のマイグレーションファイルをup/downで書き直した例は次の通りです。&lt;/i&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# db/migrate/20140808181112_create_articles.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;CreateArticles&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Migration&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;up&lt;/span&gt;
+    create_table &lt;span class=&quot;synConstant&quot;&gt;:articles&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;t&lt;/span&gt;|
+      t.string &lt;span class=&quot;synConstant&quot;&gt;:title&lt;/span&gt;
+      t.text &lt;span class=&quot;synConstant&quot;&gt;:content&lt;/span&gt;
+
+      t.timestamps
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;down&lt;/span&gt;
+    drop_table &lt;span class=&quot;synConstant&quot;&gt;:articles&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;マイグレーションファイルのみを作成&lt;/h5&gt;
+    &lt;p&gt;マイグレーションファイルのみを作成する場合は、&lt;code&gt;rails g migration&lt;/code&gt;です。&lt;br /&gt;
+内容は上記で説明したので省略します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ rails g migration create_articles title&lt;span class=&quot;synConstant&quot;&gt;:string&lt;/span&gt; content&lt;span class=&quot;synConstant&quot;&gt;:text&lt;/span&gt;
+      invoke  active_record
+      create    db/migrate/20140808181236_create_articles.rb
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+作成されたマイグレーションファイルを確認します。&lt;br /&gt;
+内容は&lt;code&gt;rails g model&lt;/code&gt;と同じです。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# db/migrate/20140808181236_create_articles.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;CreateArticles&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Migration&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;change&lt;/span&gt;
+    create_table &lt;span class=&quot;synConstant&quot;&gt;:articles&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;t&lt;/span&gt;|
+      t.string &lt;span class=&quot;synConstant&quot;&gt;:title&lt;/span&gt;
+      t.text &lt;span class=&quot;synConstant&quot;&gt;:content&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h4 id=&quot;migration-migrate&quot;&gt;1.2. マイグレートの実施 rake db:migrateコマンド&lt;/h4&gt;&lt;code&gt;rake db:migrate&lt;/code&gt;コマンドで適用していないマイグレーションファイルを全て適用することができます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ rake db&lt;span class=&quot;synConstant&quot;&gt;:migrate&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# RAILS_ENV をしていすることでマイグレートする環境を指定できます&lt;/span&gt;
+$ rake db&lt;span class=&quot;synConstant&quot;&gt;:migrate&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;RAILS_ENV&lt;/span&gt;=test             &lt;span class=&quot;synComment&quot;&gt;# test環境に適用&lt;/span&gt;
+$ rake db&lt;span class=&quot;synConstant&quot;&gt;:migrate&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;RAILS_ENV&lt;/span&gt;=production  &lt;span class=&quot;synComment&quot;&gt;# production環境に適用&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+適用したマイグレートファイル１つだけ未適用状態にする（ロールバック）&lt;br /&gt;
+&lt;code&gt;down&lt;/code&gt;メソッドが定義されていない場合は失敗する場合もあります。詳細は上記を参照して下さい。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ rake db&lt;span class=&quot;synConstant&quot;&gt;:rollback&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;最初の状態までロールバックする&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ rake db&lt;span class=&quot;synConstant&quot;&gt;:migrate&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;VERSION&lt;/span&gt;=&lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;全てのテーブルとデータをを削除し、スキーマ(schema.rbの内容)を適用する。ロールバックできない場合に使える。&lt;br /&gt;
+本当にどうしようもない場合は、直接データベースにアクセスし、テーブルを削除して、マイグレートを適用させましょう。&lt;br /&gt;
+&lt;i&gt;schema.rbはdb:migrateの結果をマージしたファイルです。&lt;/i&gt;&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ rake db&lt;span class=&quot;synConstant&quot;&gt;:reset&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4 id=&quot;migration-migrate-status&quot;&gt;1.3. マイグレートの適用状況確認 rake db:migrate:statusコマンド&lt;/h4&gt;次のコマンドで、現在データベースに適用されているマイグレーションファイルを確認します。&lt;br /&gt;
+&lt;code&gt;Migration ID&lt;/code&gt;がマイグレーションファイルの&lt;code&gt;YYYYMMDDHHmmSS&lt;/code&gt;に対応しています。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ rake db:migrate:status 
+
+database: /Users/nipe0324/rails_project/db/development.sqlite3
+
+ Status   Migration ID    Migration Name
+--------------------------------------------------
+   up     20141008133536  Create pictures
+   up     20141008133734  Add attachment photo to pictures&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4 id=&quot;migration-seeds&quot;&gt;1.4. データの投入 rake db:seedコマンド&lt;/h4&gt;初期データをデータベースに投入するために、&lt;code&gt;db/seeds.rb&lt;/code&gt;が存在します。&lt;br /&gt;
+この中はRubyが記載でき、Rubyでモデルを作成します。&lt;/p&gt;&lt;p&gt;&lt;i&gt;※本番環境などデータを削除することができない場合は、この&lt;code&gt;db/seeds.rb&lt;/code&gt;を使うことは適切ではありません。「&lt;a href=&quot;#migration-add-initial-data&quot;&gt;商用リリース後の初期データの投入&lt;/a&gt;」を参照して下さい。&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;code&gt;seeds.rb&lt;/code&gt;を記載したら、&lt;code&gt;rake db:seed&lt;/code&gt;コマンドで実行することができます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ rake db&lt;span class=&quot;synConstant&quot;&gt;:seed&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;ここではサンプルとして、３つの記事（Articleオブジェクト）を作成して適用します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;### モデルとマイグレーションファイルを作成&lt;/span&gt;
+$ rails g model &lt;span class=&quot;synType&quot;&gt;Article&lt;/span&gt; title&lt;span class=&quot;synConstant&quot;&gt;:string&lt;/span&gt; content&lt;span class=&quot;synConstant&quot;&gt;:text&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;### マイグレートを実施&lt;/span&gt;
+$ rails db&lt;span class=&quot;synConstant&quot;&gt;:migrate&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;### db/seeds.rbに初期データ投入を記載&lt;/span&gt;
+$ vim db/seeds.rb
+&lt;span class=&quot;synComment&quot;&gt;# 記事を3つ作成&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Article&lt;/span&gt;.create!( &lt;span class=&quot;synConstant&quot;&gt;title&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;記事1&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;content&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;内容1&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; )
+&lt;span class=&quot;synType&quot;&gt;Article&lt;/span&gt;.create!( &lt;span class=&quot;synConstant&quot;&gt;title&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;記事2&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;content&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;内容2&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; )
+&lt;span class=&quot;synType&quot;&gt;Article&lt;/span&gt;.create!( &lt;span class=&quot;synConstant&quot;&gt;title&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;記事3&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;content&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;内容3&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; )
+
+&lt;span class=&quot;synComment&quot;&gt;### db/seeds.rbを適用&lt;/span&gt;
+$ rake db&lt;span class=&quot;synConstant&quot;&gt;:seed&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;### コンソールでデータが入ったことを確認&lt;/span&gt;
+$ rails c
+&lt;span class=&quot;synType&quot;&gt;Loading&lt;/span&gt; development environment (&lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;4.1&lt;/span&gt;.&lt;span class=&quot;synConstant&quot;&gt;4&lt;/span&gt;)
+&amp;gt; &lt;span class=&quot;synType&quot;&gt;Article&lt;/span&gt;.all
+=&amp;gt; &lt;span class=&quot;synComment&quot;&gt;#&amp;lt;ActiveRecord::Relation [#&amp;lt;Article id: 1, title: &amp;quot;記事1&amp;quot;, content: &amp;quot;内容1&amp;quot;, created_at: &amp;quot;2014-08-08 19:41:31&amp;quot;, updated_at: &amp;quot;2014-08-08 19:41:31&amp;quot;&amp;gt;, #&amp;lt;Article id: 2, title: &amp;quot;記事2&amp;quot;, content: &amp;quot;内容2&amp;quot;, created_at: &amp;quot;2014-08-08 19:41:31&amp;quot;, updated_at: &amp;quot;2014-08-08 19:41:31&amp;quot;&amp;gt;, #&amp;lt;Article id: 3, title: &amp;quot;記事3&amp;quot;, content: &amp;quot;内容3&amp;quot;, created_at: &amp;quot;2014-08-08 19:41:31&amp;quot;, updated_at: &amp;quot;2014-08-08 19:41:31&amp;quot;&amp;gt;]&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4 id=&quot;migration-datatypes&quot;&gt;1.5. マイグレーションで使えるデータ型一覧&lt;/h4&gt;&lt;code&gt;rails generator model&lt;/code&gt;や&lt;code&gt;rails generator migration&lt;/code&gt;コマンドで使えるデータ型として以下のものがあります。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;integer 整数
+float 浮動小数
+decimal 制度の高い小数
+
+string 文字列
+text  長い文字列
+binary バイナリデータ
+
+datetime 日時
+timestamp より細かい日時
+date 日付
+time 時間
+
+boolean &lt;span class=&quot;synType&quot;&gt;Boolean&lt;/span&gt;型(&lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;or&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;)
+
+primary_key 主キー
+references 外部キー
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;migration-recipes&quot;&gt;2. Migrationのレシピ集&lt;/h3&gt;&lt;h4 id=&quot;migration-add-column&quot;&gt;2.1 カラムの追加（add_column）&lt;/h4&gt;&lt;code&gt;articles&lt;/code&gt;テーブルに&lt;code&gt;user_id&lt;/code&gt;カラムを追加してみます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ rails g migration add_user_id_to_articles user_id&lt;span class=&quot;synConstant&quot;&gt;:integer&lt;/span&gt;
+      invoke  active_record
+      create    db/migrate/20140808182214_add_user_id_to_articles.rb
+&lt;/pre&gt;&lt;p&gt;作成されたマイグレーションファイルを確認しましょう。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# db/migrate/20140808182214_add_user_id_to_articles.rb &lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;AddColumnToArticles&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Migration&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;change&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# [形式] add_column(テーブル名, カラム名, データ型)&lt;/span&gt;
+    add_column &lt;span class=&quot;synConstant&quot;&gt;:articles&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:user_id&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:integer&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;さらに、&lt;code&gt;add_column&lt;/code&gt;には次のオプションを指定できます。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;null: true  ... NOT NULL制約を削除&lt;/li&gt;
+&lt;li&gt;null: false ... NOT NULL制約を追加&lt;/li&gt;
+&lt;li&gt;limit: size ... フィールドのサイズに対する制限を設定&lt;/li&gt;
+&lt;li&gt;default: [val] ... [val] に設定した値をレコード作成時のカラムのデフォルト値とする&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;さらにさらに、decimal型の場合は追加で以下のオプションも指定できます。&lt;br /&gt;
+ - precision: [num], scale: [num] ... precisionは格納される桁数、scaleはその桁数のどこを小数点位置にするかを設定&lt;br /&gt;
+ 　※ 例えば、precision: 5, scale: 2 の場合、 5桁で小数点は2桁目のため、格納できる値は -999.99〜+999.99となる&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h4 id=&quot;migration-remove-column&quot;&gt;2.2. カラムの削除（remove_column）&lt;/h4&gt;&lt;code&gt;articles&lt;/code&gt;テーブルに&lt;code&gt;user_id&lt;/code&gt;カラムを削除してみます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ rails g migration remove_user_id_to_articles user_id
+      invoke  active_record
+      create    db/migrate/20140808182248_remove_user_id_to_articles.rb
+&lt;/pre&gt;&lt;p&gt;作成されたマイグレーションファイルを見てみましょう。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;#db/migrate/20140808182248_remove_user_id_to_articles.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;RemoveColumnToArticles&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Migration&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;change&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# [形式] remove_column(テーブル名, カラム名)&lt;/span&gt;
+    remove_column &lt;span class=&quot;synConstant&quot;&gt;:articles&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:user_id&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;i&gt;※ ロールバック時にカラムの追加方法が分からないため&lt;code&gt;$ rake db:rollback&lt;/code&gt;でエラーになります。もし、rollbackをしたい場合、up/downメソッドを定義し、downメソッド内でテーブルを作成する必要があります。&lt;/i&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h4 id=&quot;migration-change-datatype&quot;&gt;2.3. データ型の変更（change_column）&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ rails g migration change_datatype_title_of_articles
+      invoke  active_record
+      create    db/migrate/20140808183810_change_datatype_title_of_articles.rb
+&lt;/pre&gt;&lt;p&gt;マイグレーションファイルに&lt;code&gt;change_column&lt;/code&gt;メソッドを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# db/migrate/20140808183810_change_datatype_title_of_articles.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ChangeDatatypeTitleOfArticles&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Migration&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;change&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# [形式] change_column(テーブル名, カラム名, データタイプ, オプション)&lt;/span&gt;
+    change_column &lt;span class=&quot;synConstant&quot;&gt;:articles&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:title&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:text&lt;/span&gt;
+
+    &lt;span class=&quot;synComment&quot;&gt;# オプション&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# limit - カラム長の最大数&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# change_column :articles, :title, :text, limit: 120&lt;/span&gt;
+
+    &lt;span class=&quot;synComment&quot;&gt;# default - カラムのデフォルト値を設定。NULLにしたい場合は、nilを指定&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# change_column :articles, :title, :text, default: &amp;quot;タイトルがありません&amp;quot;&lt;/span&gt;
+
+    &lt;span class=&quot;synComment&quot;&gt;# null - null制約を設定。false -&amp;gt; null制約がON。true -&amp;gt; null制約がOFF&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# change_column :articles, :title, :text, null: true&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;h4 id=&quot;migration-add-remove-index&quot;&gt;2.4. インデックスやユニーク制約の追加/削除（add_index/remove_index）&lt;/h4&gt;articlesテーブルのtitleカラムにindexを追加しています。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ rails g migration add_name_index_to_articles
+      invoke  active_record
+      create    db/migrate/20140808183810_add_name_index_to_articles.rb
+&lt;/pre&gt;&lt;p&gt;マイグレーションファイルに&lt;code&gt;add_index&lt;/code&gt;を追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ cat db/migrate/20140808183810_add_name_index_to_articles.rb
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;AddNameIndexToArticles&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Migration&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;change&lt;/span&gt;
+    add_index &lt;span class=&quot;synConstant&quot;&gt;:articles&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# add_index :articles, :name, unique: true ユニーク制約も付加可能&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# add_index :articles, [:user_id, :created_at] 配列を使うことにより複合インデックスを設定可能&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4 id=&quot;migration-change-column-null&quot;&gt;2.5. NULL制約の追加/削除（change_column_null)&lt;/h4&gt;NULL制約の追加や削除のみを設定するには&lt;code&gt;change_column_null&lt;/code&gt;メソッドを使えば簡単です。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# usersテーブルのnicknameを &amp;quot;NULL&amp;quot; を許可しない(NOT NULL制約を追加)&lt;/span&gt;
+change_column_null &lt;span class=&quot;synConstant&quot;&gt;:users&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:nickname&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# usersテーブルのnicknameを &amp;quot;NULL&amp;quot; を許可する&lt;/span&gt;
+change_column_null &lt;span class=&quot;synConstant&quot;&gt;:users&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:nickname&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4 id=&quot;migration-change-column-default&quot;&gt;2.6. デフォルト値の追加/削除（change_column_default)&lt;/h4&gt;カラムのデフォルト値の追加や削除のみを設定するには&lt;code&gt;change_column_default&lt;/code&gt;メソッドを使えば簡単です。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# suppliersテーブルのqualificationカラムのデフォルト値を &#39;new&#39; を設定&lt;/span&gt;
+change_column_default &lt;span class=&quot;synConstant&quot;&gt;:suppliers&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:qualification&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;new&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# accountsテーブルのauthorizedカラムのデフォルト値を 1 を設定&lt;/span&gt;
+change_column_default &lt;span class=&quot;synConstant&quot;&gt;:accounts&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:authorized&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# usersテーブルのemailカラムのデフォルト値に NULL を設定&lt;/span&gt;
+change_column_default &lt;span class=&quot;synConstant&quot;&gt;:users&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:email&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;nil&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;h4 id=&quot;migration-rename-column&quot;&gt;2.7. カラム名の変更（rename_column）&lt;/h4&gt;カラム名を &quot;title&quot; から &quot;changed_title&quot; へ変更しています。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ rails g migration rename_title_column_to_articles
+      invoke  active_record
+      create    db/migrate/20140808184723_rename_title_column_to_articles.rb
+&lt;/pre&gt;&lt;p&gt;マイグレーションファイルに&lt;code&gt;rename_column&lt;/code&gt;を追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ cat db/migrate/20140808184723_rename_title_column_to_articles.rb
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;RenameTitleColumnToArticles&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Migration&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;change&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# [形式] rename_column(テーブル名, 変更前のカラム名, 変更後のカラム名)&lt;/span&gt;
+    rename_column &lt;span class=&quot;synConstant&quot;&gt;:articles&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:title&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:changed_title&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4 id=&quot;migration-create-table&quot;&gt;2.8. テーブルの作成（create_table）&lt;/h4&gt;usersテーブルを作成しています。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ rails g migration create_users name&lt;span class=&quot;synConstant&quot;&gt;:string&lt;/span&gt; email&lt;span class=&quot;synConstant&quot;&gt;:string&lt;/span&gt;
+      invoke  active_record
+      create    db/migrate/20140808185345_create_users.rb
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+マイグレーションを確認します。&lt;cod&gt;timestamps&lt;/code&gt;がない場合は追加して下さい。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ cat  db/migrate/20140808185345_create_users.rb
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;CreateUsers&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Migration&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;change&lt;/span&gt;
+    create_table &lt;span class=&quot;synConstant&quot;&gt;:users&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;t&lt;/span&gt;|
+      t.string &lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;
+      t.string &lt;span class=&quot;synConstant&quot;&gt;:email&lt;/span&gt;
+
+      t.timestamps
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4 id=&quot;migration-drop-table&quot;&gt;2.9. テーブルの削除（drop_table）&lt;/h4&gt;usersテーブルを削除します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ rails g migration drop_users
+      invoke  active_record
+      create    db/migrate/20140808185551_drop_users.rb
+&lt;/pre&gt;&lt;p&gt;マイグレーションファイルに&lt;code&gt;drop_table&lt;/code&gt;を追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ cat db/migrate/20140808185551_drop_users.rb
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;DropUsers&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Migration&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;change&lt;/span&gt;
+    drop_table &lt;span class=&quot;synConstant&quot;&gt;:users&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;i&gt;※ロールバック時に、テーブルの作成方法が分からないため&lt;code&gt;$ rake db:rollback&lt;/code&gt;でエラーになります。もし、rollbackをしたい場合、up/downメソッドを定義し、downメソッド内でテーブルを作成する必要があります。&lt;/i&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h4 id=&quot;migration-rename-tabel&quot;&gt;2.10. テーブル名の変更（rename_table）&lt;/h4&gt;テーブル名を &quot;articles&quot; から &quot;posts&quot; へ変更します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ rails g migration rename_articles_to_posts
+      invoke  active_record
+      create    db/migrate/20140808190856_rename_articles_to_posts.rb
+&lt;/pre&gt;&lt;p&gt;マイグレーションに&lt;code&gt;rename_table&lt;/code&gt;を追加しましょう。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# db/migrate/20140808190856_rename_articles_to_posts.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;RenameArticlesToPosts&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Migration&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;change&lt;/span&gt;
+    rename_table &lt;span class=&quot;synConstant&quot;&gt;:articles&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:posts&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4 id=&quot;migration-add-initial-data&quot;&gt;2.11. 商用リリース後の初期データの投入&lt;/h4&gt;初回に商用リリースをするときに&lt;code&gt;db/seeds.rb&lt;/code&gt;は適用済みであると思います。&lt;br /&gt;
+そのため、その後にテーブルを追加し、その初期データを投入したいときに&lt;code&gt;db/seeds.rb&lt;/code&gt;を使うことができません。&lt;/p&gt;&lt;p&gt;所用リリース後に初期データを投入するためには、次のようにマイグレートファイルに初期データを投入するコードを作成します。&lt;br /&gt;
+ここでは、categoriesテーブルを作成したのを前提として、初期のカテゴリーを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ rails g migration insert_initial_categories_into_categories
+      invoke  active_record
+      create    db/migrate/20140808190856_insert_initial_categories_into_categories.rb
+&lt;/pre&gt;&lt;p&gt;マイグレーションに&lt;code&gt;rename_table&lt;/code&gt;を追加しましょう。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# db/migrate/20140808190856_insert_initial_categories_into_categories.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;InsertInitialCategoriesIntoCategories&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Migration&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;change&lt;/span&gt;
+    names = &lt;span class=&quot;synSpecial&quot;&gt;%w(&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;食費 日用品 交通費 交際費 税金&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;)&lt;/span&gt;
+    names.each &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;name&lt;/span&gt;|
+      &lt;span class=&quot;synType&quot;&gt;Category&lt;/span&gt;.create &lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;: name
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html&quot; target=&quot;_blank&quot;&gt;Rails API - ActiveRecord::ConnectionAdapters::SchemaStatements&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://guides.rubyonrails.org/migrations.html&quot; target=&quot;_blank&quot;&gt;Rails Guide - Migration&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;以上です。&lt;br /&gt;
+よく分からない箇所や間違いがありましたら、コメントをいただけると直に対応します。&lt;/p&gt;
+
+&lt;/div&gt;</description>
+          <pubDate>Sun, 10 Aug 2014 10:30:00 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/12921228815729890967</guid>
+          
+            <category>Rails初級</category>
+          
+            <category>Rails Migration</category>
+          
+        </item>
+      
+    
+  </channel>
+</rss>

@@ -1,0 +1,939 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>Ruby - Rails Webook</title>
+    <link>http://ruby-rails.hatenadiary.com/category/Ruby</link>
+    <description>自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</description>
+    <lastBuildDate>Fri, 18 Dec 2015 02:44:31 +0900</lastBuildDate>
+    <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+    <generator>Hatena::Blog</generator>
+    
+      
+      
+        <item>
+          <title>リファクタリング: デメテルの法則(Law of Demeter, LoD)</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20150922/1442923521</link>
+          <description>&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150922/20150922205235.jpg&quot; alt=&quot;f:id:nipe880324:20150922205235j:plain:w320&quot; title=&quot;f:id:nipe880324:20150922205235j:plain:w320&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:320px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+&lt;i&gt;Photo by &lt;a href=&quot;https://www.flickr.com/photos/wonderlane/&quot;&gt;Wonderlane | Flickr - Photo Sharing!&lt;/a&gt;&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%C7%A5%E1%A5%C6%A5%EB&quot;&gt;デメテル&lt;/a&gt;の法則について勉強したのでまとめてみました。間違っているかもしれませんのでコメントいただけると助かります。&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#low-of-demeter-what&quot;&gt;デメテルの法則とは&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#low-of-demeter-violation&quot;&gt;デメテルの法則に反している例&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#low-of-demeter-apply&quot;&gt;デメテルの法則の適用&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#low-of-demeter-conclusion&quot;&gt;まとめ&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;low-of-demeter-what&quot;&gt;1. &lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%C7%A5%E1%A5%C6%A5%EB&quot;&gt;デメテル&lt;/a&gt;の法則とは&lt;/h3&gt;&lt;/p&gt;
+
+    &lt;blockquote&gt;
+        &lt;p&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/wikipedia&quot;&gt;wikipedia&lt;/a&gt;より引用 &lt;br /&gt;
+&lt;a href=&quot;https://ja.wikipedia.org/wiki/%E3%83%87%E3%83%A1%E3%83%86%E3%83%AB%E3%81%AE%E6%B3%95%E5%89%87&quot;&gt;&amp;#x30C7;&amp;#x30E1;&amp;#x30C6;&amp;#x30EB;&amp;#x306E;&amp;#x6CD5;&amp;#x5247; - Wikipedia&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%C7%A5%E1%A5%C6%A5%EB&quot;&gt;デメテル&lt;/a&gt;の法則 、または最小知識の原則とは、ソフトウェアの設計、特に&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%AA%A5%D6%A5%B8%A5%A7%A5%AF%A5%C8%BB%D8%B8%FE&quot;&gt;オブジェクト指向&lt;/a&gt;プログラムの設計における&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%AC%A5%A4%A5%C9%A5%E9%A5%A4%A5%F3&quot;&gt;ガイドライン&lt;/a&gt;である。&lt;br /&gt;
+簡潔に言うと「直接の友達とだけ話すこと」と要約できる。&lt;br /&gt;
+あるオブジェクトAは別のオブジェクトBのサービスを要求してもよい（&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;を呼び出してもよい）が、オブジェクトAがオブジェクトBを「経由して」さらに別のオブジェクトCのサービスを要求してはならない。&lt;br /&gt;
+これが望ましくないのは、オブジェクトAがオブジェクトBに対して、オブジェクトB自身の内部構造以上の知識を要求してしまうためである。&lt;br /&gt;
+このような場合には、クラスBを変更し、クラスAがクラスBに対して行った要求を適切なBのサブ&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;に伝播させるようにすればよい。または、AがCへのリファレンスを持つようにして、AがCを直接呼ぶようにしてもよい。この法則に従えば、オブジェクトBが知っているのは自分自身の内部構造だけになる。&lt;/p&gt;
+
+    &lt;/blockquote&gt;
+&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;low-of-demeter-violation&quot;&gt;2. &lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%C7%A5%E1%A5%C6%A5%EB&quot;&gt;デメテル&lt;/a&gt;の法則に反している例&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;クラス図としては次のような例で考えてみます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;[Result] =1:n=&amp;gt; [Answer] &amp;lt;=1:n= [Question]&lt;/pre&gt;&lt;p&gt;テスト結果(Result)には、回答(&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Answer&quot;&gt;Answer&lt;/a&gt;)が&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%CA%A3%BF%F4&quot;&gt;複数&lt;/a&gt;あります。&lt;br /&gt;
+そして、回答から質問(Question)が辿れるようになっています。&lt;/p&gt;&lt;p&gt;ここで、テスト結果を計算する&lt;code&gt;score&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;を実装してみます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Result&lt;/span&gt;
+  has_many &lt;span class=&quot;synConstant&quot;&gt;:answers&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;score&lt;/span&gt;
+    answers.inject(&lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;result&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;answer&lt;/span&gt;|
+      &lt;span class=&quot;synComment&quot;&gt;# resultからquestionまで辿っているのでデメテルの法則に反している&lt;/span&gt;
+      question = answer.quesiton
+      result + question.score(answer.text)
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Answer&lt;/span&gt;
+  belongs_to &lt;span class=&quot;synConstant&quot;&gt;:question&lt;/span&gt;
+  belongs_to &lt;span class=&quot;synConstant&quot;&gt;:result&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Question&lt;/span&gt;
+  has_many &lt;span class=&quot;synConstant&quot;&gt;:answers&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;score&lt;/span&gt;(text)
+    &lt;span class=&quot;synComment&quot;&gt;# correct_textは正解のtext&lt;/span&gt;
+    text == correct_text ? &lt;span class=&quot;synConstant&quot;&gt;10&lt;/span&gt; : &lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+result = &lt;span class=&quot;synType&quot;&gt;Result&lt;/span&gt;.find(&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;)
+result.score &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; Answerに応じてスコアが算出される&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;ここで、&lt;code&gt;score&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;のブロック内で、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%C7%A5%E1%A5%C6%A5%EB&quot;&gt;デメテル&lt;/a&gt;の法則であったように、&lt;br /&gt;
+&lt;b&gt;「あるオブジェクトA(Result)は別のオブジェクトB(&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Answer&quot;&gt;Answer&lt;/a&gt;)のサービスを要求してもよい（&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;を呼び出してもよい）が、オブジェクトA(Result)がオブジェクトB(&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Answer&quot;&gt;Answer&lt;/a&gt;)を「経由して」さらに別のオブジェクトC(Question)のサービスを要求してはならない。」&lt;/b&gt;に合致しています。&lt;br /&gt;
+つまり、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%C7%A5%E1%A5%C6%A5%EB&quot;&gt;デメテル&lt;/a&gt;の法則に違反しています。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;low-of-demeter-apply&quot;&gt;3. &lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%C7%A5%E1%A5%C6%A5%EB&quot;&gt;デメテル&lt;/a&gt;の法則の適用&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;そのため、&lt;br /&gt;
+&lt;b&gt;「クラスB(&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Answer&quot;&gt;Answer&lt;/a&gt;)を変更し、クラスA(Result)がクラスB(&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Answer&quot;&gt;Answer&lt;/a&gt;)に対して行った要求を適切なBのサブ&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%DD%A1%BC%A5%CD%A5%F3%A5%C8&quot;&gt;コンポーネント&lt;/a&gt;に伝播させるようにすればよい。」&lt;/b&gt;をしてみます。&lt;/p&gt;&lt;p&gt;具体的には、&lt;code&gt;score&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;内の処理を&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Answer&quot;&gt;Answer&lt;/a&gt;クラスに委託します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Result&lt;/span&gt;
+  has_many &lt;span class=&quot;synConstant&quot;&gt;:answers&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;score&lt;/span&gt;
+    answers.inject(&lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;result&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;answer&lt;/span&gt;|
+      &lt;span class=&quot;synComment&quot;&gt;# answerに委託しているのでQuestionについて知らなくてもよい&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;# つまり、Questionの変更に対して強くなる&lt;/span&gt;
+      result + answer.score
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Answer&lt;/span&gt;
+  belongs_to &lt;span class=&quot;synConstant&quot;&gt;:question&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;score&lt;/span&gt;
+    question.score(text)
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Question&lt;/span&gt;
+  has_many &lt;span class=&quot;synConstant&quot;&gt;:answers&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;score&lt;/span&gt;(text)
+    text == correct_text ? &lt;span class=&quot;synConstant&quot;&gt;10&lt;/span&gt; : &lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+result = &lt;span class=&quot;synType&quot;&gt;Result&lt;/span&gt;.find(&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;)
+result.score &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; Answerに応じてスコアが算出される&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;low-of-demeter-conclusion&quot;&gt;4. まとめ&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;これは、簡単な例なので分かりづらいですが、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%C7%A5%E1%A5%C6%A5%EB&quot;&gt;デメテル&lt;/a&gt;の法則に反した実装をしていると、規模が大きくなるにつれて、クラス同士の余計な依存関係が多くなり、クラス同士の関連が複雑になります。&lt;br /&gt;
+それにより、修正に対する影響範囲が大きくなり、保守が辛い、予想外のバグを生みやすくなってしまうのではと思いました。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://ja.wikipedia.org/wiki/%E3%83%87%E3%83%A1%E3%83%86%E3%83%AB%E3%81%AE%E6%B3%95%E5%89%87&quot;&gt;&amp;#x30C7;&amp;#x30E1;&amp;#x30C6;&amp;#x30EB;&amp;#x306E;&amp;#x6CD5;&amp;#x5247; - Wikipedia&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://thoughtbot.com/books&quot;&gt;Our Books - thoughtbot&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Tue, 22 Sep 2015 21:05:21 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/6653458415122273567</guid>
+          
+            <category>Ruby</category>
+          
+            <category>リファクタリング</category>
+          
+            <category>設計</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>Rubyテクニック: Rubyの通常の引数とキーワード引数の違い</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20150921/1442839934</link>
+          <description>&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150921/20150921215037.png&quot; alt=&quot;f:id:nipe880324:20150921215037p:plain:w240&quot; title=&quot;f:id:nipe880324:20150921215037p:plain:w240&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:240px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Ruby2.0からキーワード引数が導入され、Ruby2.1からRequiredキーワード引数が導入されました。&lt;/p&gt;&lt;p&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Ruby&quot;&gt;Ruby&lt;/a&gt;の通常の引数とキーワード引数のメリット、デメリット、どういうときにキーワード引数を使ったほうが良さそうかということをまとめました。&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;キーワード引数の通常の引数に比べたメリット&lt;/h3&gt;
+    &lt;p&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Ruby&quot;&gt;Ruby&lt;/a&gt;の通常の引数に比べ、キーワード引数には次のようなメリットがあります。&lt;/p&gt;&lt;p&gt;1. 引数の意味がわかりやすくなる&lt;br /&gt;
+2. 引数の順番を気にしなくてもよくなる&lt;/p&gt;&lt;p&gt;それぞれ&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%BD%A1%BC%A5%B9%A5%B3%A1%BC%A5%C9&quot;&gt;ソースコード&lt;/a&gt;を交えながら説明します。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;メリット1: 引数の意味がわかりやすくなる&lt;/h3&gt;
+    &lt;p&gt;通常の引数の場合、引数がある程度増えるとそれぞれの引数が何を意味しているかわかりづらくなってしまいます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;total&lt;/span&gt;(subtotal, tax, discount)
+  subtotal + tax - discount
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+total(&lt;span class=&quot;synConstant&quot;&gt;100&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;10&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;5&lt;/span&gt;) &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 105&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;キーワード引数を使うことでそれぞれの引数の意味が&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;の中身を見なくてもわかるようになります。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;total&lt;/span&gt;(&lt;span class=&quot;synConstant&quot;&gt;subtotal&lt;/span&gt;:, &lt;span class=&quot;synConstant&quot;&gt;tax&lt;/span&gt;:, &lt;span class=&quot;synConstant&quot;&gt;discount&lt;/span&gt;:)
+  subtotal + tax - discount
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+total(&lt;span class=&quot;synConstant&quot;&gt;subtotal&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;100&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;tax&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;10&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;discount&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;5&lt;/span&gt;) &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 105&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;しかし、次のようにとても簡易な&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;の場合はキーワード引数が冗長になってしまうので通常の引数のほうが良さそうです。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# 通常の引数&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;plus&lt;/span&gt;(num1, num2)
+  num1 + num2
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+plus(&lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;5&lt;/span&gt;) &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 8&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# キーワード引数&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;plus&lt;/span&gt;(&lt;span class=&quot;synConstant&quot;&gt;num1&lt;/span&gt;:, &lt;span class=&quot;synConstant&quot;&gt;num2&lt;/span&gt;:)
+  num1 + num2
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+plus(&lt;span class=&quot;synConstant&quot;&gt;num1&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;num2&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;5&lt;/span&gt;) &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 8&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;メリット2: 引数の順番を気にしなくてもよくなる&lt;/h3&gt;
+    &lt;p&gt;キーワード引数を使うメリットの２つ目として、引数の順番を気にしなくてもよくなります。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# 引数の順番を変えると結果が変わってしまいます&lt;/span&gt;
+total(&lt;span class=&quot;synConstant&quot;&gt;100&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;5&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;10&lt;/span&gt;) &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 95&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 引数の順番を変えてもキーワードで指定しているので結果は変わりません&lt;/span&gt;
+total(&lt;span class=&quot;synConstant&quot;&gt;subtotal&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;100&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;discount&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;5&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;tax&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;10&lt;/span&gt;) &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 105&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;まとめ&lt;/h3&gt;
+    &lt;p&gt;キーワード引数をつかうことで読みやすさが向上し、また、順番を気にしなくてもよくなるので積極的に取り入れていったほうが良さそうです。&lt;br /&gt;
+しかし、本当に簡易な&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;に対しては、冗長になってしまう箇所もあるので判断は必要です。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%EA%A5%D5%A5%A1%A5%AF%A5%BF%A5%EA%A5%F3%A5%B0&quot;&gt;リファクタリング&lt;/a&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Ruby&quot;&gt;Ruby&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://robots.thoughtbot.com/ruby-2-keyword-arguments&quot;&gt;Ruby 2 Keyword Arguments&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Mon, 21 Sep 2015 21:52:14 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/6653458415122165399</guid>
+          
+            <category>Ruby</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>Ruby 2.1 / Rails4.1 の意外に忘れられている便利なメソッド</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20150101/1420049679</link>
+          <description>&lt;p&gt;Ruby 2.1 / Rails4.1 での意外に忘れらている便利なメソッドを集めました。&lt;/p&gt;&lt;p&gt;RubyやRailsでは有用なメソッドがたくさん実装されており、車輪の再発明にならないように、それらを覚えて適切な箇所で使うだけで生産性はあがります。&lt;/p&gt;&lt;p&gt;&lt;i&gt;（大雑把に書いたので、まだまとまってないので、随時修正します）&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Ruby 2.1.2&lt;/li&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;li&gt;ActiveSupport 4.1.7&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;#useful-methods-ruby-basic&quot;&gt;Rubyの基本&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;代入、範囲、正規表現、%記法&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;#useful-methods-meta-programming&quot;&gt;メタプログラミング&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;文字列からクラスを作成 constantize&lt;br /&gt;
+動的にメソッドを定義 class_eval&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;#useful-methods-of-object&quot;&gt;Object&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;nilや空を判定する(present?, blank?)、nilや空以外の値を取得(present)、nilを扱う(try)&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;#useful-methods-of-string&quot;&gt;String&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;複数行の文字列(ヒアドキュメント)、文字列を含む(include?, index)、パターンにマッチする(match, =~)&lt;br /&gt;
+パターンで置換する(gsub)、文字列で分割し配列にする(split)&lt;br /&gt;
+1行ずつ取り出す(each_line)、1文字ずつ取り出す(each_char)、部分文字列を取り出す(slice)&lt;br /&gt;
+文字列を削除(delete)、空白を除く(strip)、改行文字除く(chomp)&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;#useful-methods-of-array&quot;&gt;Array&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;長さ(length, size), 空かどうか(empty?), 値が含まれるか(include?)&lt;br /&gt;
+繰り返し(each, each_with_index, reverse_each)&lt;br /&gt;
+連結(+)、追加(&lt;&lt;)&lt;br /&gt;
+１要素の検索(find), 複数要素の検索(select, reject), 最大値、最小値(max, min)、各要素を処理(collect, map)&lt;br /&gt;
+すべて◯◯か(all?), どれか◯◯か(any?)&lt;br /&gt;
+各要素を結合(join)、合計を計算(sum)&lt;br /&gt;
+ソート(sort)、重複除去(uniq)、ランダムに要素を取得(sample)&lt;br /&gt;
+&lt;a href=&quot;http://ref.xaio.jp/ruby/classes/array&quot;&gt;その他のArrayクラスのメソッド&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;#useful-methods-of-hash&quot;&gt;Hash&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;要素の取り出しと設定(&lt;span data-unlink&gt;, &lt;/span&gt;=)、キーを配列で取得(keys)、値を配列で取得(values)、値の数(length)&lt;br /&gt;
+空かどうか(empty?)、キーが含まれるか(has_key?)、値が含まれるか(has_value?)&lt;br /&gt;
+繰り返し(each)、値の取得(select, collect, map)&lt;br /&gt;
+ハッシュを統合(merge)、差を取得する(diff)&lt;br /&gt;
+&lt;a href=&quot;http://ref.xaio.jp/ruby/classes/hash&quot;&gt;その他のHashクラスのメソッド&lt;/a&gt;&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;#useful-methods-of-activerecord&quot;&gt;ActiveRecord&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;指定した要素を配列で取得(pluck)&lt;br /&gt;
+変更を確認する(changes, changed?)&lt;br /&gt;
+カラム値の存在有無を確認(カラム名+?)&lt;br /&gt;
+DBに保存されていないか(new_record?)、DBに保存されているか(persisted?)&lt;br /&gt;
+DBに存在しない場合作成(find_or_create_by)&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;#useful-methods-of-controller&quot;&gt;コントローラー&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;コントローラーのメソッドをビューで使う（helper_method）&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;useful-methods-ruby-basic&quot;&gt;Rubyの基本&lt;/h3&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;代入&lt;/li&gt;
+&lt;/ul&gt;&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# 多重代入&lt;/span&gt;
+a, b = &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;
+a &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 1&lt;/span&gt;
+b &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 2&lt;/span&gt;
+
+a, b = [&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;]
+a &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 1&lt;/span&gt;
+b &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 2&lt;/span&gt;
+
+a, *b = [&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;]
+a &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 1&lt;/span&gt;
+b &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; [2, 3]&lt;/span&gt;
+
+a, b, c = [&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;]
+a &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 1&lt;/span&gt;
+b &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 2&lt;/span&gt;
+c &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; nil&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 入れ替え&lt;/span&gt;
+a, b = b, a
+
+&lt;span class=&quot;synComment&quot;&gt;# 自己代入&lt;/span&gt;
+a += &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;   &lt;span class=&quot;synComment&quot;&gt;# a = a + 1&lt;/span&gt;
+b ||= &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;  &lt;span class=&quot;synComment&quot;&gt;# b = b || 2&lt;/span&gt;
+&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;範囲&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&gt;ruby|&lt;br /&gt;
+(1..5).include?(5)  # =&gt; true  (5も含む)&lt;br /&gt;
+(1...5).include?(5) # =&gt; false (5は含まない)&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;%記法&lt;/li&gt;
+&lt;/ul&gt;&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synSpecial&quot;&gt;%w(&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Alice Bob Chrlie&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;)&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; [&amp;quot;Alice&amp;quot;, &amp;quot;Bob&amp;quot;, &amp;quot;Chrlie&amp;quot;]&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;useful-methods-ruby-basic&quot;&gt;Rubyの基本&lt;/h3&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;文字列からクラスを作成(constantize)&lt;/li&gt;
+&lt;/ul&gt;&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;User&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.constantize &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; Userクラスが作成される&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;User&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.constantize.new
+&lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; #&amp;lt;User id: nil, name: nil, created_at: nil, updated_at: nil&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 応用: URLから動的にモデルのレコードを読み出す&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# URL例(request.path): /events/:id/comments, /articles/:id/comments&lt;/span&gt;
+resource, id = request.path.split(&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;)[&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;] &lt;span class=&quot;synComment&quot;&gt;# resource = events か articles&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;@commentable&lt;/span&gt; = resource.singularize.classify.constantize.find(id)
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;useful-methods-meta-programming&quot;&gt;メタプログラミング&lt;/h3&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;メソッドを動的に定義する(class_eval, module_eval)&lt;/li&gt;
+&lt;/ul&gt;&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Cクラスを定義&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;C&lt;/span&gt;; &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# class_evalメソッドで、Cクラスにmメソッドを定義&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;C&lt;/span&gt;.class_eval &lt;span class=&quot;synSpecial&quot;&gt;%Q{&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;  def m&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;    puts &amp;quot;hello&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;  end&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# mメソッドを実行&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;C&lt;/span&gt;.new.m
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; hello&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;useful-methods-of-object&quot;&gt;Object&lt;/h3&gt;nilや空文字など空でないか確認(present?)&lt;br /&gt;
+&#39;&#39;, &#39; &#39;, nil, [], {}など空っぽいもの以外の場合、trueを返す&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;[&lt;span class=&quot;synSpecial&quot;&gt;&#39;&#39;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;nil&lt;/span&gt;, [], {}].each { |&lt;span class=&quot;synIdentifier&quot;&gt;a&lt;/span&gt;| p a.present? }
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; false&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# ... （全て false)&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;nilや空文字など空であるか確認(blank?)&lt;br /&gt;
+&#39;&#39;, &#39; &#39;, &quot;&quot;, &quot; &quot;, nil, [], {}などの空ぽいものの場合、trueを返す&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;[&lt;span class=&quot;synSpecial&quot;&gt;&#39;&#39;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;nil&lt;/span&gt;, [], {}].each { |&lt;span class=&quot;synIdentifier&quot;&gt;a&lt;/span&gt;| p a.blank? }
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; true&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# ... （全て true)&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;nilや空文字など空でない値を取得(present)&lt;br /&gt;
+&#39;&#39;, &#39; &#39;, nil, [], {}など空っぽいもの以外の場合、値を返す。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;.presence &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;a&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&#39;&#39;&lt;/span&gt;.presence  &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; nil&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;tryメソッド(nilの場合、nilを返す)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;@person&lt;/span&gt; ? &lt;span class=&quot;synIdentifier&quot;&gt;@pserson&lt;/span&gt;.name : &lt;span class=&quot;synConstant&quot;&gt;nil&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# をtryで次のように書き換えれる&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;@poerson&lt;/span&gt;.try(&lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;)
+
+&lt;span class=&quot;synComment&quot;&gt;# 引数やブロックも渡せる&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;abc&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.try(&lt;span class=&quot;synConstant&quot;&gt;:includes?&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;a&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;)
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;useful-methods-of-string&quot;&gt;String&lt;/h3&gt;複数行に渡る文字列(ヒアドキュメント)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;str = &amp;lt;&amp;lt;&lt;span class=&quot;synSpecial&quot;&gt;TEXT&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;1行目&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;2行目&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;3行目&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;TEXT&lt;/span&gt;
+
+str &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;1行目\n2行目\n3行目\n&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+指定した文字列を含んでいるか(include?)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;abcde&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.include?(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;bc&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;) &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; true&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;abcde&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.include?(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;zy&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;) &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; false&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+指定した文字列を含んでいれば、その開始位置を整数で返す(index)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;abcdefg&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.index(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;cd&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;) &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 2&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;abcdefg&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.index(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;zy&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;) &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; nil&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+パターンにマッチする(=~, match)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;html = &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;lt;p&amp;gt;&amp;lt;/p&amp;gt;&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+html.match(&lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;(\w)&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;m&lt;/span&gt;|
+  p match[&lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;]
+  p match[&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;]
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;&amp;lt;p&amp;gt;&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;p&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+パターンで置換(gsub)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;html = &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;hello,&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;world&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;\r\n&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 改行コードを&amp;lt;br /&amp;gt;に置き換える&lt;/span&gt;
+html.gsub(&lt;span class=&quot;synSpecial&quot;&gt;/(\r\n|\r|\n)/&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;lt;br /&amp;gt;&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;) &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;hello,&amp;lt;br /&amp;gt;world&amp;lt;br /&amp;gt;&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+指定した文字列で分割し、配列にする(split)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Alice,Bob,Charlie&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.split(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;) &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; [&amp;quot;Alice&amp;quot;, &amp;quot;Bob&amp;quot;, &amp;quot;Charlie&amp;quot;]&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+1行ずつ取り出す(each_line)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;1行目&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;2行目&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;3行目&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;\n&amp;quot;&lt;/span&gt;.each_line { |&lt;span class=&quot;synIdentifier&quot;&gt;line&lt;/span&gt;| p line }
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;1行目\n&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;2行目\n&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;3行目\n&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+1文字ずつ取り出す(each_char)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;abcde&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.each_char { |&lt;span class=&quot;synIdentifier&quot;&gt;ch&lt;/span&gt;| p ch }
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;a&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;b&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# ...&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+部分文字列を取り出す(slice)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;abcdefg&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.slice(&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;) &lt;span class=&quot;synComment&quot;&gt;# 2番目から3文字分&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;bcd&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;abcdefg&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.slice(&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;..&lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;) &lt;span class=&quot;synComment&quot;&gt;# 1文字目から3文字目まで&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;bcd&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;abcdefg&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.slice(&lt;span class=&quot;synSpecial&quot;&gt;/\w+/&lt;/span&gt;) &lt;span class=&quot;synComment&quot;&gt;# 正規表現&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;abcdefg&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+指定した文字列を削除(delete)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;abcde&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.delete(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;cd&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;) &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;abe&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;abcde&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.delete(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;xy&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;) &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;abcde&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+先頭と末尾の空白を取り除く(strip)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; hi &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;\t&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; “.strip # =&amp;gt; “hi”&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+文字列の末尾の改行文字を除く(chomp)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;hi&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;\r\n&amp;quot;&lt;/span&gt;.chomp  &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; “hi”&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;hi&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;\n&amp;quot;&lt;/span&gt;.chomp    &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;hi&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;hi&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;\r&amp;quot;&lt;/span&gt;.chomp    &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;hi&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;1行目&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;2行目&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;\n&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;3行目&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;\n&amp;quot;&lt;/span&gt;.chomp &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;1行目\n2行目\n3行目&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;useful-methods-of-array&quot;&gt;Array&lt;/h3&gt;長さ(length, size)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;[].length &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; 0&lt;/span&gt;
+[&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;].length &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; 3&lt;/span&gt;
+[&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;].size   &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; 3&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+空かどうか(empty?)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;[].empty?  &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; true&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# Railsの場合、ActiveSupportで拡張されたblank?の方が都合が良い場合が多い&lt;/span&gt;
+[].blank?  &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; true&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+値が含まれるか(include?)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;[&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;].include?(&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;)  &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; true&lt;/span&gt;
+[&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;].include?(&lt;span class=&quot;synConstant&quot;&gt;10&lt;/span&gt;) &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; false&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+繰り返し(each, each_with_index, reverse_each)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;[&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;].each { |&lt;span class=&quot;synIdentifier&quot;&gt;a&lt;/span&gt;| p a }
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 1&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 2&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 3&lt;/span&gt;
+
+[&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;].each_with_index { |&lt;span class=&quot;synIdentifier&quot;&gt;a&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;i&lt;/span&gt;| p &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;#{&lt;/span&gt;i&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;番目:&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;a&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt; }
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;0番目:1&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;1番目:2&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;2番目:3&amp;quot;&lt;/span&gt;
+
+[&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;].reverse_each { |&lt;span class=&quot;synIdentifier&quot;&gt;a&lt;/span&gt;| p a }
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 3&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 2&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 1&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+配列の連結(+)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;[&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;] + [&lt;span class=&quot;synConstant&quot;&gt;4&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;5&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;6&lt;/span&gt;] &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; [1, 2, 3, 4, 5, 6]&lt;/span&gt;
+[&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;] + []        &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; [1, 2, 3]&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+要素の追加(&lt;&lt;)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;[&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;] &amp;lt;&amp;lt; &lt;span class=&quot;synConstant&quot;&gt;4&lt;/span&gt;      &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; [1, 2, 3, 4]&lt;/span&gt;
+[&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;] &amp;lt;&amp;lt; [&lt;span class=&quot;synConstant&quot;&gt;4&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;5&lt;/span&gt;] &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; [1, 2, 3, [4, 5]]&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+１要素の検索(find)、複数要素の検索(select, reject),&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;[&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;4&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;5&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;6&lt;/span&gt;].find { |&lt;span class=&quot;synIdentifier&quot;&gt;n&lt;/span&gt;| n % &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt; == &lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt; }
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 3&lt;/span&gt;
+[&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;4&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;5&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;6&lt;/span&gt;].find { |&lt;span class=&quot;synIdentifier&quot;&gt;n&lt;/span&gt;| n % &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt; == &lt;span class=&quot;synConstant&quot;&gt;100&lt;/span&gt; }
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; nil (条件に当てはまらないとnilを返す)&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# selectはブロック内の条件に当てはまる要素を返す&lt;/span&gt;
+[&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;4&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;5&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;6&lt;/span&gt;].select { |&lt;span class=&quot;synIdentifier&quot;&gt;n&lt;/span&gt;| n % &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt; == &lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt; }
+=&amp;gt; [&lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;6&lt;/span&gt;]
+[&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;4&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;5&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;6&lt;/span&gt;].select { |&lt;span class=&quot;synIdentifier&quot;&gt;n&lt;/span&gt;| n % &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt; == &lt;span class=&quot;synConstant&quot;&gt;100&lt;/span&gt; }
+=&amp;gt; [] (条件に当てはまらないと[]を返す)
+
+&lt;span class=&quot;synComment&quot;&gt;# rejectはブロック内の条件に当てはまらない要素を返す&lt;/span&gt;
+[&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;4&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;5&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;6&lt;/span&gt;].reject { |&lt;span class=&quot;synIdentifier&quot;&gt;n&lt;/span&gt;| n % &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt; == &lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt; }
+=&amp;gt; [&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;4&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;5&lt;/span&gt;]
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+最大値、最小値(max, min)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;[&lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;10&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;8&lt;/span&gt;].min  &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; 1&lt;/span&gt;
+[&lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;10&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;8&lt;/span&gt;].max &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; 10&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+各要素を処理する(collect, map)&lt;br /&gt;
+collectもmapも別名で同じ処理をする。ブロックに与えた処理を行ったあとに、それらを配列で返す&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;[&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;ruby&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;rails&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;].map { |&lt;span class=&quot;synIdentifier&quot;&gt;str&lt;/span&gt;| str.capitalize } &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; [&amp;quot;Ruby&amp;quot;, &amp;quot;Rails&amp;quot;]&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 別の書き方もできる&lt;/span&gt;
+[&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;ruby&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;rails&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;].map(&amp;amp;&lt;span class=&quot;synConstant&quot;&gt;:capitalize&lt;/span&gt;)            &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; [&amp;quot;Ruby&amp;quot;, &amp;quot;Rails&amp;quot;]&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+すべて◯◯か(all?), どれか◯◯か(any?)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;[&lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;].all?      &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; true&lt;/span&gt;
+[&lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;].all?     &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; false&lt;/span&gt;
+
+[&lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;].any?     &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; true&lt;/span&gt;
+[&lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;].any?   &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; false&lt;/span&gt;
+
+[&lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;].one?    &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; true&lt;/span&gt;
+[&lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;].one?     &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; false&lt;/span&gt;
+
+[&lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;].none?  &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; true&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# ブロックを渡して条件判定ができる&lt;/span&gt;
+[&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;abc tomato&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;xyz tomato&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;123 tomato&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;].all? { |&lt;span class=&quot;synIdentifier&quot;&gt;a&lt;/span&gt;| a.include?(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;tomato&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;) }
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; true&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+各要素を指定した文字列で結合して文字列で返す(join)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;[&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;ABC&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;DEF&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;GHI&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;].join(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;)
+=&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;ABC,DEF,GHI&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+[].join(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;,&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;)
+=&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+合計を計算(sum)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;[&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;].sum             &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 6&lt;/span&gt;
+[&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;abc&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;def&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;ghi&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;].sum &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;abcdefghi&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+ソート(sort)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;[&lt;span class=&quot;synConstant&quot;&gt;8&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;9&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;].sort &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; [1, 2, 3, 8, 9]&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+重複する要素を除去する(uniq)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;[&lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;4&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;].uniq &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; [3, 1, 2, 4]&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+ランダムに要素を取得する(sample)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;[&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;4&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;5&lt;/span&gt;].sample &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 5&lt;/span&gt;
+[&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;4&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;5&lt;/span&gt;].sample &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 2&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;useful-methods-of-hash&quot;&gt;Hash&lt;/h3&gt;要素の取り出しと設定(&lt;span data-unlink&gt;, &lt;/span&gt;=)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;hash = { &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; { &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;username&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;taro&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;age&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;20&lt;/span&gt; }, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; { &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;username&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;chika&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;age&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;18&lt;/span&gt; } }
+
+&lt;span class=&quot;synComment&quot;&gt;# 要素の取り出し&lt;/span&gt;
+hash[&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;]
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; {&amp;quot;username&amp;quot;=&amp;gt;&amp;quot;taro&amp;quot;, &amp;quot;age&amp;quot;=&amp;gt;20 }&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 要素の設定&lt;/span&gt;
+hash[&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;] = { &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;username&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;tom&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;age&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;25&lt;/span&gt; }
+hash
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; {&amp;quot;1&amp;quot;=&amp;gt;{&amp;quot;username&amp;quot;=&amp;gt;&amp;quot;taro&amp;quot;, &amp;quot;age&amp;quot;=&amp;gt;20}, &amp;quot;2&amp;quot;=&amp;gt;{&amp;quot;username&amp;quot;=&amp;gt;&amp;quot;chika&amp;quot;, &amp;quot;age&amp;quot;=&amp;gt;18}, &amp;quot;3&amp;quot;=&amp;gt;{&amp;quot;username&amp;quot;=&amp;gt;&amp;quot;tom&amp;quot;, &amp;quot;age&amp;quot;=&amp;gt;25}}&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;キーを配列で取得(keys)、値を配列で取得(values)、値の数(length)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;hash = { &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; { &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;username&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;taro&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;age&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;20&lt;/span&gt; }, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; { &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;username&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;chika&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;age&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;18&lt;/span&gt; } }
+
+hash.keys   &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; [&amp;quot;1&amp;quot;, &amp;quot;2&amp;quot;]&lt;/span&gt;
+hash.values &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; [{&amp;quot;username&amp;quot;=&amp;gt;&amp;quot;taro&amp;quot;, &amp;quot;age&amp;quot;=&amp;gt;20}, {&amp;quot;username&amp;quot;=&amp;gt;&amp;quot;chika&amp;quot;, &amp;quot;age&amp;quot;=&amp;gt;18}]&lt;/span&gt;
+hash.length &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 2&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;空かどうか(empty?)、キーが含まれるか(has_key?)、値が含まれるか(has_value?)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;hash = { &lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:tom&lt;/span&gt; }
+hash.empty?           &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; false&lt;/span&gt;
+hash.has_key?(&lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;)  &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; true&lt;/span&gt;
+hash.has_value?(&lt;span class=&quot;synConstant&quot;&gt;:tom&lt;/span&gt;) &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; true&lt;/span&gt;
+
+hash = {}
+hash.empty?           &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; true&lt;/span&gt;
+hash.has_key?(&lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;)  &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; false&lt;/span&gt;
+hash.has_value?(&lt;span class=&quot;synConstant&quot;&gt;:tom&lt;/span&gt;) &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; false&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+繰り返し(each)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;hash = { &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; { &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;username&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;taro&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;age&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;20&lt;/span&gt; }, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; { &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;username&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;chika&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;age&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;18&lt;/span&gt; } }
+
+hash.each { |&lt;span class=&quot;synIdentifier&quot;&gt;k&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;v&lt;/span&gt;| p &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;#{&lt;/span&gt;k&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;v&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt; }
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;1:{\&amp;quot;username\&amp;quot;=&amp;gt;\&amp;quot;taro\&amp;quot;, \&amp;quot;age\&amp;quot;=&amp;gt;20}&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;2:{\&amp;quot;username\&amp;quot;=&amp;gt;\&amp;quot;chika\&amp;quot;, \&amp;quot;age\&amp;quot;=&amp;gt;18}&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;値の取得(select, collect, map)&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;select ... ブロックの条件に合致するハッシュを返す&lt;/li&gt;
+&lt;li&gt;collect(map) ... 各要素に対して、処理を行った結果を配列で返す&lt;/li&gt;
+&lt;/ul&gt;&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;hash = { &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; { &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;username&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;taro&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;age&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;20&lt;/span&gt; }, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; { &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;username&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;chika&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;age&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;18&lt;/span&gt; } }
+
+&lt;span class=&quot;synComment&quot;&gt;# ageが20以上のハッシュを取得する&lt;/span&gt;
+hash.select { |&lt;span class=&quot;synIdentifier&quot;&gt;_&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;v&lt;/span&gt;| v[&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;age&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;].to_i &amp;gt;= &lt;span class=&quot;synConstant&quot;&gt;20&lt;/span&gt; }
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; {&amp;quot;1&amp;quot;=&amp;gt;{&amp;quot;username&amp;quot;=&amp;gt;&amp;quot;taro&amp;quot;, &amp;quot;age&amp;quot;=&amp;gt;20}}&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# ageを配列で取得する&lt;/span&gt;
+hash.collect { |&lt;span class=&quot;synIdentifier&quot;&gt;_&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;v&lt;/span&gt;| v[&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;age&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;].to_i }
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; [20, 18]&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# mapとcollectのエイリアスであるため挙動は同じ&lt;/span&gt;
+hash.map { |&lt;span class=&quot;synIdentifier&quot;&gt;_&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;v&lt;/span&gt;| v[&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;age&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;].to_i }
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; [20, 18]&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+ハッシュを統合(merge)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;h1 = { &lt;span class=&quot;synConstant&quot;&gt;price&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;100&lt;/span&gt; }
+h2 = { &lt;span class=&quot;synConstant&quot;&gt;published&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt; }
+h1.merge(h2) &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; {:price=&amp;gt;100, :published=&amp;gt;false}&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 同じ値の場合は、後のハッシュが優先になる&lt;/span&gt;
+h1 = { &lt;span class=&quot;synConstant&quot;&gt;published&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;  }
+h2 = { &lt;span class=&quot;synConstant&quot;&gt;published&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt; }
+h1.merge(h2) &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; {:published=&amp;gt;false}&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;useful-methods-of-activerecord&quot;&gt;ActiveRecord&lt;/h3&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;指定した要素を配列で取得(pluck)&lt;/li&gt;
+&lt;/ul&gt;&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.all.pluck(&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;)
+&lt;span class=&quot;synComment&quot;&gt;#(0.2ms)  SELECT &amp;quot;users&amp;quot;.&amp;quot;id&amp;quot;, &amp;quot;users&amp;quot;.&amp;quot;name&amp;quot; FROM &amp;quot;users&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; [[1, nil], [2, &amp;quot;田中&amp;quot;]]&lt;/span&gt;
+&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;変更を確認する(changes, changed?)&lt;/li&gt;
+&lt;/ul&gt;&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;u = &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.first
+
+&lt;span class=&quot;synComment&quot;&gt;# 変更された要素を取得する&lt;/span&gt;
+u.changes       &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; {}&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# すべての要素が変更されたかbooleanで取得&lt;/span&gt;
+u.changed?      &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; false&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# nameカラムが変更されたかbooleanで取得&lt;/span&gt;
+u.name_changed? &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; false&lt;/span&gt;
+
+u.name = &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;test&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+
+u.changes       &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; {&amp;quot;name&amp;quot;=&amp;gt;[nil, &amp;quot;test&amp;quot;]}&lt;/span&gt;
+u.changed?      &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; true&lt;/span&gt;
+u.name_changed? &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; true&lt;/span&gt;
+&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;カラムの存在有無を確認する(カラム名+?)&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;boolean値のカラム&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;u = &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.first
+
+&lt;span class=&quot;synComment&quot;&gt;# nil, &amp;quot;&amp;quot;, {}, [], falseなどの場合、falseを返す&lt;/span&gt;
+u.name  = &lt;span class=&quot;synConstant&quot;&gt;nil&lt;/span&gt;
+u.name? &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; false&lt;/span&gt;
+u.name  = &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;
+u.name? &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; false&lt;/span&gt;
+u.name = {}
+u.name? &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; false&lt;/span&gt;
+u.name = []
+u.name? &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; false&lt;/span&gt;
+u.name = &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;
+u.name? &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; false&lt;/span&gt;
+
+u.name = &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;test&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+u.name? &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; true&lt;/span&gt;
+&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;DBに保存されていないか(new_record?)、DBに保存されているか(persisted?)&lt;/li&gt;
+&lt;/ul&gt;&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# DBに保存されていない値&lt;/span&gt;
+u = &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.new
+u.new_record? &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; true&lt;/span&gt;
+u.persisted?  &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; false&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# DBに保存されている値&lt;/span&gt;
+u = &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.first
+u.new_record? &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; false&lt;/span&gt;
+u.persisted?  &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; true&lt;/span&gt;
+&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;DBに存在しない場合作成(find_or_create_by)&lt;/li&gt;
+&lt;/ul&gt;&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# DBに存在する場合、レコードを取得&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.find_or_create_by(&lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;test&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;)
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; #&amp;lt;User id: 1, name: &amp;quot;test&amp;quot;, created_at: &amp;quot;2014-11-29 09:02:15&amp;quot;, updated_at: &amp;quot;2014-11-30 10:49:04&amp;quot;, active: nil&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# DBに存在しない場合、レコードを作成&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.find_or_create_by(&lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;test3&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;u&lt;/span&gt;|
+  &lt;span class=&quot;synComment&quot;&gt;# 引数で指定した値は自動的に設定される&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# ブロック内でその他の値を設定する&lt;/span&gt;
+  u.active = &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; #&amp;lt;User id: 4, name: &amp;quot;test3&amp;quot;, created_at: &amp;quot;2014-11-30 10:51:45&amp;quot;, updated_at: &amp;quot;2014-11-30 10:51:45&amp;quot;, active: false&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;useful-methods-of-controller&quot;&gt;コントローラー&lt;/h3&gt;&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;コントローラーのメソッドをビューで使う（helper_method）&lt;/li&gt;
+&lt;/ul&gt;&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Controller&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# ビューでcurrent_userメソッドが利用できる&lt;/span&gt;
+  helper_method &lt;span class=&quot;synConstant&quot;&gt;:current_user&lt;/span&gt;
+
+  &lt;span class=&quot;synStatement&quot;&gt;private&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;current_user&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@_current_user&lt;/span&gt; ||= &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.find(session[&lt;span class=&quot;synConstant&quot;&gt;:user_id&lt;/span&gt;])
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+end
+
+&lt;span class=&quot;synComment&quot;&gt;# View&lt;/span&gt;
+ユーザー名: &amp;lt;%= current_user.name %&amp;gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails3 レシピブック 190の技&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://api.rubyonrails.org/&quot;&gt;Ruby on Rails API&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://ref.xaio.jp/ruby&quot;&gt;Ruby&amp;#x30EA;&amp;#x30D5;&amp;#x30A1;&amp;#x30EC;&amp;#x30F3;&amp;#x30B9;&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Thu, 01 Jan 2015 03:14:39 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450075660675</guid>
+          
+            <category>Ruby</category>
+          
+            <category>Rails中級</category>
+          
+            <category>まとめ</category>
+          
+            <category>リファレンス</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>Rubyでグラフ間の最短経路を求めるダイクストラ法を実装</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20140709/1404902249</link>
+          <description>&lt;p&gt;グラフ間の最短経路を求めるダイクストラ法をRubyで作成しました。&lt;/p&gt;&lt;p&gt;次のサイトを参考にして作りました。&lt;br /&gt;
+&lt;a href=&quot;http://www.deqnotes.net/acmicpc/dijkstra/&quot;&gt;&amp;#x30C0;&amp;#x30A4;&amp;#x30AF;&amp;#x30B9;&amp;#x30C8;&amp;#x30E9;&amp;#x6CD5;&amp;#xFF08;&amp;#x6700;&amp;#x77ED;&amp;#x7D4C;&amp;#x8DEF;&amp;#x554F;&amp;#x984C;&amp;#xFF09;&lt;/a&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;ダイクストラ法では最短経路や最安値などを求める事ができるので、&lt;br /&gt;
+応用例として、カーナビや路線検索アプリ、PERT図のクリティカルパスの算出等で使われている思います。&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;ダイクストラ法の例題&lt;/h3&gt;
+    &lt;p&gt;次のような経路情報があると想定します。各ノードは「駅」、各エッジは駅から駅まで移動するときの「時間」とします。&lt;br /&gt;
+このとき、スタート地点の「横浜」からゴール地点の「新宿」まで&lt;b&gt;どの経路を辿って、どのぐらいの時間で辿り着けるか&lt;/b&gt;を計算してみます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140226/20140226181715.png&quot; alt=&quot;f:id:nipe880324:20140226181715p:plain:w480&quot; title=&quot;f:id:nipe880324:20140226181715p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;出力結果&lt;/h3&gt;
+    &lt;p&gt;上記のサンプル問題の結果です。&lt;br /&gt;
+これは簡易な例ですが、もっと複雑な路線図の場合、人間ではできないことなので、とても有用なアルゴリズムだと思います。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;&amp;#34;yokohama から shinjuku の 最短経路 は [:yokohama, :shibuya, :shinjuku] です。&amp;#34;
+&amp;#34;yokohama から shinjuku の 時間 は 5 です。&amp;#34;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;ソースコード&lt;/h3&gt;
+    &lt;p&gt;上記のサンプル状況に対して適応しました。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# encoding: utf-8&lt;/span&gt;
+ 
+&lt;span class=&quot;synComment&quot;&gt;=begin&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;アルゴリズム参考URL&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;http://www.deqnotes.net/acmicpc/dijkstra/&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt; &lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;アルゴリズム&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;  1. 初期化&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;     スタートノードの値（最小コスト候補）を０、他のノードの値を未定義に設定&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;  2. 確定ノードをピックアップすることができなくなるまで以下のループを繰り返す&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;    2-1. まだ確定されていないノードのうち、最小の値を持つノードを見つけ、確定ノードとする（確定フラグをたてる）&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;    2-2. 確定ノードからの伸びているエッジをそれぞれチェックし、「確定ノードまでのコスト＋エッジのコスト」を計算し、&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;    そのノードの現在値よりも小さければ更新する。（経路情報も必要であれば、どこから来たのかを示す変数が確定ノードをさすようにする&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt; &lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;特徴&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;・負のコスト（距離or時間）を持つエッジは扱えない&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;・特定のノードからの最短距離およびその経路が全てのノードに対して求まる&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;=end&lt;/span&gt;
+ 
+ 
+&lt;span class=&quot;synComment&quot;&gt;# ダイクストラ法をアルゴリズムとしたグラフクラス&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Graph&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# グラフを構成するノード&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Node&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;attr_accessor&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;:nid&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:edges&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:cost&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:from_nid&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:fixed&lt;/span&gt;
+    
+    &lt;span class=&quot;synComment&quot;&gt;# nid (Symbol)   e.g. :a&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# edges (Array)  e.g. [[cost, nid], [cost, nid], ...]&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# cost コスト値　(nil の場合コストが未設定)&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# from_nid nid格納 (nil の場合存在しない)&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# fixed 確定ノードか否かの判定フラグ&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;initialize&lt;/span&gt;(nid, edges=[], cost=&lt;span class=&quot;synConstant&quot;&gt;nil&lt;/span&gt;, from_nid=&lt;span class=&quot;synConstant&quot;&gt;nil&lt;/span&gt;, fixed=&lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;)
+      &lt;span class=&quot;synIdentifier&quot;&gt;@nid&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;@edges&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;@cost&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;@from_nid&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;@fixed&lt;/span&gt; = nid, edges, cost, from_nid, fixed
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+ 
+    &lt;span class=&quot;synComment&quot;&gt;# ノードの情報を表示&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;show&lt;/span&gt;
+      p &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;#{&lt;/span&gt;nid&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;cost&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;from_nid&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;fixed&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;) -&amp;gt; &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;edges&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+ 
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;initialize&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@nodes&lt;/span&gt; = {}
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+ 
+  &lt;span class=&quot;synComment&quot;&gt;# ノードを追加する&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;add_node&lt;/span&gt;(nid, edges)
+    n = &lt;span class=&quot;synType&quot;&gt;Node&lt;/span&gt;.new(nid, edges)
+    &lt;span class=&quot;synIdentifier&quot;&gt;@nodes&lt;/span&gt;[nid] = n
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+ 
+  &lt;span class=&quot;synComment&quot;&gt;# 開始位置を設定&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;set_start&lt;/span&gt;(sid)
+    &lt;span class=&quot;synComment&quot;&gt;# 開始位置を保存&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@sid&lt;/span&gt; = sid
+ 
+    &lt;span class=&quot;synComment&quot;&gt;# ノードのダイクストラ法のためのデータを初期化&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# 開始ノードと同じノードだけコストを0にする &lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@nodes&lt;/span&gt;.each &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;nid&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;node&lt;/span&gt;|
+      node.cost = (&lt;span class=&quot;synIdentifier&quot;&gt;@sid&lt;/span&gt; == nid) ? &lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt; : &lt;span class=&quot;synConstant&quot;&gt;nil&lt;/span&gt;
+      node.from_nid = &lt;span class=&quot;synConstant&quot;&gt;nil&lt;/span&gt;
+      node.fixed = &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+ 
+    &lt;span class=&quot;synComment&quot;&gt;#　ダイクストラ法を実施&lt;/span&gt;
+    dijkstra
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+ 
+  &lt;span class=&quot;synComment&quot;&gt;# 終了地点までの経路を取得&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# 開始地点までの経路を辿れない場合nilを返す&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;route&lt;/span&gt;(gid)
+    &lt;span class=&quot;synComment&quot;&gt;# 経路情報格納変数&lt;/span&gt;
+    path = []
+ 
+    &lt;span class=&quot;synComment&quot;&gt;# 終点ノードを格納&lt;/span&gt;
+    node = &lt;span class=&quot;synIdentifier&quot;&gt;@nodes&lt;/span&gt;[gid]
+    path.push(node)
+ 
+    &lt;span class=&quot;synComment&quot;&gt;# 開始地点に辿りつくか、経路を辿れなかくなるまでループ&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;loop&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;# 前のノードを取得し経路情報を格納&lt;/span&gt;
+      node = &lt;span class=&quot;synIdentifier&quot;&gt;@nodes&lt;/span&gt;[node.from_nid]
+      path.push(node)
+ 
+      &lt;span class=&quot;synComment&quot;&gt;# 開始地点に辿り着いたらループを終了&lt;/span&gt;
+      &lt;span class=&quot;synStatement&quot;&gt;break&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; node.nid == &lt;span class=&quot;synIdentifier&quot;&gt;@sid&lt;/span&gt;
+ 
+      &lt;span class=&quot;synComment&quot;&gt;# 開始地点までの経路を辿れない場合nilを返す&lt;/span&gt;
+      &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;nil&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; node.from_nid.nil?
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  
+    &lt;span class=&quot;synComment&quot;&gt;# 終点から辿って格納したので順番を入れ替える&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# そして、nibだけを取り出した配列を返すf&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; path.reverse!.map { |&lt;span class=&quot;synIdentifier&quot;&gt;node&lt;/span&gt;| node.nid }
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+ 
+  &lt;span class=&quot;synComment&quot;&gt;# 終了地点までのコストを取得&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;cost&lt;/span&gt;(gid)
+    &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;@nodes&lt;/span&gt;[gid].cost
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+ 
+  &lt;span class=&quot;synComment&quot;&gt;# 現在のグラフ情報を表示&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;show&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@nodes&lt;/span&gt;.map { |&lt;span class=&quot;synIdentifier&quot;&gt;k&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;node&lt;/span&gt;| node.show } 
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+ 
+&lt;span class=&quot;synStatement&quot;&gt;private&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# ダイクストラ法のアルゴリズムを実施する&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;dijkstra&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;loop&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;# 確定ノード(fixed_node)を探す&lt;/span&gt;
+      fixed_node = &lt;span class=&quot;synConstant&quot;&gt;nil&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;@nodes&lt;/span&gt;.each &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;nib&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;node&lt;/span&gt;|
+        &lt;span class=&quot;synStatement&quot;&gt;next&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; node.fixed || node.cost.nil?
+        fixed_node = node &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; fixed_node.nil? || node.cost &amp;lt; fixed_node.cost
+      &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+ 
+      &lt;span class=&quot;synComment&quot;&gt;# 全てのノードが確定ノードに成った場合ループを終了&lt;/span&gt;
+      &lt;span class=&quot;synStatement&quot;&gt;break&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; fixed_node.nil?
+ 
+      &lt;span class=&quot;synComment&quot;&gt;# 確定フラグを立てる&lt;/span&gt;
+      fixed_node.fixed = &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;# 確定ノードに隣接するノードのコストと経路情報を更新する&lt;/span&gt;
+      fixed_node.edges.each &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;edge_cost&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;edge_nid&lt;/span&gt;|
+        &lt;span class=&quot;synComment&quot;&gt;# 隣接するノードまでのコストを計算&lt;/span&gt;
+        cost = fixed_node.cost + edge_cost
+        &lt;span class=&quot;synComment&quot;&gt;# 隣接するノードのコストが存在しない場合、もしくは、既に存在している値より計算した値が小さい(より短い経路)の場合&lt;/span&gt;
+        &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;@nodes&lt;/span&gt;[edge_nid].cost.nil? || cost &amp;lt; &lt;span class=&quot;synIdentifier&quot;&gt;@nodes&lt;/span&gt;[edge_nid].cost &lt;span class=&quot;synStatement&quot;&gt;then&lt;/span&gt;
+          &lt;span class=&quot;synComment&quot;&gt;# コストと経路情報を更新する&lt;/span&gt;
+          &lt;span class=&quot;synIdentifier&quot;&gt;@nodes&lt;/span&gt;[edge_nid].cost = cost
+          &lt;span class=&quot;synIdentifier&quot;&gt;@nodes&lt;/span&gt;[edge_nid].from_nid = fixed_node.nid
+        &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+      &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+ 
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+ 
+ 
+&lt;span class=&quot;synComment&quot;&gt;#########################################&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;## 処理を実施&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#########################################&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;__FILE__&lt;/span&gt; == &lt;span class=&quot;synIdentifier&quot;&gt;$0&lt;/span&gt;
+ 
+  &lt;span class=&quot;synComment&quot;&gt;# データを用意&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# 全てのノードからのエッジをデータを作成&lt;/span&gt;
+  data = {     
+    &lt;span class=&quot;synConstant&quot;&gt;:yokohama&lt;/span&gt; =&amp;gt; [[&lt;span class=&quot;synConstant&quot;&gt;5&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:shinagawa&lt;/span&gt;], [&lt;span class=&quot;synConstant&quot;&gt;4&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:shibuya&lt;/span&gt;]],
+    &lt;span class=&quot;synConstant&quot;&gt;:shinagawa&lt;/span&gt; =&amp;gt; [[&lt;span class=&quot;synConstant&quot;&gt;5&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:yokohama&lt;/span&gt;], [&lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:shibuya&lt;/span&gt;], [&lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:tokyo&lt;/span&gt;]],
+    &lt;span class=&quot;synConstant&quot;&gt;:shibuya&lt;/span&gt; =&amp;gt; [[&lt;span class=&quot;synConstant&quot;&gt;6&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:yokohama&lt;/span&gt;], [&lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:shinagawa&lt;/span&gt;], [&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:shinjuku_sancho_me&lt;/span&gt;], [&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:shinjuku&lt;/span&gt;]],
+    &lt;span class=&quot;synConstant&quot;&gt;:tokyo&lt;/span&gt; =&amp;gt; [[&lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:shinagawa&lt;/span&gt;], [&lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:shinjuku&lt;/span&gt;]],
+    &lt;span class=&quot;synConstant&quot;&gt;:shinjuku_sancho_me&lt;/span&gt; =&amp;gt; [[&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:shibuya&lt;/span&gt;], [&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:shinjuku&lt;/span&gt;]],
+    &lt;span class=&quot;synConstant&quot;&gt;:shinjuku&lt;/span&gt; =&amp;gt; [[&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:shibuya&lt;/span&gt;], [&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:shinjuku_sancho_me&lt;/span&gt;], [&lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:tokyo&lt;/span&gt;]]
+  }
+ 
+  &lt;span class=&quot;synComment&quot;&gt;# 開始ノードと終了ノードを設定&lt;/span&gt;
+  sid = &lt;span class=&quot;synConstant&quot;&gt;:yokohama&lt;/span&gt;
+  gid = &lt;span class=&quot;synConstant&quot;&gt;:shinjuku&lt;/span&gt;
+ 
+  &lt;span class=&quot;synComment&quot;&gt;# グラフを作成&lt;/span&gt;
+  g = &lt;span class=&quot;synType&quot;&gt;Graph&lt;/span&gt;.new
+ 
+  &lt;span class=&quot;synComment&quot;&gt;# グラフにノードを追加&lt;/span&gt;
+  data.each &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;nid&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;edges&lt;/span&gt;|
+    g.add_node(nid, edges)
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+ 
+  &lt;span class=&quot;synComment&quot;&gt;# グラフに開始位置を設定&lt;/span&gt;
+  g.set_start(sid)
+ 
+  &lt;span class=&quot;synComment&quot;&gt;# 終了地点までの経路を取得&lt;/span&gt;
+  p &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;#{&lt;/span&gt;sid&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; から &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;gid&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; の 最短経路 は &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;g.route(gid)&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; です。&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+ 
+  &lt;span class=&quot;synComment&quot;&gt;# 終了地点までのコストを取得&lt;/span&gt;
+  p &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;#{&lt;/span&gt;sid&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; から &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;gid&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; の 時間 は &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;g.cost(gid)&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; です。&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+ 
+  &lt;span class=&quot;synComment&quot;&gt;# グラフの情報を表示&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# g.show&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;</description>
+          <pubDate>Wed, 09 Jul 2014 19:37:29 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/12921228815727792395</guid>
+          
+            <category>Ruby</category>
+          
+            <category>アルゴリズム</category>
+          
+        </item>
+      
+    
+  </channel>
+</rss>

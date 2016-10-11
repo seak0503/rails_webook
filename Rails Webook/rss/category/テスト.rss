@@ -1,0 +1,1246 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>テスト - Rails Webook</title>
+    <link>http://ruby-rails.hatenadiary.com/category/%E3%83%86%E3%82%B9%E3%83%88</link>
+    <description>自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</description>
+    <lastBuildDate>Fri, 18 Dec 2015 02:44:31 +0900</lastBuildDate>
+    <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+    <generator>Hatena::Blog</generator>
+    
+      
+      
+        <item>
+          <title>RubyでSeleniumを使ってサクッとスタンドアローンなブラウザテストを作成する</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20150420/1429462755</link>
+          <description>&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150420/20150420015630.jpg&quot; alt=&quot;f:id:nipe880324:20150420015630j:plain&quot; title=&quot;f:id:nipe880324:20150420015630j:plain&quot; class=&quot;hatena-fotolife&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+&lt;i&gt;Photo by &lt;a href=&quot;https://www.flickr.com/photos/simon__syon/&quot;&gt;Flickr: Simon &amp;amp; His Camera&amp;#39;s Photostream&lt;/a&gt;&lt;/i&gt;&lt;/p&gt;&lt;p&gt;RubyでSeleniumを使ってスタンドアローンなブラウザテストをする方法を説明します。&lt;br /&gt;
+テスティングフレームワークにはRSpec、SeleniumにアクセスするためにCapybaraをつかうことで簡単にテストがかけます。&lt;/p&gt;&lt;p&gt;メリットとして、スタンドアローンなので、ブラウザでテスト対象のページが開ければ、他の要素のサーバーのプログラミング言語やサーバーの配置場所など制約がなくテストを作成できます。&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#selenium-standalone-test-install-gem&quot;&gt;必要なgemをインストールする&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#selenium-standalone-test-install-browser&quot;&gt;ブラウザをインストールする&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#selenium-standalone-test-write-test-code&quot;&gt;テストコードを記載する&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作環境&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Mac OSX 10 Yosemite&lt;/li&gt;
+&lt;li&gt;Ruby 2.2.0&lt;/li&gt;
+&lt;li&gt;selenium-webdriver 2.45&lt;/li&gt;
+&lt;li&gt;chromedriver 2.15&lt;/li&gt;
+&lt;li&gt;rspec 3.2.0&lt;/li&gt;
+&lt;li&gt;capybara 2.4.4&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;selenium-standalone-test-install-gem&quot;&gt;1. 必要なgemをインストールする&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;まず、Gemfileを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Gemfile&lt;/span&gt;
+source &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;https://rubygems.org&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+
+gem &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;selenium-webdriver&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+gem &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;capybara&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+gem &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;rspec&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+gem &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;pry-byebug&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+次に、gemをインストールします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;bundle &lt;span class=&quot;synStatement&quot;&gt;install&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;selenium-standalone-test-install-browser&quot;&gt;2. ブラウザをインストールする&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;今回の環境は、Macで実施しているので、Safariはデフォルトで入っています。&lt;br /&gt;
+FirefoxやChromeでテストをしたい場合は、次の手順を実施する必要があります。&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;Chrome&lt;/h5&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;WebからChromeをインストールします。&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://chromedriver.storage.googleapis.com/index.html&quot; target=&quot;_blank&quot;&gt;chromedriver&lt;/a&gt;をダウンロード（一番新しいバージョンを選択）し、PATHに通る場所(&lt;code&gt;/usr/bin&lt;/code&gt;など)に配置する&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;Firefox&lt;/h5&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;Firefoxをインストールする&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;selenium-standalone-test-write-test-code&quot;&gt;3. テストコードを記載する&lt;/h3&gt;RSpecでテストコードを書きます。メインは、ブラウザの操作用のDSLのCapybaraで記載します。&lt;br /&gt;
+参考：&lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20150103/1420280252&quot;&gt;RSpec3 / Capybara / Capybara-Webkit &amp;#x30C1;&amp;#x30FC;&amp;#x30C8;&amp;#x30B7;&amp;#x30FC;&amp;#x30C8; - Rails Webook&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# github_spec.rb&lt;/span&gt;
+
+&lt;span class=&quot;synPreProc&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;capybara/rspec&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;selenium-webdriver&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;pry&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# RSpecにCapybaraのDSLを設定&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;RSpec&lt;/span&gt;.configure &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;config&lt;/span&gt;|
+  config.include &lt;span class=&quot;synType&quot;&gt;Capybara&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;DSL&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# Capybaraにseleniumを使うように設定&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Capybara&lt;/span&gt;.default_driver = &lt;span class=&quot;synConstant&quot;&gt;:selenium&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Capybara&lt;/span&gt;.app_host = &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;https://github.com/&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+
+
+describe &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;GitHub&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+
+  before &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    visit &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+  it &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;トップページが表示されること&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    expect(page).to have_content(&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Build software better, together.&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;)
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+  it &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;ログイン画面が表示できること&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    click_link &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Sign in&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+    expect(current_path).to eq &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;/login&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+  it &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;ログインできること&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    click_link &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Sign in&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+
+    &lt;span class=&quot;synComment&quot;&gt;# テキストフィールドに入力し、ボタンをクリック(id, name, value属性などを指定できる)&lt;/span&gt;
+    fill_in &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;login_field&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;with&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;GitHubのユーザ名&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+    fill_in &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;password&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;,    &lt;span class=&quot;synConstant&quot;&gt;with&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;GitHubのパスワード&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+    click_button &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Sign in&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+
+    expect(current_path).to eq &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+テストを実行します。すると、firefoxが開きテストが実行されます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;rpsec github_spec.rb
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+もしテストがうまくいかない場合は、うまく行かない箇所の周辺で&lt;code&gt;binding.pry&lt;/code&gt;を記載することでデバッグができるので、周辺のコードを実行してみて想定通りの動作になっているか確認するとよいと思います。&lt;/p&gt;&lt;p&gt;以上です。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://code.google.com/p/selenium/wiki/RubyBindings&quot;&gt;RubyBindings - selenium - Ruby bindings - Browser automation framework - Google Project Hosting&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://selenium.googlecode.com/git/docs/api/rb/index.html&quot;&gt;File: README &amp;mdash; Documentation by YARD 0.8.7.3&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://gist.github.com/kenrett/7553278&quot;&gt;Selenium Cheat Sheet - Ruby&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://kitak.hatenablog.jp/entry/2013/10/08/214241&quot;&gt;Selenium WebDriver(&amp;#x30EA;&amp;#x30E2;&amp;#x30FC;&amp;#x30C8;&amp;#x30B5;&amp;#x30FC;&amp;#x30D0;&amp;#x30FC;)+Capybara&amp;#x3092;&amp;#x8A66;&amp;#x3057;&amp;#x3066;&amp;#x307F;&amp;#x305F;&amp;#x3002; - &amp;#x304D;&amp;#x305F;&amp;#x3051;&amp;#x30FC;&amp;#x306E;&amp;#x671D;&amp;#x306F;&amp;#x65E9;&amp;#x3044;&amp;#x30D6;&amp;#x30ED;&amp;#x30B0;&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Mon, 20 Apr 2015 01:59:15 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450092035540</guid>
+          
+            <category>テスト</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>RailsでAPI作成とAPIのテストのまとめ</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20150108/1420675366</link>
+          <description>&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150108/20150108014534.jpg&quot; alt=&quot;f:id:nipe880324:20150108014534j:plain:w560&quot; title=&quot;f:id:nipe880324:20150108014534j:plain:w560&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:560px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+Photo by &lt;a href=&quot;https://www.flickr.com/photos/gonzalobaeza/&quot;&gt;Gonzalo Baeza | Flickr - Photo Sharing!&lt;/a&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;で&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/JSON&quot;&gt;JSON&lt;/a&gt;を返す&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;を作成し、また、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;のテスト方法も説明します。&lt;br /&gt;
+&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/JSON&quot;&gt;JSON&lt;/a&gt;を返す&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;は、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;の&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/ActiveSupport&quot;&gt;ActiveSupport&lt;/a&gt;より拡張された&lt;code&gt;to_json&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;とDMMが開発した&lt;a href=&quot;https://github.com/rails/jbuilder&quot;&gt;jbuilder&lt;/a&gt;というGemを使います。&lt;br /&gt;
+&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;のテストにはおなじみの&lt;code&gt;RSpec3&lt;/code&gt;を使います。&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;        4.1.7&lt;/li&gt;
+&lt;li&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/jbuilder&quot;&gt;jbuilder&lt;/a&gt;     2.2.6&lt;/li&gt;
+&lt;li&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/rspec&quot;&gt;rspec&lt;/a&gt;-&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/rails&quot;&gt;rails&lt;/a&gt;  3.1.0&lt;/li&gt;
+&lt;li&gt;factory_girl 4.5.0&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;1. &lt;a href=&quot;#api-jbuilder-rspec-pre&quot;&gt;前提条件&lt;/a&gt;&lt;/h4&gt;
+    
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;2. &lt;a href=&quot;#api-jbuilder-rspec-implement&quot;&gt;APIの作成&lt;/a&gt;&lt;/h4&gt;
+    &lt;p&gt;2.1. &lt;a href=&quot;#api-jbuilder-rspec-implement-respond_to&quot;&gt;1つのコントローラーでHTMLやJSONを返すAPI&lt;/a&gt;&lt;br /&gt;
+2.2. &lt;a href=&quot;#api-jbuilder-rspec-implement-api&quot;&gt;JSONのみを返すAPI&lt;/a&gt;&lt;br /&gt;
+2.3. &lt;a href=&quot;#api-jbuilder-rspec-implement-api-versioning&quot;&gt;APIのバージョニング&lt;/a&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;3. &lt;a href=&quot;#api-jbuilder-rspec-test&quot;&gt;APIのテスト&lt;/a&gt;&lt;/h4&gt;
+    &lt;p&gt;3.1. &lt;a href=&quot;#api-jbuilder-rspec-test-pre&quot;&gt;テストファイルの準備&lt;/a&gt;&lt;br /&gt;
+3.2. &lt;a href=&quot;#api-jbuilder-rspec-test-index&quot;&gt;一覧(index)APIのテスト&lt;/a&gt;&lt;br /&gt;
+3.3. &lt;a href=&quot;#api-jbuilder-rspec-test-show&quot;&gt;詳細(show)APIのテスト&lt;/a&gt;&lt;br /&gt;
+3.4. &lt;a href=&quot;#api-jbuilder-rspec-test-create&quot;&gt;作成(create)/更新(update)APIのテスト&lt;/a&gt;&lt;br /&gt;
+3.5. &lt;a href=&quot;#api-jbuilder-rspec-test-destroy&quot;&gt;削除(destroy)APIのテスト&lt;/a&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;api-jbuilder-rspec-pre&quot;&gt;1. 前提条件&lt;/h3&gt;次のコントローラー、モデル、ビューを前提に話を進めていきます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;rails g scaffold &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt; name&lt;span class=&quot;synConstant&quot;&gt;:string&lt;/span&gt; price&lt;span class=&quot;synConstant&quot;&gt;:integer&lt;/span&gt; category_id&lt;span class=&quot;synConstant&quot;&gt;:integer&lt;/span&gt;
+rails g model &lt;span class=&quot;synType&quot;&gt;Category&lt;/span&gt; name
+
+&lt;span class=&quot;synComment&quot;&gt;# app/models/category.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Category&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  has_many &lt;span class=&quot;synConstant&quot;&gt;:products&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# app/models/product.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  belongs_to &lt;span class=&quot;synConstant&quot;&gt;:category&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;api-jbuilder-rspec-implement&quot;&gt;2. &lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;の作成&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;では、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/ActiveRecord&quot;&gt;ActiveRecord&lt;/a&gt;に&lt;code&gt;to_json&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;が定義されているので基本的にはこれを使えば&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/JSON&quot;&gt;JSON&lt;/a&gt;を返すことが可能です。&lt;br /&gt;
+URLや関連先の値も&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/JSON&quot;&gt;JSON&lt;/a&gt;形式で返したい場合は、&lt;a href=&quot;https://github.com/rails/jbuilder&quot; target=&quot;_blnak&quot;&gt;jbuilder&lt;/a&gt;というgemをつかいます。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;api-jbuilder-rspec-implement-respond_to&quot;&gt;2.1. 1つのコントローラーでHTMLや&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/JSON&quot;&gt;JSON&lt;/a&gt;を返す&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;&lt;/h3&gt;1つのコントローラーでHTMLや&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/JSON&quot;&gt;JSON&lt;/a&gt;を返すには、コントローラーで&lt;code&gt;respond_to&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;を使います。&lt;/p&gt;&lt;p&gt;まず、通常通り&lt;code&gt;resouces&lt;/code&gt;でルーティングを設定します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt;.application.routes.draw &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  resources &lt;span class=&quot;synConstant&quot;&gt;:products&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;# ルーティング結果&lt;/span&gt;
+$ bin/rake routes
+      &lt;span class=&quot;synType&quot;&gt;Prefix&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Verb&lt;/span&gt;   &lt;span class=&quot;synType&quot;&gt;URI&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Pattern&lt;/span&gt;                  &lt;span class=&quot;synType&quot;&gt;Controller&lt;/span&gt;&lt;span class=&quot;synComment&quot;&gt;#Action&lt;/span&gt;
+    products &lt;span class=&quot;synType&quot;&gt;GET&lt;/span&gt;    &lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;products&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;(.&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;:format&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;)&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;          products#index&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;             POST   &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;products(.&lt;span class=&quot;synConstant&quot;&gt;:format&lt;/span&gt;)          products&lt;span class=&quot;synComment&quot;&gt;#create&lt;/span&gt;
+ new_product &lt;span class=&quot;synType&quot;&gt;GET&lt;/span&gt;    &lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;products&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;/ne&lt;/span&gt;w(.&lt;span class=&quot;synConstant&quot;&gt;:format&lt;/span&gt;)      products&lt;span class=&quot;synComment&quot;&gt;#new&lt;/span&gt;
+edit_product &lt;span class=&quot;synType&quot;&gt;GET&lt;/span&gt;    &lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;products&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;/edit(.&lt;span class=&quot;synConstant&quot;&gt;:format&lt;/span&gt;) products&lt;span class=&quot;synComment&quot;&gt;#edit&lt;/span&gt;
+     product &lt;span class=&quot;synType&quot;&gt;GET&lt;/span&gt;    &lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;products&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;(.&lt;span class=&quot;synConstant&quot;&gt;:format&lt;/span&gt;)      products&lt;span class=&quot;synComment&quot;&gt;#show&lt;/span&gt;
+             &lt;span class=&quot;synType&quot;&gt;PATCH&lt;/span&gt;  &lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;products&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;(.&lt;span class=&quot;synConstant&quot;&gt;:format&lt;/span&gt;)      products&lt;span class=&quot;synComment&quot;&gt;#update&lt;/span&gt;
+             &lt;span class=&quot;synType&quot;&gt;PUT&lt;/span&gt;    &lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;products&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;(.&lt;span class=&quot;synConstant&quot;&gt;:format&lt;/span&gt;)      products&lt;span class=&quot;synComment&quot;&gt;#update&lt;/span&gt;
+             &lt;span class=&quot;synType&quot;&gt;DELETE&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;products&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;(.&lt;span class=&quot;synConstant&quot;&gt;:format&lt;/span&gt;)      products&lt;span class=&quot;synComment&quot;&gt;#destroy&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+その後、コントローラー内で&lt;code&gt;respond_to&lt;/code&gt;を使い、フォーマットに応じたレスポンスを返します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Api&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;ProductsController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;index&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@products&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.all
+    respond_to &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;format&lt;/span&gt;|
+      format.html &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 通常のURLの場合、index.html.erb が返される&lt;/span&gt;
+      format.json { render &lt;span class=&quot;synConstant&quot;&gt;json&lt;/span&gt;: &lt;span class=&quot;synIdentifier&quot;&gt;@products&lt;/span&gt; } &lt;span class=&quot;synComment&quot;&gt;# URLが.jsonの場合、@products.to_json が返される&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  ...
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;デフォルトのフォーマットは、htmlであり、&lt;code&gt;/products.json&lt;/code&gt;などURLの最後に&lt;code&gt;.json&lt;/code&gt;をつければ&lt;code&gt;format.json&lt;/code&gt;のブロック内の値が返されます。&lt;br /&gt;
+&lt;code&gt;format.json&lt;/code&gt;のブロック内では、&lt;code&gt;render&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;により、&lt;code&gt;@products&lt;/code&gt;の値が&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/JSON&quot;&gt;JSON&lt;/a&gt;形式で返されます。（内部的には、@products.to_&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/json&quot;&gt;json&lt;/a&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;が呼ばれます)&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;code&gt;to_json&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;は、簡易に&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/JSON&quot;&gt;JSON&lt;/a&gt;形式に変換できるので便利な&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;ですが、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%CA%A3%BF%F4&quot;&gt;複数&lt;/a&gt;のモデルが絡んだり、URLを返すなど複雑な&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/JSON&quot;&gt;JSON&lt;/a&gt;を返す場合は扱いずらいです。&lt;br /&gt;
+そのため、&lt;code&gt;jbuilder&lt;/code&gt;を使い、返したい&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/JSON&quot;&gt;JSON&lt;/a&gt;の内容を、ビューファイルに記載します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/views/products/index.json.jbuilder&lt;/span&gt;
+json.array!(&lt;span class=&quot;synIdentifier&quot;&gt;@products&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;product&lt;/span&gt;|
+  json.extract! product, &lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:price&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:publised_at&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:category_id&lt;/span&gt;
+  json.url product_url(product, &lt;span class=&quot;synConstant&quot;&gt;format&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:json&lt;/span&gt;)
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;コントローラーでは、&lt;code&gt;format.json&lt;/code&gt;を修正し、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/jbuilder&quot;&gt;jbuilder&lt;/a&gt;のindexファイルを呼ぶようにします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;respond_to &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;format&lt;/span&gt;|
+  format.html &lt;span class=&quot;synComment&quot;&gt;# app/views/products/index.html.erb&lt;/span&gt;
+  format.json &lt;span class=&quot;synComment&quot;&gt;# app/views/products/index.json.jbuilder&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+そして、ブラウザから&lt;code&gt;/products.json&lt;/code&gt;へアクセスすると次のように&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/jbuilder&quot;&gt;jbuilder&lt;/a&gt;で定義した&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/JSON&quot;&gt;JSON&lt;/a&gt;が返されます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150103/20150103220854.png&quot; alt=&quot;f:id:nipe880324:20150103220854p:plain&quot; title=&quot;f:id:nipe880324:20150103220854p:plain&quot; class=&quot;hatena-fotolife&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/jbuilder&quot;&gt;jbuilder&lt;/a&gt;の細かな使い方は、&lt;a href=&quot;https://github.com/rails/jbuilder&quot;&gt;jbuilder - GitHub公式ページ&lt;/a&gt;を確認してください。&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;api-jbuilder-rspec-implement-api&quot;&gt;2.2. &lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/JSON&quot;&gt;JSON&lt;/a&gt;のみを返す&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/JSON&quot;&gt;JSON&lt;/a&gt;のみを返す&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;を作成する方法を説明します。&lt;br /&gt;
+まず、ルーティング設定で&lt;code&gt;namespace :api, { format: &#39;json&#39; }&lt;/code&gt;に囲みます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# config/routes.rb&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt;.application.routes.draw &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  namespace &lt;span class=&quot;synConstant&quot;&gt;:api&lt;/span&gt;, { &lt;span class=&quot;synConstant&quot;&gt;format&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;json&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; } &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    resources &lt;span class=&quot;synConstant&quot;&gt;:products&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+  resources &lt;span class=&quot;synConstant&quot;&gt;:products&lt;/span&gt;
+  root &lt;span class=&quot;synConstant&quot;&gt;to&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;products#index&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+
+
+&lt;span class=&quot;synComment&quot;&gt;# ルーティング結果&lt;/span&gt;
+$ rake routes
+          &lt;span class=&quot;synType&quot;&gt;Prefix&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Verb&lt;/span&gt;   &lt;span class=&quot;synType&quot;&gt;URI&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Pattern&lt;/span&gt;                      &lt;span class=&quot;synType&quot;&gt;Controller&lt;/span&gt;&lt;span class=&quot;synComment&quot;&gt;#Action&lt;/span&gt;
+    api_products &lt;span class=&quot;synType&quot;&gt;GET&lt;/span&gt;    &lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;api&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;products(.&lt;span class=&quot;synConstant&quot;&gt;:format&lt;/span&gt;)          api/products&lt;span class=&quot;synComment&quot;&gt;#index {:format=&amp;gt;&amp;quot;json&amp;quot;}&lt;/span&gt;
+                 &lt;span class=&quot;synType&quot;&gt;POST&lt;/span&gt;   &lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;api&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;products(.&lt;span class=&quot;synConstant&quot;&gt;:format&lt;/span&gt;)          api/products&lt;span class=&quot;synComment&quot;&gt;#create {:format=&amp;gt;&amp;quot;json&amp;quot;}&lt;/span&gt;
+ new_api_product &lt;span class=&quot;synType&quot;&gt;GET&lt;/span&gt;    &lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;api&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;products/new(.&lt;span class=&quot;synConstant&quot;&gt;:format&lt;/span&gt;)      api/products&lt;span class=&quot;synComment&quot;&gt;#new {:format=&amp;gt;&amp;quot;json&amp;quot;}&lt;/span&gt;
+edit_api_product &lt;span class=&quot;synType&quot;&gt;GET&lt;/span&gt;    &lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;api&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;products/&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;/edit(.&lt;span class=&quot;synConstant&quot;&gt;:format&lt;/span&gt;) api/products&lt;span class=&quot;synComment&quot;&gt;#edit {:format=&amp;gt;&amp;quot;json&amp;quot;}&lt;/span&gt;
+     api_product &lt;span class=&quot;synType&quot;&gt;GET&lt;/span&gt;    &lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;api&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;products/&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;(.&lt;span class=&quot;synConstant&quot;&gt;:format&lt;/span&gt;)      api/products&lt;span class=&quot;synComment&quot;&gt;#show {:format=&amp;gt;&amp;quot;json&amp;quot;}&lt;/span&gt;
+                 &lt;span class=&quot;synType&quot;&gt;PATCH&lt;/span&gt;  &lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;api&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;products/&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;(.&lt;span class=&quot;synConstant&quot;&gt;:format&lt;/span&gt;)      api/products&lt;span class=&quot;synComment&quot;&gt;#update {:format=&amp;gt;&amp;quot;json&amp;quot;}&lt;/span&gt;
+                 &lt;span class=&quot;synType&quot;&gt;PUT&lt;/span&gt;    &lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;api&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;products/&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;(.&lt;span class=&quot;synConstant&quot;&gt;:format&lt;/span&gt;)      api/products&lt;span class=&quot;synComment&quot;&gt;#update {:format=&amp;gt;&amp;quot;json&amp;quot;}&lt;/span&gt;
+                 &lt;span class=&quot;synType&quot;&gt;DELETE&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;api&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;products/&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;(.&lt;span class=&quot;synConstant&quot;&gt;:format&lt;/span&gt;)      api/products&lt;span class=&quot;synComment&quot;&gt;#destroy {:format=&amp;gt;&amp;quot;json&amp;quot;}&lt;/span&gt;
+                 .....
+&lt;/pre&gt;&lt;p&gt;このようにネームスペースを通常のコントローラーと&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;のコントローラーで分けるのが一般的です。&lt;br /&gt;
+また、デフォルトのフォーマットを&lt;code&gt;json&lt;/code&gt;に定義しているので、&lt;code&gt;/products&lt;/code&gt;のようにURLの最後に&lt;code&gt;.json&lt;/code&gt;をつけない場合でも、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/JSON&quot;&gt;JSON&lt;/a&gt;形式でレスポンスを返すようになります。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;次に、コントローラーを定義します。ネームスペースをつけたので、&lt;code&gt;api&lt;/code&gt;フォルダ配下に作成します。&lt;br /&gt;
+また、&lt;code&gt;Api&lt;/code&gt;モジュール内にコントローラーを定義します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/api/products_controller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;module&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Api&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ProductsController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt;
+
+    &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;index&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;@products&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.all
+      render &lt;span class=&quot;synConstant&quot;&gt;json&lt;/span&gt;: &lt;span class=&quot;synIdentifier&quot;&gt;@products&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  ...
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;api-jbuilder-rspec-implement-api-versioning&quot;&gt;2.3. &lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;のバージョニング&lt;/h3&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;を外部に公開する場合は、v1やv2などバージョニングすることが必要です。&lt;/p&gt;&lt;p&gt;次のように&lt;code&gt;namespace :v1&lt;/code&gt;や&lt;code&gt;namespace :v2&lt;/code&gt;を追加することでバージョニングを行えます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# config/routes.rb&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Store&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Applicaition&lt;/span&gt;.routes.draw &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  namespace &lt;span class=&quot;synConstant&quot;&gt;:api&lt;/span&gt;, { &lt;span class=&quot;synConstant&quot;&gt;format&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;json&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; } &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    namespace &lt;span class=&quot;synConstant&quot;&gt;:v1&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; 
+      resources &lt;span class=&quot;synConstant&quot;&gt;:products&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+    namespace &lt;span class=&quot;synConstant&quot;&gt;:v2&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      resources &lt;span class=&quot;synConstant&quot;&gt;:products&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;# v2のリソース宣言 ...&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+  resouces &lt;span class=&quot;synConstant&quot;&gt;:products&lt;/span&gt;
+  root &lt;span class=&quot;synConstant&quot;&gt;to&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;products#index&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+
+
+&lt;span class=&quot;synComment&quot;&gt;# ルーティング結果&lt;/span&gt;
+$ rake routes
+             &lt;span class=&quot;synType&quot;&gt;Prefix&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Verb&lt;/span&gt;   &lt;span class=&quot;synType&quot;&gt;URI&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Pattern&lt;/span&gt;                         &lt;span class=&quot;synType&quot;&gt;Controller&lt;/span&gt;&lt;span class=&quot;synComment&quot;&gt;#Action&lt;/span&gt;
+    api_v1_products &lt;span class=&quot;synType&quot;&gt;GET&lt;/span&gt;    &lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;api&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;v1/products(.&lt;span class=&quot;synConstant&quot;&gt;:format&lt;/span&gt;)          api/v1/products&lt;span class=&quot;synComment&quot;&gt;#index {:format=&amp;gt;&amp;quot;json&amp;quot;}&lt;/span&gt;
+    ....
+    api_v2_products &lt;span class=&quot;synType&quot;&gt;GET&lt;/span&gt;    &lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;api&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;v2/products(.&lt;span class=&quot;synConstant&quot;&gt;:format&lt;/span&gt;)          api/v2/products&lt;span class=&quot;synComment&quot;&gt;#index {:format=&amp;gt;&amp;quot;json&amp;quot;}&lt;/span&gt;
+    ....
+&lt;/pre&gt;&lt;p&gt;コントローラーもネームスペースに合わせて&lt;code&gt;module V1&lt;/code&gt;を追加する必要があります。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/api/v1/products_controller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;module&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Api&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;module&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;V1&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ProductsController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt;
+
+      &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;index&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;@products&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.all
+        render &lt;span class=&quot;synConstant&quot;&gt;json&lt;/span&gt;: &lt;span class=&quot;synIdentifier&quot;&gt;@products&lt;/span&gt;
+      &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+    ...
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;api-jbuilder-rspec-test&quot;&gt;3. &lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;のテスト&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;api-jbuilder-rspec-test-pre&quot;&gt;3.1. テ&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B9%A5%C8%A5%D5%A5%A1%A5%A4&quot;&gt;ストファイ&lt;/a&gt;ルの準備&lt;/h3&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;のテストは、&lt;code&gt;spec/requests&lt;/code&gt;を使います。&lt;br /&gt;
+これは、&lt;code&gt;spec/controllers&lt;/code&gt;では、コントローラーのみでコントローラー(&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;)からの返り値(&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/JSON&quot;&gt;JSON&lt;/a&gt;など)を検証するのが大変であり、&lt;code&gt;spec/features&lt;/code&gt;では、CapybaraやPoltergistを起動させてテスト実行時間を無駄に長くしてしまうためです。&lt;/p&gt;&lt;p&gt;次のコマンドでrequestsファイルを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;rails g rspec:integration Product
+   identical  spec/requests/products_spec.rb
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;api-jbuilder-rspec-test-index&quot;&gt;3.2. 一覧(index)&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;のテスト&lt;/h3&gt;一覧&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;のテストは、「&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B9%A5%C6%A1%BC%A5%BF%A5%B9%A5%B3%A1%BC%A5%C9&quot;&gt;ステータスコード&lt;/a&gt;」と「結果の件数」を確認する。&lt;br /&gt;
+詳細&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;のテストと重複している場合は、詳細な値の確認は省略してもよい。&lt;/p&gt;&lt;p&gt;テスト対象（一覧&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;）&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# コントローラー&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# app/controllers/products_controller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ProductsController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# GET /products&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# GET /products.json&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;index&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@products&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.all
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# index.json.jbuilder&lt;/span&gt;
+json.array!(&lt;span class=&quot;synIdentifier&quot;&gt;@products&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;product&lt;/span&gt;|
+  json.extract! product, &lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:price&lt;/span&gt;
+  json.url product_url(product, &lt;span class=&quot;synConstant&quot;&gt;format&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:json&lt;/span&gt;)
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+テ&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B9%A5%C8%A5%D5%A5%A1%A5%A4&quot;&gt;ストファイ&lt;/a&gt;ル（一覧&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;）&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# spec/requests/products_spec.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;rails_helper&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+
+&lt;span class=&quot;synType&quot;&gt;RSpec&lt;/span&gt;.describe &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Products&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:type&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;:request&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+
+  describe &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;GET /products.json&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    before { &lt;span class=&quot;synIdentifier&quot;&gt;@products&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;FactoryGirl&lt;/span&gt;.create_list(&lt;span class=&quot;synConstant&quot;&gt;:product&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;) }
+
+    it &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;一覧情報を取得できること&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;# GET /products.json にアクセスする&lt;/span&gt;
+      get products_path &lt;span class=&quot;synConstant&quot;&gt;format&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:json&lt;/span&gt;
+
+      &lt;span class=&quot;synComment&quot;&gt;# ステータスコードの確認&lt;/span&gt;
+      expect(response.status).to eq &lt;span class=&quot;synConstant&quot;&gt;200&lt;/span&gt;
+
+      &lt;span class=&quot;synComment&quot;&gt;# JSONの確認&lt;/span&gt;
+      json = &lt;span class=&quot;synType&quot;&gt;JSON&lt;/span&gt;.parse(response.body)
+      expect(json.size).to     eq &lt;span class=&quot;synIdentifier&quot;&gt;@products&lt;/span&gt;.count
+      expect(json[&lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;][&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;]).to eq &lt;span class=&quot;synIdentifier&quot;&gt;@products&lt;/span&gt;[&lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;].id
+      expect(json[&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;][&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;]).to eq &lt;span class=&quot;synIdentifier&quot;&gt;@products&lt;/span&gt;[&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;].id
+
+      &lt;span class=&quot;synComment&quot;&gt;# 詳細の値の確認は省略&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;api-jbuilder-rspec-test-show&quot;&gt;3.3. 詳細(show)&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;のテスト&lt;/h3&gt;詳細&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;のテストは「各項目が取得できていること」を確認します。&lt;/p&gt;&lt;p&gt;テスト対象(詳細&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# コントローラー&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# app/controllers/products_controller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ProductsController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# GET /product/1&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# GET /product/1.json&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;show&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@product&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.find(params[&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;])
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# show.json.jbuilder&lt;/span&gt;
+json.extract! &lt;span class=&quot;synIdentifier&quot;&gt;@product&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:price&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:publised_at&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:category_id&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:created_at&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:updated_at&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+テ&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B9%A5%C8%A5%D5%A5%A1%A5%A4&quot;&gt;ストファイ&lt;/a&gt;ル(詳細&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# spec/requests/products_spec.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;rails_helper&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+
+&lt;span class=&quot;synType&quot;&gt;RSpec&lt;/span&gt;.describe &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Products&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:type&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;:request&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+
+  describe &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;GET /product/:id.json&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    before { &lt;span class=&quot;synIdentifier&quot;&gt;@product&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;FactoryGirl&lt;/span&gt;.create(&lt;span class=&quot;synConstant&quot;&gt;:product&lt;/span&gt;) }
+
+    it &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;詳細情報を取得できること&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;# GET /product/:id.json にアクセスする&lt;/span&gt;
+      get product_path(&lt;span class=&quot;synIdentifier&quot;&gt;@product&lt;/span&gt;.id, &lt;span class=&quot;synConstant&quot;&gt;format&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:json&lt;/span&gt;)
+
+      &lt;span class=&quot;synComment&quot;&gt;# ステータスコードの確認&lt;/span&gt;
+      expect(response.status).to eq &lt;span class=&quot;synConstant&quot;&gt;200&lt;/span&gt;
+
+      &lt;span class=&quot;synComment&quot;&gt;# JSONの各項目の確認&lt;/span&gt;
+      json = &lt;span class=&quot;synType&quot;&gt;JSON&lt;/span&gt;.parse(response.body)
+      expect(json[&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;]).to    eq &lt;span class=&quot;synIdentifier&quot;&gt;@product&lt;/span&gt;.id
+      expect(json[&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;]).to  eq &lt;span class=&quot;synIdentifier&quot;&gt;@product&lt;/span&gt;.name
+      expect(json[&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;price&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;]).to eq &lt;span class=&quot;synIdentifier&quot;&gt;@product&lt;/span&gt;.price
+      &lt;span class=&quot;synComment&quot;&gt;# ... その他の項目&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;api-jbuilder-rspec-test-create&quot;&gt;3.4. 作成(create)/更新(update)&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;のテスト&lt;/h3&gt;作成/更新&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;のテストは「作成/更新できていること」を確認します。&lt;br /&gt;
+また、エラー時には「エラーコードが返ってくること」を確認します。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;テスト対象ファイル(作成&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# コントローラー&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# app/controllers/products_controller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ProductsController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# POST /products&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# POST /products.json&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;create&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;@product&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.new(product_params)
+
+      respond_to &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;format&lt;/span&gt;|
+        &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;@product&lt;/span&gt;.save
+          format.html { redirect_to &lt;span class=&quot;synIdentifier&quot;&gt;@product&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;notice&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Product was successfully created.&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; }
+          format.json { render &lt;span class=&quot;synConstant&quot;&gt;:show&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;status&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:created&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;location&lt;/span&gt;: &lt;span class=&quot;synIdentifier&quot;&gt;@product&lt;/span&gt; }
+        &lt;span class=&quot;synStatement&quot;&gt;else&lt;/span&gt;
+          format.html { render &lt;span class=&quot;synConstant&quot;&gt;:new&lt;/span&gt; }
+          format.json { render &lt;span class=&quot;synConstant&quot;&gt;json&lt;/span&gt;: &lt;span class=&quot;synIdentifier&quot;&gt;@product&lt;/span&gt;.errors, &lt;span class=&quot;synConstant&quot;&gt;status&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:unprocessable_entity&lt;/span&gt; }
+        &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+      &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synStatement&quot;&gt;private&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;product_params&lt;/span&gt;
+      params.require(&lt;span class=&quot;synConstant&quot;&gt;:product&lt;/span&gt;).permit(&lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:price&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:publised_at&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:category_id&lt;/span&gt;)
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+end
+
+&lt;span class=&quot;synComment&quot;&gt;# show.json.jbuilder&lt;/span&gt;
+json.extract! &lt;span class=&quot;synIdentifier&quot;&gt;@product&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:price&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:publised_at&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:category_id&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:created_at&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:updated_at&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+テ&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B9%A5%C8%A5%D5%A5%A1%A5%A4&quot;&gt;ストファイ&lt;/a&gt;ル(作成&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;)&lt;br /&gt;
+※更新&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;は作成&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;とほぼ同様のため省略します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# spec/requests/products_spec.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;rails_helper&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+
+&lt;span class=&quot;synType&quot;&gt;RSpec&lt;/span&gt;.describe &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Products&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:type&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;:request&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+
+  describe &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;POST /products.json&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    it &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;商品情報が作成されること&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      params = { &lt;span class=&quot;synConstant&quot;&gt;product&lt;/span&gt;: &lt;span class=&quot;synType&quot;&gt;FactoryGirl&lt;/span&gt;.attributes_for(&lt;span class=&quot;synConstant&quot;&gt;:product&lt;/span&gt;) }
+      &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; {:product=&amp;gt;{:name=&amp;gt;&amp;quot;MyString&amp;quot;, :price=&amp;gt;1, :publised_at=&amp;gt;&amp;quot;2014-12-29 23:40:30&amp;quot;, :category_id=&amp;gt;1}}&lt;/span&gt;
+
+      &lt;span class=&quot;synComment&quot;&gt;# 商品数が1増えることを確認&lt;/span&gt;
+      expect {
+        &lt;span class=&quot;synComment&quot;&gt;# POST /products.json にアクセスする&lt;/span&gt;
+        post products_path(&lt;span class=&quot;synConstant&quot;&gt;format&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:json&lt;/span&gt;), params
+      }.to change { &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.count }.by(&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;)
+
+      &lt;span class=&quot;synComment&quot;&gt;# ステータスコードの確認&lt;/span&gt;
+      expect(response.status).to eq &lt;span class=&quot;synConstant&quot;&gt;201&lt;/span&gt;
+
+      &lt;span class=&quot;synComment&quot;&gt;# JSONの各値の確認&lt;/span&gt;
+      json = &lt;span class=&quot;synType&quot;&gt;JSON&lt;/span&gt;.parse(response.body)
+      expect(json[&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;]).to  eq &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;MyString&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+      expect(json[&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;price&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;]).to eq &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;# ... その他のカラム&lt;/span&gt;
+
+      &lt;span class=&quot;synComment&quot;&gt;# locationが作成したProductの詳細画面のURLであることを確認&lt;/span&gt;
+      expect(response.location).to eq product_url(&lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.last)
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+    it &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;商品情報が作成されないこと&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;# バリデーションエラーなどで作成されないようにし、帰り値を確認する&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;api-jbuilder-rspec-test-destroy&quot;&gt;3.5. 削除(destroy)&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;のテスト&lt;/h3&gt;削除&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;のテストは「削除されていること」を確認します。&lt;/p&gt;&lt;p&gt;テスト対象ファイル(削除&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;)&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# コントローラー&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# app/controllers/products_controller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ProductsController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# DELETE /products/1&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# DELETE /products/1.json&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;destroy&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@product&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.find(params[&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;])
+    &lt;span class=&quot;synIdentifier&quot;&gt;@product&lt;/span&gt;.destroy
+    respond_to &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;format&lt;/span&gt;|
+      format.html { redirect_to products_url, &lt;span class=&quot;synConstant&quot;&gt;notice&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Product was successfully destroyed.&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; }
+      format.json { head &lt;span class=&quot;synConstant&quot;&gt;:no_content&lt;/span&gt; }
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+テ&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B9%A5%C8%A5%D5%A5%A1%A5%A4&quot;&gt;ストファイ&lt;/a&gt;ル(削除&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;)&lt;br /&gt;
+※更新&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;は作成&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/API&quot;&gt;API&lt;/a&gt;とほぼ同様のため省略します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# spec/requests/products_spec.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;rails_helper&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+
+&lt;span class=&quot;synType&quot;&gt;RSpec&lt;/span&gt;.describe &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Products&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:type&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;:request&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+
+  describe &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;DELETE /products/:id.json&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    before { &lt;span class=&quot;synIdentifier&quot;&gt;@product&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;FactoryGirl&lt;/span&gt;.create(&lt;span class=&quot;synConstant&quot;&gt;:product&lt;/span&gt;) }
+
+    it &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;商品情報が削除されること&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;# Productの数が-1されること&lt;/span&gt;
+      expect {
+        &lt;span class=&quot;synComment&quot;&gt;# DELETE /products/:id.json にアクセスする&lt;/span&gt;
+        delete product_path(&lt;span class=&quot;synIdentifier&quot;&gt;@product&lt;/span&gt;.id, &lt;span class=&quot;synConstant&quot;&gt;format&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:json&lt;/span&gt;)
+      }.to change { &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.count }.by(&lt;span class=&quot;synConstant&quot;&gt;-1&lt;/span&gt;)
+
+      &lt;span class=&quot;synComment&quot;&gt;# ステータスコードの確認&lt;/span&gt;
+      expect(response.status).to eq &lt;span class=&quot;synConstant&quot;&gt;204&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+以上です。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/rails/jbuilder&quot;&gt;rails/jbuilder &amp;middot; GitHub&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://railscasts.com/episodes/350-rest-api-versioning&quot;&gt;#350 REST API Versioning - RailsCasts&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Thu, 08 Jan 2015 09:02:46 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450078385620</guid>
+          
+            <category>テスト</category>
+          
+            <category>Rails API</category>
+          
+            <category>Rails中級</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>RailsでCucumberとRSpecを使ってテストを行う例</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20140719/1405777918</link>
+          <description>&lt;p&gt;RailsでCucumberとRSpecを使ったテストの流れを実例を通して説明します。&lt;/p&gt;&lt;p&gt;CucumberとRSpecのテスト環境の構築方法については、&lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20140719/1405708234&quot; target=&quot;_blank&quot;&gt;RailsでCucumberとRSpecのテスト環境を構築する方法&lt;/a&gt;を参照してください。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    &lt;p&gt;1. CucumberとRSpecの特徴と違い&lt;br /&gt;
+2. テスト方針&lt;br /&gt;
+3. テストの流れ&lt;br /&gt;
+4. ユーザーストーリーの作成&lt;br /&gt;
+5. Cucumberでシナリオを作成しテスト失敗&lt;br /&gt;
+6. RSpecで単体テストを実装し、それを通るコードを実装&lt;br /&gt;
+7. Cucumberでシナリオのテスト成功&lt;br /&gt;
+8. まとめ&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;1. CucumberとRSpecの特徴と違い&lt;/h3&gt;
+    &lt;p&gt;&lt;b&gt;&amp;lt;Cucumberの特徴&amp;gt;&lt;/b&gt;&lt;br /&gt;
+  ・テストを自然文で記載可能(Featureファイル)ので、読んでいて分かりやすい&lt;br /&gt;
+  ・Stepファイルでその英文と実際のコードをマッチングさせるため、テスト対象の言語を問わない&lt;br /&gt;
+  これにより、Featureファイルを読みやすく、ソース実装に依存しない形にできる&lt;br /&gt;
+  =&gt; 自然文を活かして「総合テスト/結合テスト」をCucumberで実施。&lt;/p&gt;&lt;p&gt;&lt;b&gt;&amp;lt;RSpecの特徴&amp;gt;&lt;/b&gt;&lt;br /&gt;
+  ・英語の文のように書ける&lt;br /&gt;
+  ・モックが強力&amp;簡単&lt;br /&gt;
+  ・ファイル変更時に自動実行(AutoTest)やテストカバー率(RCov)が図れる&lt;br /&gt;
+  =&gt; モック機能を活かして、View, Controller, Modelの「単体テスト」で使用&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;2. テスト方針&lt;/h3&gt;
+    &lt;p&gt;CucumberとRSpecは日々進化しており、結合テストはどちらでも実行可能です。&lt;br /&gt;
+それぞれの違いを対比させると、&lt;br /&gt;
+・Cucumberは読みやすいが、書くのは面倒&lt;br /&gt;
+・RSpec(結合テスト)は読みやすくないが、書くのは楽&lt;br /&gt;
+という印象です。&lt;/p&gt;&lt;p&gt;RSpecだけでもガリガリかけますが、&lt;br /&gt;
+システムがなんのためにあるんだっけというものを意識しながら設計をしたいため、&lt;br /&gt;
+・単体テスト(View,Controller,Modelの各々単体をテストする) =&gt; RSpec&lt;br /&gt;
+・結合テスト(View,Controller,Modelを結合させて、画面と画面の遷移をテスト) =&gt; Cucumber&lt;br /&gt;
+・総合テスト(画面遷移をまとめた何か目的があるシナリオをテスト) =&gt; Cucumber&lt;br /&gt;
+と今回はしました。今現在もソースは変わっているので、これが正解というの人それぞれ違うと思います。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;3. テストの流れ&lt;/h3&gt;
+    &lt;p&gt;A. ユーザーストーリーを作成する。&lt;br /&gt;
+B. Cucumberで1つのシナリオに焦点を合わせてシナリオを作成し、テストに失敗することを確認する。&lt;br /&gt;
+C. RSpecで単体テストを記載し、そのテストコードに通るソースコードを実装する。&lt;br /&gt;
+　その後、できればリファクタリングもする。&lt;br /&gt;
+D. Cucumberのシナリオに成功することを確認する。できれば、その後にリファクタリングする。&lt;br /&gt;
+E. 次のシナリオについて B. から繰り返す。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;4. ユーザーストーリーの作成&lt;br /&gt;
+今回は一般的なユーザ登録システムを作成します。テスト方法の説明のため、途中までしかやりませんが。&lt;画面遷移図&gt;&lt;br /&gt;
+ユーザ一覧画面 &lt;=&gt; ユーザ登録・編集画面&lt;br /&gt;
+　　　　　　　 &lt;=&gt; ユーザ詳細画面&lt;/p&gt;&lt;p&gt;といった画面があり、&lt;br /&gt;
+・管理者が全てのユーザ情報を確認する&lt;br /&gt;
+・管理者がユーザ情報を登録/編集/削除する&lt;br /&gt;
+・管理者がユーザ情報の詳細を確認する&lt;/p&gt;&lt;p&gt;といったものが思いつきます。&lt;br /&gt;
+これの一番目を実装していきます。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;5. Cucumberでシナリオを作成しテスト失敗&lt;/h3&gt;
+    &lt;p&gt;では、「管理者が全てのユーザ情報を確認する」というシナリオを記載します。&lt;br /&gt;
+Cucumberでは、&lt;br /&gt;
+・シナリオを自然文（英語や日本語など）で書いたフィーチャファイル（.feature）を &quot;features配下&quot; に作成&lt;br /&gt;
+・その後、自然文と実際のコードのマッチングを でステップ定義ファイル（ &quot;.rb&quot;）を &quot;step_definitions配下&quot; に作成&lt;br /&gt;
+するという流れです。&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;フィーチャファイルの構文&lt;/h5&gt;
+    &lt;p&gt;まずは、フィーチャファイルを作成する前に構文を理解しましょう。&lt;br /&gt;
+フィーチャファイルは英語が基本ですが、日本語でも記載可能です。日本語の構文を記載しています。&lt;br /&gt;
+「フィーチャ」が１つあり、その下に「シナリオ」が複数記載でき、「シナリオ」には「前提/もし/ならば」が必須です。&lt;br /&gt;
+他には、「かつ/しかし」を記載することで、その文字列の上部の「前提/もし/ならば」を複数記載できます。&lt;br /&gt;
+さらに、「シナリオアウトライン」では、「例」で表形式にデータを入れると、マッチングさせて複数のデータパターンでシナリオを実行することができます。&lt;br /&gt;
+日本語で記載するには、最初に&quot;# language: ja&quot;が必要です。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# language: ja
+フィーチャ: [フィーチャを記載]
+　[フィーチャの説明文を自由に記載可能（省略可能）]
+
+  # シャープ(#)はコメントとして記載可能
+  シナリオ: [シナリオ１の概要を記載]
+    前提 [前提を記載]
+    もし [アクションを記載]
+    ならば [結果を記載]
+
+  シナリオ: [シナリオ2の概要を記載]
+    前提 [前提を記載]
+    かつ [もう１つの前提を記載]
+    もし [アクションを記載]
+    かつ [もう１つのアクションを記載]
+    ならば [結果を記載]
+
+  シナリオアウトライン: [シナリオアウトラインを記載]
+    前提 [前提を記載]
+    もし &amp;lt;input&amp;gt;を入力する
+    ならば &amp;lt;result&amp;gt;が表示される
+    例:
+      | input | result |
+      |       0 |       0  |
+      |       1 |       1  |
+      |       2 |      10 |
+      |       3 |    100 |&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;フィーチャファイルの作成&lt;/h5&gt;
+    &lt;p&gt;では、実際のユーザーストーリーを記載します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ vim features/user_index.feature
+
+&lt;span class=&quot;synComment&quot;&gt;# language: ja&lt;/span&gt;
+  フィーチャ: 管理者が全てのユーザ情報を確認する
+    管理者として、
+    登録している全てのユーザを見たい。
+    なぜなら、ユーザを管理したいから。
+
+
+  シナリオアウトライン: ユーザ一覧画面を表示
+    前提  ユーザ数が&amp;amp;lt;ユーザ数&amp;amp;gt;件登録されている
+    もし ユーザ一覧画面を表示する
+    ならば &amp;amp;lt;ユーザ数&amp;amp;gt;件のユーザ情報が表示されること
+    例:
+      | ユーザ数  |
+      |     &lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;   |
+      |     &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;   |   
+||&amp;lt; 
+
+*** &lt;span class=&quot;synType&quot;&gt;Cucumber&lt;/span&gt;を実行する
+&amp;gt;|ruby|
+$ cucumber features/user_index.feature 
+&lt;span class=&quot;synType&quot;&gt;Using&lt;/span&gt; the default profile...
+&lt;span class=&quot;synComment&quot;&gt;# language: ja&lt;/span&gt;
+フィーチャ: ユーザ一覧画面
+  管理者として、
+  登録している全てのユーザを見たい。
+  なぜなら、ユーザを管理したいから。
+
+  シナリオアウトライン: ユーザ一覧画面を表示     &lt;span class=&quot;synComment&quot;&gt;# features/user_index.feature:8&lt;/span&gt;
+    前提ユーザ数が&amp;amp;lt;ユーザ数&amp;amp;gt;件登録されている    &lt;span class=&quot;synComment&quot;&gt;# features/user_index.feature:9&lt;/span&gt;
+    もしユーザ一覧画面を表示する           &lt;span class=&quot;synComment&quot;&gt;# features/user_index.feature:10&lt;/span&gt;
+    ならば&amp;lt;ユーザ数&amp;gt;件のユーザ情報が表示されること &lt;span class=&quot;synComment&quot;&gt;# features/user_index.feature:11&lt;/span&gt;
+
+    例: 
+      | ユーザ数 |
+      | &lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;    |
+      &lt;span class=&quot;synType&quot;&gt;Undefined&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;step&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;ユーザ数が0件登録されている&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; (&lt;span class=&quot;synType&quot;&gt;Cucumber&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Undefined&lt;/span&gt;)
+      features/user_index.feature:&lt;span class=&quot;synConstant&quot;&gt;9:in&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;前提ユーザ数が&amp;lt;ユーザ数&amp;gt;件登録されている&#39;&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;      | 1    |&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;      Undefined step: &amp;quot;ユーザ数が1件登録されている&amp;quot; (Cucumber::Undefined)&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;      features/user_index.feature:9:in &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;`&lt;/span&gt;前提ユーザ数が&amp;lt;ユーザ数&amp;gt;件登録されている&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+
+&lt;span class=&quot;synConstant&quot;&gt;2 scenarios (2 undefined)&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;6 steps (6 undefined)&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;0m0.074s&lt;/span&gt;
+
+&lt;span class=&quot;synConstant&quot;&gt;You can implement step definitions for undefined steps with these snippets:&lt;/span&gt;
+
+&lt;span class=&quot;synConstant&quot;&gt;前提(/^ユーザ数が(\d+)件登録されている$/) do |arg1|&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;  pending # express the regexp above with the code you wish you had&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synConstant&quot;&gt;もし(/^ユーザ一覧画面を表示する$/) do&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;  pending # express the regexp above with the code you wish you had&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synConstant&quot;&gt;ならば(/^(\d+)件のユーザ情報が表示されること$/) do |arg1|&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;  pending # express the regexp above with the code you wish you had&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;ステップ定義の実装&lt;/h5&gt;
+    &lt;p&gt;フィーチャファイルは実装できましたので、&lt;br /&gt;
+次はCucumberのステップ定義を実装します。&lt;br /&gt;
+上記のテスト結果の &quot;前提(/^...&quot; などをコピーして &quot;pending ...&quot; と記載されている箇所を実装していきます。&lt;br /&gt;
+自然文とソースコードをマッチングさせるときに、「あったらいいな」という考えてソースコードを記載すると、&lt;br /&gt;
+利用側を強く意識するのでメソッド設計がより分かりやすいものになります。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ users_steps.rb
+前提(&lt;span class=&quot;synSpecial&quot;&gt;/^&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;ユーザ数が&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;(\d+)&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;件登録されている&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;$/&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;num&lt;/span&gt;|
+  &lt;span class=&quot;synComment&quot;&gt;# num分だけユーザデータを作成する&lt;/span&gt;
+  num.to_i.times &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;i&lt;/span&gt;|
+    &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.create(&lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;User&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;i&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;email&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;i&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;@example.com&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;)
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+もし(&lt;span class=&quot;synSpecial&quot;&gt;/^&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;ユーザ一覧画面を表示する&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;$/&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  visit users_path &lt;span class=&quot;synComment&quot;&gt;# ユーザ一覧画面に遷移する。Capybaraのvisitメソッド&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+ならば(&lt;span class=&quot;synSpecial&quot;&gt;/^(\d+)&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;件のユーザ情報が表示されること&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;$/&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;num&lt;/span&gt;|
+  &lt;span class=&quot;synComment&quot;&gt;# ページにユーザ情報(email)が存在するか確認する&lt;/span&gt;
+  num.to_i.times &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;i&lt;/span&gt;|
+    expect(page).to have_content(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;i&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;@example.com&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;)
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;再度Cucumberの実行&lt;/h5&gt;
+    &lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ cucumber features/user_index.feature 
+&lt;span class=&quot;synType&quot;&gt;Using&lt;/span&gt; the default profile...
+&lt;span class=&quot;synComment&quot;&gt;# language: ja&lt;/span&gt;
+フィーチャ: ユーザ一覧画面
+  管理者として、
+  登録している全てのユーザを見たい。
+  なぜなら、ユーザを管理したいから。
+
+  シナリオアウトライン: ユーザ一覧画面を表示     &lt;span class=&quot;synComment&quot;&gt;# features/user_index.feature:8&lt;/span&gt;
+    前提ユーザ数が&amp;lt;ユーザ数&amp;gt;件登録されている    &lt;span class=&quot;synComment&quot;&gt;# features/step_definitions/users_steps.rb:1&lt;/span&gt;
+    もしユーザ一覧画面を表示する           &lt;span class=&quot;synComment&quot;&gt;# features/step_definitions/users_steps.rb:7&lt;/span&gt;
+    ならば&amp;lt;ユーザ数&amp;gt;件のユーザ情報が表示されること &lt;span class=&quot;synComment&quot;&gt;# features/step_definitions/users_steps.rb:11&lt;/span&gt;
+
+    例: 
+      | ユーザ数 |
+      | &lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;    |
+      undefined local variable &lt;span class=&quot;synStatement&quot;&gt;or&lt;/span&gt; method &lt;span class=&quot;synSpecial&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;users_path&#39; for #&amp;lt;Cucumber::Rails::World:0x007f9d35aea540&amp;gt; (NameError)&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;      ./features/step_definitions/users_steps.rb:8:in &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;`&lt;/span&gt;/^ユーザ一覧画面を表示する&lt;span class=&quot;synIdentifier&quot;&gt;$/&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;      features/user_index.feature:10:in `もしユーザ一覧画面を表示する&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+      | &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;    |
+      uninitialized constant User (&lt;span class=&quot;synType&quot;&gt;NameError&lt;/span&gt;)
+      ./features/step_definitions/users_steps.rb:&lt;span class=&quot;synConstant&quot;&gt;3:in&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;block (2 levels) in &amp;lt;top (required)&amp;gt;&#39;&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;      ./features/step_definitions/users_steps.rb:2:in &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;`&lt;/span&gt;times&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;      ./features/step_definitions/users_steps.rb:2:in `/^ユーザ数が(\d+)件登録されている$/&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+      features/user_index.feature:&lt;span class=&quot;synConstant&quot;&gt;9:in&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;前提ユーザ数が&amp;lt;ユーザ数&amp;gt;件登録されている&#39;&lt;/span&gt;
+
+&lt;span class=&quot;synConstant&quot;&gt;Failing Scenarios:&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;cucumber features/user_index.feature:8 # Scenario: ユーザ一覧画面を表示&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;cucumber features/user_index.feature:8 # Scenario: ユーザ一覧画面を表示&lt;/span&gt;
+
+&lt;span class=&quot;synConstant&quot;&gt;2 scenarios (2 failed)&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;6 steps (2 failed, 3 skipped, 1 passed)&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;0m0.065s&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;users_pathが宣言されていないと出ています。&lt;br /&gt;
+では、これは実装をしないといけないので、&lt;br /&gt;
+今度はRSpecで単体テストを実施していき、そのテストが通るように実装していきましょう。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;6. RSpecで単体テストを実装し、それを通るコードを実装&lt;/h3&gt;
+    
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;RSpecの基礎構文&lt;/h5&gt;
+    &lt;p&gt;はじめに、RSpecの簡単なルールを説明します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;・ファイル名 *_spec.rb ... それを認識して&lt;span class=&quot;synType&quot;&gt;RSpec&lt;/span&gt;が走る。
+・describe -- ○○について
+・context -- ○○の場合
+・subject -- itのオブジェクトを設定
+・it / specify -- ○○となること
+・expect -- itブロック内で使う
+・should have / &lt;span class=&quot;synPreProc&quot;&gt;include&lt;/span&gt; / be_xxx
+・例外 raise_error(&lt;span class=&quot;synType&quot;&gt;RuntimeError&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;msg ...&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;)
+
+基本例
+describe &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Array&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  before { &lt;span class=&quot;synIdentifier&quot;&gt;@arr&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Array&lt;/span&gt;.new }
+
+  it &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;should be empty&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    expect(&lt;span class=&quot;synConstant&quot;&gt;:arr&lt;/span&gt;).to be_empty
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+||&amp;lt; 
+
+*** &lt;span class=&quot;synType&quot;&gt;Controller&lt;/span&gt;とその関連ファイルを作成します
+&amp;gt;|ruby~
+$ rails g controller &lt;span class=&quot;synType&quot;&gt;Users&lt;/span&gt; --helper &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;
+....
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;UsersController用のRSpecファイルを作成します。詳細はコメントを見て下さい。&lt;/h5&gt;
+    &lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ vim spec/controllers/users_controller_spec.rb
+&lt;span class=&quot;synPreProc&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;rails_helper&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# UsersControllerについてのテスト&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;RSpec&lt;/span&gt;.describe &lt;span class=&quot;synType&quot;&gt;UsersController&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:type&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;:controller&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# GET #indexメソッドのテスト&lt;/span&gt;
+  describe &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;GET #index&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+
+    &lt;span class=&quot;synComment&quot;&gt;# HTTP 200を返すことをテスト&lt;/span&gt;
+    it &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;responds successfully with an HTTP 200 status code&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      get &lt;span class=&quot;synConstant&quot;&gt;:index&lt;/span&gt;
+      expect(response).to be_success
+      expect(response).to have_http_status(&lt;span class=&quot;synConstant&quot;&gt;200&lt;/span&gt;)
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+    &lt;span class=&quot;synComment&quot;&gt;# index テンプレートをレンダリングすることをテスト&lt;/span&gt;
+    it &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;renders the index template&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      get &lt;span class=&quot;synConstant&quot;&gt;:index&lt;/span&gt;
+      expect(response).to render_template(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;index&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;)
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+    &lt;span class=&quot;synComment&quot;&gt;# @usersに全てのuserを設定していることテスト&lt;/span&gt;
+    it &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;loads all of the users into @users&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      user1 = &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.create!(&lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;test user1&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;email&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;user1@example.com&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;)
+      user2 = &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.create!(&lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;test user2&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;email&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;user2@example.com&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;)
+      get &lt;span class=&quot;synConstant&quot;&gt;:index&lt;/span&gt;
+
+      expect(assigns(&lt;span class=&quot;synConstant&quot;&gt;:users&lt;/span&gt;)).to match_array([user1, user2])
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;では、RSpecを実行します。&lt;br /&gt;
+以下のようなエラーが出ます。以降は文が長くなってしまうので、ピックアップするエラー分のみを表示します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ rspec --color --format doc spec/
+
+&lt;span class=&quot;synType&quot;&gt;UsersController&lt;/span&gt;
+  &lt;span class=&quot;synType&quot;&gt;GET&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;#index&lt;/span&gt;
+    responds successfully with an &lt;span class=&quot;synType&quot;&gt;HTTP&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;200&lt;/span&gt; status code (&lt;span class=&quot;synType&quot;&gt;FAILED&lt;/span&gt; - &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;)
+    renders the index template (&lt;span class=&quot;synType&quot;&gt;FAILED&lt;/span&gt; - &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;)
+    loads all of the users into &lt;span class=&quot;synIdentifier&quot;&gt;@users&lt;/span&gt; (&lt;span class=&quot;synType&quot;&gt;FAILED&lt;/span&gt; - &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;)
+
+&lt;span class=&quot;synType&quot;&gt;Failures&lt;/span&gt;:
+
+  &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;) &lt;span class=&quot;synType&quot;&gt;UsersController&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;GET&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;#index responds successfully with an HTTP 200 status code&lt;/span&gt;
+     &lt;span class=&quot;synType&quot;&gt;Failure&lt;/span&gt;/&lt;span class=&quot;synConstant&quot;&gt;Error&lt;/span&gt;: get &lt;span class=&quot;synConstant&quot;&gt;:index&lt;/span&gt;
+     &lt;span class=&quot;synType&quot;&gt;ActionController&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;UrlGenerationError&lt;/span&gt;:
+       &lt;span class=&quot;synType&quot;&gt;No&lt;/span&gt; route matches {&lt;span class=&quot;synConstant&quot;&gt;:action&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;index&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:controller&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;users&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;}
+     &lt;span class=&quot;synComment&quot;&gt;# ./spec/controllers/users_controller_spec.rb:11:in `block (3 levels) in &amp;lt;top (required)&amp;gt;&#39;&lt;/span&gt;
+
+  &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;) &lt;span class=&quot;synType&quot;&gt;UsersController&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;GET&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;#index renders the index template&lt;/span&gt;
+     &lt;span class=&quot;synType&quot;&gt;Failure&lt;/span&gt;/&lt;span class=&quot;synConstant&quot;&gt;Error&lt;/span&gt;: get &lt;span class=&quot;synConstant&quot;&gt;:index&lt;/span&gt;
+     &lt;span class=&quot;synType&quot;&gt;ActionController&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;UrlGenerationError&lt;/span&gt;:
+       &lt;span class=&quot;synType&quot;&gt;No&lt;/span&gt; route matches {&lt;span class=&quot;synConstant&quot;&gt;:action&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;index&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:controller&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;users&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;}
+     &lt;span class=&quot;synComment&quot;&gt;# ./spec/controllers/users_controller_spec.rb:18:in `block (3 levels) in &amp;lt;top (required)&amp;gt;&#39;&lt;/span&gt;
+
+  &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;) &lt;span class=&quot;synType&quot;&gt;UsersController&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;GET&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;#index loads all of the users into @users&lt;/span&gt;
+     &lt;span class=&quot;synType&quot;&gt;Failure&lt;/span&gt;/&lt;span class=&quot;synConstant&quot;&gt;Error&lt;/span&gt;: user1 = &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.create!(&lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;test user1&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;email&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;user1@example.com&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;)
+     &lt;span class=&quot;synType&quot;&gt;NameError&lt;/span&gt;:
+       uninitialized constant &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;
+     &lt;span class=&quot;synComment&quot;&gt;# ./spec/controllers/users_controller_spec.rb:24:in `block (3 levels) in &amp;lt;top (required)&amp;gt;&#39;&lt;/span&gt;
+
+&lt;span class=&quot;synType&quot;&gt;Finished&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;0.00799&lt;/span&gt; seconds (files took &lt;span class=&quot;synConstant&quot;&gt;1.93&lt;/span&gt; seconds to &lt;span class=&quot;synPreProc&quot;&gt;load&lt;/span&gt;)
+&lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt; examples, &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt; failures
+
+&lt;span class=&quot;synType&quot;&gt;Failed&lt;/span&gt; examples:
+
+rspec ./spec/controllers/users_controller_spec.rb:&lt;span class=&quot;synConstant&quot;&gt;10&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# UsersController GET #index responds successfully with an HTTP 200 status code&lt;/span&gt;
+rspec ./spec/controllers/users_controller_spec.rb:&lt;span class=&quot;synConstant&quot;&gt;17&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# UsersController GET #index renders the index template&lt;/span&gt;
+rspec ./spec/controllers/users_controller_spec.rb:&lt;span class=&quot;synConstant&quot;&gt;23&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# UsersController GET #index loads all of the users into @users&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;RSpecオプションの設定&lt;/h5&gt;
+    &lt;p&gt;ところで、毎回 &quot;--color&quot; や &quot;--format doc&quot; をオプションとしてつけるのが面倒くさい場合、&lt;br /&gt;
+&quot;.rspec&quot; ファイルにオプションを記載することが可能です。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ vim .rspec
+--color
+--format doc
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;Routingの追加&lt;/h5&gt;
+    &lt;p&gt;rspecコマンドの結果として&quot;No route matches {:action=&gt;&quot;index&quot;, :controller=&gt;&quot;users&quot;}&quot;と出ていたので、&lt;br /&gt;
+route.rbにルートを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ vim config/route.rb
+
+&lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt;.application.routes.draw &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# get /users をアクセスすると、UsersControllerのindexアクションが呼ばれる&lt;/span&gt;
+  get &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;users&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;users#index&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+end
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;UsersControllerの実装&lt;/h5&gt;
+    &lt;p&gt;rspecコマンドを実行します。&lt;br /&gt;
+今度は、&quot;The action &#39;index&#39; could not be found for UsersController&quot;が出るので、&lt;br /&gt;
+UsersControllerクラスにindexメソッドを実装します。&lt;br /&gt;
+index.html.erbはUserの一覧を表示するので、DBからUserを取得し、それをindex.html.erbに渡します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;UsersController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;index&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@users&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.all
+    &lt;span class=&quot;synComment&quot;&gt;# 暗黙的にapp/views/&amp;lt;controller名&amp;gt;/&amp;lt;メソッド名&amp;gt;.html.erbを呼ぶ&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# 今回の場合は、app/views/index.html.erbを呼ぶ&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;UserモデルのRSpec作成&lt;/h5&gt;
+    &lt;p&gt;では、&quot;$ rspec spec/&quot;を実行してみます。&lt;br /&gt;
+    &lt;br /&gt;
+今度は、&quot; uninitialized constant UsersController::User&quot;と出るので、&lt;br /&gt;
+Userモデルを作成しましょう。と思いきや、UserのRSpecを先に作成しましょう。&lt;/p&gt;&lt;p&gt;まずは、マイグレーションファイルやらモデルファイルを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;  $ rails g model &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt; name&lt;span class=&quot;synConstant&quot;&gt;:string&lt;/span&gt; email&lt;span class=&quot;synConstant&quot;&gt;:string&lt;/span&gt;
+    invoke  active_record
+    create    db/migrate/20140718160926_create_users.rb
+    create    app/models/user.rb
+    invoke    rspec
+    create      spec/models/user_spec.rb
+||&amp;lt; 
+
+次に、&lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;モデル用の&lt;span class=&quot;synType&quot;&gt;RSpec&lt;/span&gt;を記載します。
+&amp;gt;|ruby|
+&lt;span class=&quot;synPreProc&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;rails_helper&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+
+&lt;span class=&quot;synType&quot;&gt;RSpec&lt;/span&gt;.describe &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:type&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;:model&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# before()はテスト実行前に実行するソースコードを記載&lt;/span&gt;
+  before { &lt;span class=&quot;synIdentifier&quot;&gt;@user&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.new(&lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;test user&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;email&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;user@example.com&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;) }
+
+  &lt;span class=&quot;synComment&quot;&gt;# it を @user にする&lt;/span&gt;
+  subject { &lt;span class=&quot;synIdentifier&quot;&gt;@user&lt;/span&gt; }
+
+  &lt;span class=&quot;synComment&quot;&gt;# respond_toはメソッドを呼び出せるか調べる&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# つまり、今回の場合は、it(@user)に対して、&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# @user.nameと@user.emailが呼び出せるか調べてる&lt;/span&gt;
+  it { should respond_to &lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt; }
+  it { should respond_to &lt;span class=&quot;synConstant&quot;&gt;:email&lt;/span&gt; }
+
+  &lt;span class=&quot;synComment&quot;&gt;# be_validはデータのValidationが正しいか調べる&lt;/span&gt;
+  it { should be_valid }
+
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+||&amp;lt; 
+
+マイグレーションをします。
+&amp;gt;|ruby|
+$ rake db&lt;span class=&quot;synConstant&quot;&gt;:migrate&lt;/span&gt;
+== &lt;span class=&quot;synConstant&quot;&gt;20140718160926&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;CreateUsers&lt;/span&gt;: migrating ======================================
+-- create_table(&lt;span class=&quot;synConstant&quot;&gt;:users&lt;/span&gt;)
+     -&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;.0017s
+== &lt;span class=&quot;synConstant&quot;&gt;20140718160926&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;CreateUsers&lt;/span&gt;: migrated (&lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;.0019s) =============================
+&lt;/pre&gt;&lt;p&gt;そして、Userモデルのテストを実行します。ActiveRecordパワーにより3件成功です。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;  $ rspec spec/models/user_spec.rb
+  &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;
+    should respond to &lt;span class=&quot;synComment&quot;&gt;#name&lt;/span&gt;
+    should respond to &lt;span class=&quot;synComment&quot;&gt;#email&lt;/span&gt;
+    should be valid
+
+  &lt;span class=&quot;synType&quot;&gt;Finished&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;0.00976&lt;/span&gt; seconds (files took &lt;span class=&quot;synConstant&quot;&gt;1.97&lt;/span&gt; seconds to &lt;span class=&quot;synPreProc&quot;&gt;load&lt;/span&gt;)
+  &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt; examples, &lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt; failures
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;index.html.erbの実装&lt;/h5&gt;
+    &lt;p&gt;Userモデルの準備ができたので、UsersControllerのRSpecを実行します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ rspec spec/controllers/users_controller_spec.rb
+....
+
+&lt;span class=&quot;synType&quot;&gt;Failures&lt;/span&gt;:
+
+  &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;) &lt;span class=&quot;synType&quot;&gt;UsersController&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;GET&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;#index responds successfully with an HTTP 200 status code&lt;/span&gt;
+     &lt;span class=&quot;synType&quot;&gt;Failure&lt;/span&gt;/&lt;span class=&quot;synConstant&quot;&gt;Error&lt;/span&gt;: get &lt;span class=&quot;synConstant&quot;&gt;:index&lt;/span&gt;
+     &lt;span class=&quot;synType&quot;&gt;ActionView&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;MissingTemplate&lt;/span&gt;:
+       &lt;span class=&quot;synType&quot;&gt;Missing&lt;/span&gt; template users/index, application/index with {&lt;span class=&quot;synConstant&quot;&gt;:locale&lt;/span&gt;=&amp;gt;[&lt;span class=&quot;synConstant&quot;&gt;:en&lt;/span&gt;], &lt;span class=&quot;synConstant&quot;&gt;:formats&lt;/span&gt;=&amp;gt;[&lt;span class=&quot;synConstant&quot;&gt;:html&lt;/span&gt;], &lt;span class=&quot;synConstant&quot;&gt;:variants&lt;/span&gt;=&amp;gt;[], &lt;span class=&quot;synConstant&quot;&gt;:handlers&lt;/span&gt;=&amp;gt;[&lt;span class=&quot;synConstant&quot;&gt;:erb&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:builder&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:raw&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:ruby&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:jbuilder&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:coffee&lt;/span&gt;]}. &lt;span class=&quot;synType&quot;&gt;Searched&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;in&lt;/span&gt;:
+         * &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;#&amp;lt;RSpec::Rails::ViewRendering::EmptyTemplatePathSetDecorator:0x007fd2df4226b0&amp;gt;&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+
+....
+&lt;/pre&gt;&lt;p&gt;上記のように、&quot;Missing template users/index ...&quot;と出ているので、&quot;index.html.erb&quot;を実装します。&lt;br /&gt;
+ちなみに、Viewについては、要件がかわりやすく、また、Cucumberのテストと競合するので今回はRSpecは作成しません。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;  $ vim app/views/users/index.html.erb
+
+  &amp;lt;h1&amp;gt;ユーザ一覧&amp;lt;/h1&amp;gt;
+
+  &amp;lt;ul&amp;gt;
+    &amp;lt;% &lt;span class=&quot;synIdentifier&quot;&gt;@users&lt;/span&gt;.each &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;user&lt;/span&gt;| %&amp;gt;
+    &amp;lt;li&amp;gt;
+      &amp;lt;%= user.name %&amp;gt; |
+      &amp;lt;%= user.email %&amp;gt;
+    &amp;lt;/li&amp;gt;
+    &amp;lt;% &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt; %&amp;gt;
+  &amp;lt;/uL&amp;gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;画面の確認&lt;/h5&gt;
+    &lt;p&gt;では、全体のRSpec($ rspec spec/)を実行します。すると、All greenになってます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synType&quot;&gt;UsersController&lt;/span&gt;
+  &lt;span class=&quot;synType&quot;&gt;GET&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;#index&lt;/span&gt;
+    responds successfully with an &lt;span class=&quot;synType&quot;&gt;HTTP&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;200&lt;/span&gt; status code
+    renders the index template
+    loads all of the users into &lt;span class=&quot;synIdentifier&quot;&gt;@users&lt;/span&gt;
+
+&lt;span class=&quot;synType&quot;&gt;Finished&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;0.04051&lt;/span&gt; seconds (files took &lt;span class=&quot;synConstant&quot;&gt;1.94&lt;/span&gt; seconds to &lt;span class=&quot;synPreProc&quot;&gt;load&lt;/span&gt;)
+&lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt; examples, &lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt; failures
+n-mac&lt;span class=&quot;synConstant&quot;&gt;:test_rspec_cucmeber&lt;/span&gt; yanagisawashojiro$ rspec spec
+
+&lt;span class=&quot;synType&quot;&gt;UsersController&lt;/span&gt;
+  &lt;span class=&quot;synType&quot;&gt;GET&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;#index&lt;/span&gt;
+    responds successfully with an &lt;span class=&quot;synType&quot;&gt;HTTP&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;200&lt;/span&gt; status code
+    renders the index template
+    loads all of the users into &lt;span class=&quot;synIdentifier&quot;&gt;@users&lt;/span&gt;
+
+&lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;
+  should respond to &lt;span class=&quot;synComment&quot;&gt;#name&lt;/span&gt;
+  should respond to &lt;span class=&quot;synComment&quot;&gt;#email&lt;/span&gt;
+  should be valid
+
+&lt;span class=&quot;synType&quot;&gt;Finished&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;in&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;0.04497&lt;/span&gt; seconds (files took &lt;span class=&quot;synConstant&quot;&gt;1.95&lt;/span&gt; seconds to &lt;span class=&quot;synPreProc&quot;&gt;load&lt;/span&gt;)
+&lt;span class=&quot;synConstant&quot;&gt;6&lt;/span&gt; examples, &lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt; failures
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+ユーザ一覧画面ができたので、画面を見ましょう。&lt;br /&gt;
+その前に、データが一つもないのでコンソールから追加しておきます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ rails console
+
+&lt;span class=&quot;synConstant&quot;&gt;001&lt;/span&gt;:&lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;&amp;gt; &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.create(&lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;test user&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;email&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;user@example.com&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;)
+&lt;span class=&quot;synConstant&quot;&gt;002&lt;/span&gt;:&lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;&amp;gt; &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.all.count &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; 1&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;003&lt;/span&gt;:&lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;&amp;gt; &lt;span class=&quot;synStatement&quot;&gt;exit&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;サーバを起動($ rails server)し、画面は次の通りです。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140719/20140719031445.png&quot; alt=&quot;f:id:nipe880324:20140719031445p:plain:w480&quot; title=&quot;f:id:nipe880324:20140719031445p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;7. Cucumberでシナリオのテスト成功&lt;/h3&gt;
+    
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;Cucumberのテスト&lt;/h5&gt;
+    &lt;p&gt;Cucumberのテストを実行すると、成功しています。&lt;br /&gt;
+これで、ユーザ一覧画面の基本的な機能を実装できることができました。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ cucumber features/user_index.feature 
+
+&lt;span class=&quot;synType&quot;&gt;Using&lt;/span&gt; the default profile...
+&lt;span class=&quot;synComment&quot;&gt;# language: ja&lt;/span&gt;
+フィーチャ: ユーザ一覧画面
+  管理者として、
+  登録している全てのユーザを見たい。
+  なぜなら、ユーザを管理したいから。
+
+  シナリオアウトライン: ユーザ一覧画面を表示     &lt;span class=&quot;synComment&quot;&gt;# features/user_index.feature:8&lt;/span&gt;
+    前提ユーザ数が&amp;lt;ユーザ数&amp;gt;件登録されている    &lt;span class=&quot;synComment&quot;&gt;# features/step_definitions/users_steps.rb:1&lt;/span&gt;
+    もしユーザ一覧画面を表示する           &lt;span class=&quot;synComment&quot;&gt;# features/step_definitions/users_steps.rb:8&lt;/span&gt;
+    ならば&amp;lt;ユーザ数&amp;gt;件のユーザ情報が表示されること &lt;span class=&quot;synComment&quot;&gt;# features/step_definitions/users_steps.rb:12&lt;/span&gt;
+
+    例: 
+      | ユーザ数 |
+      | &lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;    |
+      | &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;    |
+
+&lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt; scenarios (&lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt; passed)
+&lt;span class=&quot;synConstant&quot;&gt;6&lt;/span&gt; steps (&lt;span class=&quot;synConstant&quot;&gt;6&lt;/span&gt; passed)
+0m0.969s
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;リファクタリング&lt;/h5&gt;
+    &lt;p&gt;では、テストを通ったので、リファクタリングをしていきます。&lt;br /&gt;
+Viewのリファクタリングです。&lt;br /&gt;
+View内にあるループや共通部分は、別ファイルに記載し、renderで呼び出すことで可読性や再利用性を上げることができます。&lt;br /&gt;
+ループ構造になっているので、ループ箇所を削除して、&quot;render&quot;メソッドに変更します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ vim app/views/users/index.html.erb
+
+&amp;lt;h1&amp;gt;ユーザ一覧&amp;lt;/h1&amp;gt;
+
+&amp;lt;ul&amp;gt;
+  &amp;lt;!-- &lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt;は_user.html.erbを探して、
+      &lt;span class=&quot;synIdentifier&quot;&gt;@users&lt;/span&gt;の数だけ_user.html.erbをレンダリングする --&amp;gt;
+  &amp;lt;%= render &lt;span class=&quot;synIdentifier&quot;&gt;@users&lt;/span&gt; %&amp;gt;
+&amp;lt;/uL&amp;gt;
+&lt;/pre&gt;&lt;p&gt;削除した箇所をuser.html.erbを作成します。&lt;br /&gt;
+二つを合わせれば、元のソースコードと比べると、ループがなくなったのがわかるでしょうか。&lt;br /&gt;
+これで可読性が上がりました。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ vim app/views/users/_user.html.erb
+
+&amp;lt;li&amp;gt;
+  &amp;lt;%= user.name %&amp;gt; | 
+  &amp;lt;%= user.email %&amp;gt;
+&amp;lt;/li&amp;gt; 
+&lt;/pre&gt;&lt;p&gt;ソースコードをリファクタリングしたので、&lt;br /&gt;
+CucumberとRSpecを実行し、テストに成功することを確認して下さい。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;8. まとめ&lt;/h3&gt;
+    &lt;p&gt;他の機能や、モデルの入力チェックなど作り込みはあまいですが、&lt;br /&gt;
+長くなってしまったのでここら辺でまとめます。&lt;/p&gt;&lt;p&gt;このように、&lt;br /&gt;
+　1. Cucumberでシナリオを作成しテスト失敗する(featureファイルとstepファイルを記載)&lt;br /&gt;
+　2. RSpecでテストを記載し、そのテストが通るように実装する、できるようならリファクタリングする&lt;br /&gt;
+　3. Cucumberのシナリオが通ることを確認する、できるようならリファクタリングする&lt;br /&gt;
+といった流れで少しずつ機能を作っていきます。&lt;/p&gt;&lt;p&gt;CapybaraやRSpecのメソッドなどより詳細については次の公式ドキュメントを読めば分かると思います。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考サイト&lt;/h3&gt;
+    &lt;p&gt;  &lt;a href=&quot;https://github.com/rspec/rspec-rails&quot;&gt;https://github.com/rspec/rspec-rails&lt;/a&gt;&lt;br /&gt;
+  &lt;a href=&quot;https://github.com/jnicklas/capybara&quot;&gt;https://github.com/jnicklas/capybara&lt;/a&gt;&lt;br /&gt;
+  &lt;a href=&quot;https://github.com/cucumber/cucumber/wiki/ruby-on-rails&quot;&gt;https://github.com/cucumber/cucumber/wiki/ruby-on-rails&lt;/a&gt;&lt;/p&gt;
+
+&lt;/div&gt;</description>
+          <pubDate>Sat, 19 Jul 2014 22:51:58 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/12921228815728440240</guid>
+          
+            <category>Rails gem</category>
+          
+            <category>テスト</category>
+          
+        </item>
+      
+        <item>
+          <title>RailsでCucumberとRSpecを使うテスト環境を構築する</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20140719/1405708234</link>
+          <description>&lt;p&gt;RailsでCucumberとRSpecを使ってテストを行う環境を構築する方法について説明します。&lt;/p&gt;&lt;p&gt;本記事で環境の構築が完了したら「&lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20140719/1405777918&quot; target=&quot;_blank&quot;&gt;RailsでCucumberとRSpecを使ってテストを行う実例&lt;/a&gt;」を参照してください。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;実施環境&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Mac OS X 10.9&lt;/li&gt;
+&lt;li&gt;Ruby 2.0.0p247&lt;/li&gt;
+&lt;li&gt;Rails 4.1.4&lt;/li&gt;
+&lt;li&gt;cucumber-rails 1.4.1&lt;/li&gt;
+&lt;li&gt;RSpec-rails 3.0.1&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;br /&gt;
+Railsプロジェクトの作成&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;$ rails new test_rspec_cucmber &lt;span class=&quot;synSpecial&quot;&gt;--skip-test-unit&lt;/span&gt;
+--skip-&lt;span class=&quot;synStatement&quot;&gt;test&lt;/span&gt;-unit:デフォルトのTestフォルダを作らない
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+Gemfileの修正&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ vim &lt;span class=&quot;synType&quot;&gt;Gemfile&lt;/span&gt;
+
+....
+group &lt;span class=&quot;synConstant&quot;&gt;:development&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:test&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;sqlite3&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;     &lt;span class=&quot;synComment&quot;&gt;# 開発、テスト環境ではSQLite3を使う&lt;/span&gt;
+  gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;rspec-rails&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# RSpec用&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+group &lt;span class=&quot;synConstant&quot;&gt;:test&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;selenium-webdriver&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;  &lt;span class=&quot;synComment&quot;&gt;# CapybaraがSeleniumに依存しているため追加&lt;/span&gt;
+  gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;capybara&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;            &lt;span class=&quot;synComment&quot;&gt;# 英語に文法でRSpecにテストを記述できる&lt;/span&gt;
+  gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;factory_girl_rails&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;  &lt;span class=&quot;synComment&quot;&gt;# FactoryGirl追加&lt;/span&gt;
+  gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;cucumber-rails&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:require&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# Cucumber追加&lt;/span&gt;
+  gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;database_cleaner&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;github&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;bmabey/database_cleaner&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# Cucumber用にDBクリーナーを追加&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+バンドルのインストールを実施する&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ bundle install
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+RSpecのインストール&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;  $ rails g rspec&lt;span class=&quot;synConstant&quot;&gt;:install&lt;/span&gt;
+      create  .rspec
+      create  spec
+      create  spec/spec_helper.rb
+      create  spec/rails_helper.rb
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+Cucumberのインストール&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ rails generate cucumber&lt;span class=&quot;synConstant&quot;&gt;:install&lt;/span&gt;
+      create  config/cucumber.yml
+      create  script/cucumber
+       chmod  script/cucumber
+      create  features/step_definitions
+      create  features/step_definitions/.gitkeep
+      create  features/support
+      create  features/support/env.rb
+       exist  lib/tasks
+      create  lib/tasks/cucumber.rake
+        gsub  config/database.yml
+        gsub  config/database.yml
+       force  config/database.yml
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+以上です。&lt;/p&gt;&lt;p&gt;次にCucumberとRSpecを使いながら開発を行う例を説明します。&lt;br /&gt;
+&lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20140719/1405777918&quot; target=&quot;_blank&quot;&gt;RailsでCucumberとRSpecを使ってテストを行う実例&lt;/a&gt;&lt;/p&gt;
+
+&lt;/div&gt;</description>
+          <pubDate>Sat, 19 Jul 2014 03:30:34 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/12921228815728439780</guid>
+          
+            <category>Rails gem</category>
+          
+            <category>テスト</category>
+          
+        </item>
+      
+    
+  </channel>
+</rss>

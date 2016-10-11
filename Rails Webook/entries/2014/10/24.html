@@ -1,0 +1,1692 @@
+<!DOCTYPE html>
+<html
+  lang="ja"
+data-avail-langs="ja en"
+
+data-page="entries-year-month-day"
+data-static-domain="https://blog.st-hatena.com"
+data-blog="ruby-rails.hatenadiary.com"
+data-blog-name="Rails Webook"
+data-blogs-uri-base="http://ruby-rails.hatenadiary.com"
+data-globalheader-color="b"
+data-author="nipe880324"
+data-version="228df9a6e5a3ae04fdb53d33befa3556"
+data-blog-comments-top-is-new=""
+data-plus-available=""
+
+
+
+data-admin-domain="http://blog.hatena.ne.jp"
+
+data-brand="hatenablog"
+
+data-has-touch-view="1"
+
+
+itemscope
+itemtype="http://schema.org/Blog"
+
+
+  data-device="pc"
+  data-globalheader-type="pc"
+  >
+  <head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+    
+    
+    
+
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=7; IE=9; IE=10; IE=11" />
+    <title>2014-10-24 - Rails Webook</title>
+
+    
+
+    
+
+    
+    
+
+<meta itemprop="name" content="2014-10-24 - Rails Webook"/>
+
+  <meta itemprop="image" content="https://blog.st-hatena.com/images/theme/og-image-1500.png"/>
+
+
+    <meta property="og:title" content="2014-10-24 - Rails Webook"/>
+<meta property="og:type" content="blog"/>
+<meta property="og:url" content=""/>
+
+  
+  
+  
+  <meta property="og:image" content="https://blog.st-hatena.com/images/theme/og-image-1500.png"/>
+
+  <meta property="og:description" content="自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます" />
+<meta property="og:site_name" content="http://ruby-rails.hatenadiary.com/"/>
+
+        <meta name="twitter:card"  content="summary" />  <meta name="twitter:title" content="2014-10-24 - Rails Webook" />  <meta name="twitter:description" content="自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます" />  <meta name="twitter:app:name:iphone" content="はてなブログアプリ" />
+  <meta name="twitter:app:id:iphone" content="583299321" />
+  <meta name="twitter:app:url:iphone" content="hatenablog:///open?uri=http%3A%2F%2Fruby-rails.hatenadiary.com%2Fentries%2F2014%2F10%2F24" />  <meta name="twitter:site" content="@nipe032488" />
+    
+    <meta name="description" content="毎週更新。Railsプログラマがソフトウェア開発を効果的・効率的にするために、分かりやすく・使いやすい形でRailsに関する技術情報を記載。">    <meta name="google-site-verification" content="OyOieuLgSrQckqbACTn_Q3G1dPq6LMlTqBRHa6V1XsA">    <meta name="keywords" content="Rails,Ruby on Rails,gem,Webアプリケーション,開発,構築,運用,インフラ">
+
+    
+<script type="text/javascript">
+// <!--
+
+if (~navigator.userAgent.indexOf('Mac OS X')) {
+  document.write('<style type="text/css">html, body { font-family: \x27Helvetica\x27, \x27Arial\x27, \x27ヒラギノ角ゴ Pro W3\x27, \x27Hiragino Kaku Gothic Pro\x27, sans-serif; } </style>');
+} else {
+  document.write('<style type="text/css">html, body { font-family: \x27Helvetica\x27, \x27Arial\x27, \x27メイリオ\x27, \x27Meiryo\x27, \x27MS PGothic\x27, sans-serif; } </style>');
+}
+
+// -->
+</script>
+
+<!--[if lt IE 9]>
+<script src="https://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+
+
+
+
+    <link rel="shortcut icon" href="https://blog.st-hatena.com/images/favicon.ico">
+<link rel="icon" sizes="192x192" href="https://blog.st-hatena.com/images/common/meta-icon-global.png">
+
+    
+<link rel="alternate" type="application/atom+xml" title="Atom" href="../../../feed"/>
+<link rel="alternate" type="application/rss+xml" title="RSS2.0" href="../../../rss.rss"/>
+
+
+      <link rel="author" href="http://www.hatena.ne.jp/nipe880324/">
+    
+
+    <link rel="stylesheet" type="text/css" href="https://blog.st-hatena.com/css/blog.css?version=228df9a6e5a3ae04fdb53d33befa3556"/>
+
+    
+  <link rel="stylesheet" type="text/css" href="http://blog.hatena.ne.jp/-/blog_style/12921228815727789780/a052dbbef76fd4380abc811c11814f2d9f990b9a"/>
+
+    <script></script>
+
+    
+<style>div#google_afc_user,
+  div#google_afc_user_container_0,
+  div#google_afc_user_container_1,
+  div#google_afc_user_container_2,
+  div#google_afc_user_container_3,
+  div#google_afc_user_container_4,
+  div#google_afc_user_container_5,
+  div.google_afc_image,
+  div.google_afc_blocklink {
+      display: block !important;
+  }
+</style>
+
+
+    
+  </head>
+
+  <body class="page-entries-year-month-day enable-top-editarea enable-bottom-editarea">
+    <!-- Google Universal Analytics -->
+<script id="google-analytics-script">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-29716941-6', 'auto', {'name': 'HatenaBlogTracker', 'sampleRate': 1});
+  ga('HatenaBlogTracker.require', 'displayfeatures');
+  ga('HatenaBlogTracker.send', 'pageview');
+  ga('create', 'UA-29716941-26', 'auto', {'name': 'HatenaBlogSeparatedTracker', 'sampleRate': 10});
+  ga('HatenaBlogSeparatedTracker.require', 'displayfeatures');
+  ga('HatenaBlogSeparatedTracker.send', 'pageview');
+
+    
+      ga('create', 'UA-45988509-6', 'auto', {'name': 'HatenaBlogUserTracker'});
+      ga('HatenaBlogUserTracker.require', 'displayfeatures');
+      ga('HatenaBlogUserTracker.send', 'pageview');
+    
+  
+  ga('create', 'UA-7855606-1', 'auto', {'name': 'HatenaGlobalTracker', 'sampleRate': 1});
+  ga('HatenaGlobalTracker.require', 'displayfeatures');
+  ga('HatenaGlobalTracker.send', 'pageview');
+</script>
+<!-- End Google Universal Analytics -->
+
+    
+    <div id="header-container">
+     <div id="sp-suggest" style="display: none;"><a id="sp-suggest-link" href="24.html#">スマートフォン用の表示で見る</a></div>
+    </div>
+
+    
+
+<div class="quote-box">
+  <div class="tooltip-quote tooltip-quote-star">
+    <i class="blogicon-star" title="引用スターをつける"></i>
+  </div>
+  <div class="tooltip-quote tooltip-quote-stock">
+    <i class="blogicon-quote" title="引用をストック"></i>
+  </div>
+</div>
+
+<div class="message-box" id="quote-star-message-box" style="display: none; position: absolute;">
+  スターをつけました
+</div>
+
+<div class="quote-stock-panel" id="quote-stock-message-box" style="position: absolute; z-index: 3000">
+  <div class="message-box" id="quote-stock-succeeded-message" style="display: none">
+    <p>引用をストックしました</p>
+    <button class="btn btn-primary" id="quote-stock-show-editor-button" data-track-name="curation-quote-edit-button">ストック一覧を見る</button>
+    <button class="btn quote-stock-close-message-button">閉じる</button>
+  </div>
+
+  <div class="message-box" id="quote-login-required-message" style="display: none">
+    <p>引用するにはまずログインしてください</p>
+    <button class="btn btn-primary" id="quote-login-button">ログイン</button>
+    <button class="btn quote-stock-close-message-button">閉じる</button>
+  </div>
+
+  <div class="error-box" id="quote-stock-failed-message" style="display: none">
+    <p>引用をストックできませんでした。再度お試しください</p>
+    <button class="btn quote-stock-close-message-button">閉じる</button>
+  </div>
+
+  <div class="error-box" id="unstockable-quote-message-box" style="display: none; position: absolute; z-index: 3000;">
+    <p>限定公開記事のため引用できません。</p>
+  </div>
+</div>
+
+<script type="x-underscore-template" id="js-requote-button-template">
+  <div class="requote-button js-requote-button">
+    <button class="requote-button-btn tipsy-top" title="引用する"><i class="blogicon-quote"></i></button>
+  </div>
+</script>
+
+
+    <div id="globalheader-container" >
+  <iframe id="globalheader" height="37" frameborder="0" allowTransparency="true"></iframe>
+</div>
+
+
+    
+    <div id="hidden-subscribe-button">
+      <div class="hatena-follow-button-box btn-subscribe js-hatena-follow-button-box"
+  
+  >
+
+  <a href="24.html#" class="hatena-follow-button js-hatena-follow-button">
+    <span class="subscribing">
+      <span class="foreground">読者です</span>
+      <span class="background">読者をやめる</span>
+    </span>
+    <span class="unsubscribing" data-track-name="profile-widget-subscribe-button" data-track-once>
+      <span class="foreground">読者になる</span>
+      <span class="background">読者になる</span>
+    </span>
+  </a>
+  <div class="subscription-count-box js-subscription-count-box">
+    <i></i>
+    <u></u>
+    <span class="subscription-count js-subscription-count">
+    </span>
+  </div>
+</div>
+
+    </div>
+
+    <div id="container">
+      <div id="container-inner">
+        <header id="blog-title" data-brand="hatenablog">
+  <div id="blog-title-inner" >
+    <div id="blog-title-content">
+      <h1 id="title"><a href="../../../index.html">Rails Webook</a></h1>
+      
+        <h2 id="blog-description">自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</h2>
+      
+    </div>
+  </div>
+</header>
+
+        
+          <div id="top-editarea">
+            <!-- start Mixpanel --><script type="text/javascript">(function(e,b){if(!b.__SV){var a,f,i,g;window.mixpanel=b;b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable time_event track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.union people.track_charge people.clear_charges people.delete_user".split(" ");
+for(g=0;g<i.length;g++)f(c,i[g]);b._i.push([a,e,d])};b.__SV=1.2;a=e.createElement("script");a.type="text/javascript";a.async=!0;a.src="undefined"!==typeof MIXPANEL_CUSTOM_LIB_URL?MIXPANEL_CUSTOM_LIB_URL:"file:"===e.location.protocol&&"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js".match(/^\/\//)?"https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js":"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js";f=e.getElementsByTagName("script")[0];f.parentNode.insertBefore(a,f)}})(document,window.mixpanel||[]);
+mixpanel.init("16db652100dca0a23c6a55a9205f0824");</script><!-- end Mixpanel -->
+<script async src="http://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- rails top bar 728 x 90 -->
+<ins class="adsbygoogle"
+     style="display:inline-block;width:728px;height:90px"
+     data-ad-client="ca-pub-2736751992834286"
+     data-ad-slot="6687328050"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+          </div>
+        
+        
+        
+
+
+
+<div id="content" class="hfeed"
+  
+  >
+  <div id="content-inner">
+    <div id="wrapper">
+      <div id="main">
+        <div id="main-inner">
+          
+            
+            <!-- google_ad_section_start -->
+            <!-- rakuten_ad_target_begin -->
+            
+              
+                <article class="entry hentry js-entry-article date-first autopagerize_page_element chars-11200 words-1400 mode-hatena entry-odd" id="entry-8454420450069938973" data-keyword-campaign="" data-uuid="8454420450069938973">
+  <div class="entry-inner">
+    <header class="entry-header">
+      <div class="entry-date date first">
+        <a href="24.html" rel="nofollow">
+          <time pubdate datetime="2014-10-23T16:20:24Z" title="2014-10-23T16:20:24Z">
+            <span class="date-year">2014</span><span class="hyphen">-</span><span class="date-month">10</span><span class="hyphen">-</span><span class="date-day">24</span>
+          </time>
+        </a>
+      </div>
+      <h1 class="entry-title">
+        <a href="../../../entry/20141024/1414081224.html" class="entry-title-link bookmark">Railsの開発効率をあげる - Pryを使ってRailsのコンソールをパワーアップ &amp; デバッグをする</a>
+      </h1>
+      
+      
+        <div class="entry-categories categories">
+          
+          <a href="../../../archive/category/Rails%20gem.html">Rails gem</a>
+          
+          <a href="../../../archive/category/%E9%96%8B%E7%99%BA%E3%82%92%E5%8A%B9%E7%8E%87%E5%8C%96%E3%81%99%E3%82%8B.html">開発を効率化する</a>
+          
+        </div>
+      
+      
+
+      
+    </header>
+        
+    <div class="entry-content">
+
+      
+        
+<div class="section">
+    <h3>Pryとは</h3>
+    <p>Rubyには、標準で付属されているirb(Interactive Ruby)というツールがあります。<br />
+consoleで、<code>irb</code>と入力するとirbが実行されます。<br />
+そこで、対話的にRubyの式を入力・実行することができます。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>$ irb
+irb(main):<span class="synConstant">001</span>:<span class="synConstant">0</span>&gt; <span class="synConstant">1</span> + <span class="synConstant">2</span>
+=&gt; <span class="synConstant">3</span>
+</pre><p><br />
+そして、Pryはirbの代替となるパワフルな対話ツールです。<br />
+なにがパワフルかというと次のようなことができます。</p>
+
+<ul>
+<li>ドキュメントが見れる</li>
+<li>シンタックスハイライト</li>
+<li>デバッグができる（<code>binding.pry</code>をソース二記載するとブレイクポイントになる）</li>
+</ul><pre class="code lang-ruby" data-lang="ruby" data-unlink>$ pry
+[<span class="synConstant">1</span>] pry(main)&gt; ls     <span class="synComment"># 現在のスコープの変数とメソッドを表示</span>
+<span class="synConstant">self</span>.<span class="synConstant">methods</span>: inspect  to_s
+<span class="synConstant">locals</span>: _  __  _dir_  _ex_  _file_  _in_  _out_  _pry_
+</pre>
+</div>
+<div class="section">
+    <h3>動作確認</h3>
+    
+<ul>
+<li>Rails      4.1</li>
+<li>pry-rails  0.3.2</li>
+<li>pry-doc    0.6.0</li>
+<li>pry-byebug 2.0</li>
+<li>pry-stack_explorer 0.4.9.1</li>
+</ul>
+</div>
+<div class="section">
+    <h3>目次</h3>
+    
+<ul>
+<li><a href="24.html#pry-create-rails">Railsプロジェクトを作成</a></li>
+<li><a href="24.html#pry-install">pryをインストール</a></li>
+<li><a href="24.html#pry-pry">pryコマンド</a></li>
+<li><a href="24.html#pry-pry-rails">pry-railsコマンド</a></li>
+<li><a href="24.html#pry-pry-byebug">pry-byebugでデバッグ</a></li>
+<li><a href="24.html#pry-pry-stack_explorer">pry-stack_explorerでより深くデバッグ</a></li>
+</ul><p><br />
+<h3 id="pry-create-rails">1. Railsプロジェクトを作成</h3></p><p>まずはRailsプロジェクトを作成します。</p>
+<pre class="code" data-lang="" data-unlink>rails new pry_test
+cd pry_test</pre><p>次にPryで捜査を確認するために、UserモデルとCommentモデルを作成します。</p>
+<pre class="code" data-lang="" data-unlink>rails g scaffold User firstname:string lastname:string email:string
+rails g model Comment body:string user:references
+rake db:migrate</pre><p>Userモデルにアソシエーションを追加します。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synComment"># app/models/user.rb</span>
+<span class="synPreProc">class</span> <span class="synType">User</span> &lt; <span class="synType">ActiveRecord</span>::<span class="synType">Base</span>
+  has_many <span class="synConstant">:comments</span>
+<span class="synPreProc">end</span>
+</pre><p>Commentモデルを作成したときに<code>user:references</code>を追加したので既にアソシエーションがついています。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synComment"># app/models/comment.rb</span>
+<span class="synPreProc">class</span> <span class="synType">Comment</span> &lt; <span class="synType">ActiveRecord</span>::<span class="synType">Base</span>
+  belongs_to <span class="synConstant">:user</span>
+<span class="synPreProc">end</span>
+</pre><p></p><p><h3 id="pry-install">2. pryをインストール</h3></p><p><code>Gemfile</code>にPryを追加します。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synComment"># Gemfile</span>
+
+group <span class="synConstant">:development</span>, <span class="synConstant">:test</span> <span class="synStatement">do</span>
+  gem <span class="synSpecial">'</span><span class="synConstant">pry-rails</span><span class="synSpecial">'</span>  <span class="synComment"># rails console(もしくは、rails c)でirbの代わりにpryを使われる</span>
+  gem <span class="synSpecial">'</span><span class="synConstant">pry-doc</span><span class="synSpecial">'</span>    <span class="synComment"># methodを表示</span>
+  gem <span class="synSpecial">'</span><span class="synConstant">pry-byebug</span><span class="synSpecial">'</span> <span class="synComment"># デバッグを実施(Ruby 2.0以降で動作する)</span>
+  gem <span class="synSpecial">'</span><span class="synConstant">pry-stack_explorer</span><span class="synSpecial">'</span> <span class="synComment"># スタックをたどれる</span>
+<span class="synStatement">end</span>
+</pre><p>Bundlerでgemをインストールします。</p>
+<pre class="code" data-lang="" data-unlink>bundle install</pre><p>では、<code>rails c</code>でconsoleを開きましょう。<br />
+consoleに<code>pry(main)</code>と表示されれば、Pryが使われている証拠です。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>$ rails c
+<span class="synType">Loading</span> development environment (<span class="synType">Rails</span> <span class="synConstant">4.1</span>.<span class="synConstant">5</span>)
+[<span class="synConstant">1</span>] pry(main)&gt;
+</pre><p><br />
+ちなみに、Pryを入れていない場合は、Rubyに標準で付属しているirbが使われます。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>$ rails c
+<span class="synType">Loading</span> development environment (<span class="synType">Rails</span> <span class="synConstant">4.1</span>.<span class="synConstant">5</span>)
+irb(main):<span class="synConstant">001</span>:<span class="synConstant">0</span>&gt;
+</pre><p></p><p><h3 id="pry-pry">3. pryコマンド</h3>Railsのルートで、<code>rails c</code>でPryを使うことができます。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>$ rails c
+<span class="synType">Loading</span> development environment (<span class="synType">Rails</span> <span class="synConstant">4.1</span>.<span class="synConstant">5</span>)
+[<span class="synConstant">1</span>] pry(main)&gt; a = <span class="synConstant">10</span>
+=&gt; <span class="synConstant">10</span>
+[<span class="synConstant">2</span>] pry(main)&gt; watch a  <span class="synComment"># watch:変更されたら通知するように設定するコマンド</span>
+<span class="synType">Watching</span> a
+<span class="synConstant">watch</span>: a =&gt; <span class="synConstant">10</span>
+[<span class="synConstant">3</span>] pry(main)&gt; a = <span class="synConstant">20</span>
+<span class="synConstant">watch</span>: a =&gt; <span class="synConstant">20</span>          <span class="synComment"># 変更されたので通知される</span>
+=&gt; <span class="synConstant">20</span>
+</pre><p><br />
+Pryでは次のようなコマンドが使えますので、ざっと確認しておいて損はないと思います。</p>
+<pre class="code" data-lang="" data-unlink>ヘルプ
+  help               コマンドの情報を表示
+
+コンテキスト
+  cd                 新しいコンテキスト（オブジェクトかスコープ）に移動
+  find-method        現在のclass/module、ネームスペース内のメソッドを探す
+  ls                 現在のスコープ内の変数やメソッドのリストを表示
+  pry-backtrace      pryセッションのバックトレースを表示
+  raise-up           現在のpryインスタンス外でExceptionを発生させる
+  reset              Reset the repl to a clean state.
+  watch              Expressionの値を確認し、変わったときにNotificationを表示する
+  whereami           現在のコンテキスト周辺のコードを表示
+  wtf?               直近のExceptionのバックトレースを表示
+
+編集
+  /^\s*!\s*$/        入力バッファをクリア
+  amend-line         マルチラインモードでの入力ラインを修正
+  edit               Invoke the default editor on a file.
+  hist               コマンド入力の履歴を表示する
+  play               Playback a string variable, method, line, or file as input.
+  show-input         Show the contents of the input buffer for the current multi-line expression.
+
+Introspection
+  ri                 View ri documentation.
+  show-doc           Show the documentation for a method or class.
+  show-source        Show the source for a method or class.
+  stat               View method information and set _file_ and _dir_ locals.
+
+Gems
+  gem-cd             Change working directory to specified gem&#39;s directory.
+  gem-install        Install a gem and refresh the gem cache.
+  gem-list           List and search installed gems.
+  gem-open           Opens the working directory of the gem in your editor.
+
+Commands
+  import-set         Import a pry command set.
+  install-command    Install a disabled command.
+
+Aliases
+  !!!                Alias for `exit-program`
+  !!@                Alias for `exit-all`
+  $                  Alias for `show-source`
+  ?                  Alias for `show-doc`
+  @                  Alias for `whereami`
+  breakpoint         Alias for `break`
+  breaks             Alias for `breakpoints`
+  c                  Alias for `continue`
+  clipit             Alias for `gist --clip`
+  f                  Alias for `finish`
+  file-mode          Alias for `shell-mode`
+  history            Alias for `hist`
+  n                  Alias for `next`
+  quit               Alias for `exit`
+  quit-program       Alias for `exit-program`
+  reload-method      Alias for `reload-code`
+  s                  Alias for `step`
+  show-method        Alias for `show-source`
+
+Input and output
+  .&lt;shell command&gt;   All text following a &#39;.&#39; is forwarded to the shell.
+  cat                Show code from a file, pry&#39;s input buffer, or the last exception.
+  change-inspector   Change the current inspector proc.
+  change-prompt      Change the current prompt.
+  fix-indent         Correct the indentation for contents of the input buffer
+  list-inspectors    List the inspector procs available for use.
+  list-prompts       List the prompts available for use.
+  save-file          Export to a file using content from the repl.
+  shell-mode         Toggle shell mode. bring in pwd prompt and file completion.
+
+Misc
+  gist               Upload code, docs, history to https://gist.github.com/.
+  pry-version        Show pry version.
+  reload-code        Reload the source file that contains the specified code object.
+  toggle-color       Toggle syntax highlighting.
+
+Navigating pry
+  !pry               Start a pry session on current self.
+  disable-pry        Stops all future calls to pry and exits the current session.
+  exit               Pop the previous binding.
+  exit-all           End the current pry session.
+  exit-program       End the current program.
+  jump-to            Jump to a binding further up the stack.
+  nesting            Show nesting information.
+  switch-to          Start a new subsession on a binding in the current stack.
+
+Prompts
+  simple-prompt      Toggle the simple prompt.</pre><p></p><p><h3 id="pry-pry-rails">4. pry-railsコマンド</h3>pry-railsを入れることで、モデルやルートなどを確認することができます。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>$ rails c
+[<span class="synConstant">1</span>] pry(main)&gt; show-models   <span class="synComment"># すべてのモデルを表示する</span>
+<span class="synComment"># 今回定義したCommentとUserモデルが表示さています</span>
+<span class="synType">Comment</span>
+  <span class="synConstant">id</span>: integer
+  <span class="synConstant">body</span>: string
+  <span class="synConstant">user_id</span>: integer
+  <span class="synConstant">created_at</span>: datetime
+  <span class="synConstant">updated_at</span>: datetime
+  belongs_to <span class="synConstant">:user</span>
+<span class="synType">User</span>
+  <span class="synConstant">id</span>: integer
+  <span class="synConstant">firstname</span>: string
+  <span class="synConstant">lastname</span>: string
+  <span class="synConstant">email</span>: string
+  <span class="synConstant">created_at</span>: datetime
+  <span class="synConstant">updated_at</span>: datetime
+  has_many <span class="synConstant">:comments</span>
+</pre><p>では、pry-railsのコマンド一覧です。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synType">Rails</span>
+  recognize-path     どのルートにマッチする<span class="synType">URL</span>か確認する
+  show-middleware    すべてのミドルウェアを表示する
+  show-model         引数で指定したモデルを表示する
+  show-models        すべてのモデルを表示する
+  show-routes        すべてのルートを表示する
+</pre><p></p><p><h3 id="pry-pry-byebug">5. pry-byebugでデバッグ</h3>pry-byebugを使うことにより、デバッグを実行することが可能です。</p>
+
+<div class="section">
+    <h4>ブレークポイントを設定</h4>
+    <p>binding.pryとソースに入力し、そこがブレークポイントになります。<br />
+そこの箇所でプログラムが中断されます。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synComment"># app/controllers/users_controller.rb</span>
+  ...
+  <span class="synComment"># POST /users</span>
+  <span class="synComment"># POST /users.json</span>
+  <span class="synPreProc">def</span> <span class="synIdentifier">create</span>
+    <span class="synIdentifier">@user</span> = <span class="synType">User</span>.new(user_params)
+    binding.pry <span class="synComment"># ブレークポイントを設定</span>
+    puts <span class="synSpecial">&quot;</span><span class="synConstant">execute</span><span class="synSpecial">&quot;</span>
+
+    respond_to <span class="synStatement">do</span> |<span class="synIdentifier">format</span>|
+      <span class="synStatement">if</span> <span class="synIdentifier">@user</span>.save
+        format.html { redirect_to <span class="synIdentifier">@user</span>, <span class="synConstant">notice</span>: <span class="synSpecial">'</span><span class="synConstant">User was successfully created.</span><span class="synSpecial">'</span> }
+        format.json { render <span class="synConstant">:show</span>, <span class="synConstant">status</span>: <span class="synConstant">:created</span>, <span class="synConstant">location</span>: <span class="synIdentifier">@user</span> }
+      <span class="synStatement">else</span>
+        format.html { render <span class="synConstant">:new</span> }
+        format.json { render <span class="synConstant">json</span>: <span class="synIdentifier">@user</span>.errors, <span class="synConstant">status</span>: <span class="synConstant">:unprocessable_entity</span> }
+      <span class="synStatement">end</span>
+    <span class="synStatement">end</span>
+  <span class="synPreProc">end</span>
+  ...
+</pre>
+</div>
+<div class="section">
+    <h4>プログラム実行</h4>
+    <p><code>.</code>をつけることでTerminalコマンドを実行することができるので、<code>.rails s</code>とPry上で実行して、サーバーを起動しましょう。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>[<span class="synConstant">29</span>] pry(main)&gt; .rails s
+=&gt; <span class="synType">Booting</span> <span class="synType">WEBrick</span>
+=&gt; <span class="synType">Rails</span> <span class="synConstant">4.1</span>.<span class="synConstant">5</span> application starting <span class="synStatement">in</span> development on http<span class="synConstant">:/</span>/<span class="synConstant">0.0</span>.<span class="synConstant">0.0</span>:<span class="synConstant">3000</span>
+=&gt; <span class="synType">Run</span> <span class="synSpecial">`</span><span class="synConstant">rails server -h</span><span class="synSpecial">`</span> <span class="synStatement">for</span> more startup options
+=&gt; <span class="synConstant">Notice</span>: server is listening on all interfaces (<span class="synConstant">0.0</span>.<span class="synConstant">0.0</span>). <span class="synType">Consider</span> using <span class="synConstant">127.0</span>.<span class="synConstant">0.1</span> (--binding option)
+=&gt; <span class="synType">Ctrl</span>-<span class="synType">C</span> to shutdown server
+[<span class="synConstant">2014</span>-<span class="synConstant">10</span>-<span class="synConstant">24</span> <span class="synConstant">01</span>:<span class="synConstant">12</span>:<span class="synConstant">01</span>] <span class="synType">INFO</span>  <span class="synType">WEBrick</span> <span class="synConstant">1.3</span>.<span class="synConstant">1</span>
+[<span class="synConstant">2014</span>-<span class="synConstant">10</span>-<span class="synConstant">24</span> <span class="synConstant">01</span>:<span class="synConstant">12</span>:<span class="synConstant">01</span>] <span class="synType">INFO</span>  ruby <span class="synConstant">2.0</span>.<span class="synConstant">0</span> (<span class="synConstant">2013</span>-<span class="synConstant">06</span>-<span class="synConstant">27</span>) [x86_64-darwin13.<span class="synConstant">2.0</span>]
+[<span class="synConstant">2014</span>-<span class="synConstant">10</span>-<span class="synConstant">24</span> <span class="synConstant">01</span>:<span class="synConstant">12</span>:<span class="synConstant">01</span>] <span class="synType">INFO</span>  <span class="synType">WEBrick</span>::<span class="synType">HTTPServer</span><span class="synComment">#start: pid=13779 port=3000</span>
+</pre><p><br />
+そして、ユーザー新規画面を開きます。<br />
+<span itemscope itemtype="http://schema.org/Photograph"><img src="http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141024/20141024011854.png" alt="f:id:nipe880324:20141024011854p:plain:w480" title="f:id:nipe880324:20141024011854p:plain:w480" class="hatena-fotolife" style="width:480px" itemprop="image"></span></p><p></p>
+
+</div>
+<div class="section">
+    <h4>ステップ実行</h4>
+    <p>「Create User」ボタンを押すとサーバーを起動させていたconsoleが次のようにブレークポイントを設定した箇所で止まっています。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synType">Started</span> <span class="synType">POST</span> <span class="synSpecial">&quot;</span><span class="synConstant">/users</span><span class="synSpecial">&quot;</span> <span class="synStatement">for</span> <span class="synConstant">127.0</span>.<span class="synConstant">0.1</span> at <span class="synConstant">2014</span>-<span class="synConstant">10</span>-<span class="synConstant">24</span> <span class="synConstant">01</span>:<span class="synConstant">00</span>:<span class="synConstant">33</span> +0900
+<span class="synType">Processing</span> by <span class="synType">UsersController</span><span class="synComment">#create as HTML</span>
+  <span class="synConstant">Parameters</span>: {<span class="synSpecial">&quot;</span><span class="synConstant">utf8</span><span class="synSpecial">&quot;</span>=&gt;<span class="synSpecial">&quot;</span><span class="synConstant">✓</span><span class="synSpecial">&quot;</span>, <span class="synSpecial">&quot;</span><span class="synConstant">authenticity_token</span><span class="synSpecial">&quot;</span>=&gt;<span class="synSpecial">&quot;</span><span class="synConstant">7T1ISCnaEA5UqHK/FEn7E820I1ql6k5UdvaZQxTKC20=</span><span class="synSpecial">&quot;</span>, <span class="synSpecial">&quot;</span><span class="synConstant">user</span><span class="synSpecial">&quot;</span>=&gt;{<span class="synSpecial">&quot;</span><span class="synConstant">firstname</span><span class="synSpecial">&quot;</span>=&gt;<span class="synSpecial">&quot;</span><span class="synConstant">太郎</span><span class="synSpecial">&quot;</span>, <span class="synSpecial">&quot;</span><span class="synConstant">lastname</span><span class="synSpecial">&quot;</span>=&gt;<span class="synSpecial">&quot;</span><span class="synConstant">鈴木</span><span class="synSpecial">&quot;</span>, <span class="synSpecial">&quot;</span><span class="synConstant">email</span><span class="synSpecial">&quot;</span>=&gt;<span class="synSpecial">&quot;</span><span class="synConstant">t.suzuki@test.com</span><span class="synSpecial">&quot;</span>}, <span class="synSpecial">&quot;</span><span class="synConstant">commit</span><span class="synSpecial">&quot;</span>=&gt;<span class="synSpecial">&quot;</span><span class="synConstant">Create User</span><span class="synSpecial">&quot;</span>}
+
+<span class="synConstant">From</span>: /<span class="synType">Users</span>/nipe0324/rails_samples/pry_test/app/controllers/users_controller.rb @ line <span class="synConstant">30</span> <span class="synType">UsersController</span><span class="synComment">#create:</span>
+
+    <span class="synConstant">26</span>: <span class="synPreProc">def</span> <span class="synIdentifier">create</span>
+    <span class="synConstant">27</span>:   <span class="synIdentifier">@user</span> = <span class="synType">User</span>.new(user_params)
+    <span class="synConstant">28</span>:   binding.pry <span class="synComment"># ブレークポイントを設定</span>
+ =&gt; <span class="synConstant">29</span>:   puts <span class="synSpecial">&quot;</span><span class="synConstant">execute</span><span class="synSpecial">&quot;</span>
+    <span class="synConstant">30</span>:
+    <span class="synConstant">31</span>:   respond_to <span class="synStatement">do</span> |<span class="synIdentifier">format</span>|
+    <span class="synConstant">32</span>:     <span class="synStatement">if</span> <span class="synIdentifier">@user</span>.save
+    <span class="synConstant">33</span>:       format.html { redirect_to <span class="synIdentifier">@user</span>, <span class="synConstant">notice</span>: <span class="synSpecial">'</span><span class="synConstant">User was successfully created.</span><span class="synSpecial">'</span> }
+    <span class="synConstant">34</span>:       format.json { render <span class="synConstant">:show</span>, <span class="synConstant">status</span>: <span class="synConstant">:created</span>, <span class="synConstant">location</span>: <span class="synIdentifier">@user</span> }
+    <span class="synConstant">35</span>:     <span class="synStatement">else</span>
+    <span class="synConstant">36</span>:       format.html { render <span class="synConstant">:new</span> }
+    <span class="synConstant">37</span>:       format.json { render <span class="synConstant">json</span>: <span class="synIdentifier">@user</span>.errors, <span class="synConstant">status</span>: <span class="synConstant">:unprocessable_entity</span> }
+    <span class="synConstant">38</span>:     <span class="synStatement">end</span>
+    <span class="synConstant">39</span>:   <span class="synStatement">end</span>
+    <span class="synConstant">40</span>: <span class="synPreProc">end</span>
+
+[<span class="synConstant">1</span>] pry(<span class="synComment">#&lt;UsersController&gt;)&gt;</span>
+</pre><p>通常のRubyやPryコマンドが使えるので、変数の内容などを表示できます。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>[<span class="synConstant">1</span>] pry(<span class="synComment">#&lt;UsersController&gt;)&gt; p @user</span>
+<span class="synComment">#&lt;User id: nil, firstname: &quot;太郎&quot;, lastname: &quot;鈴木&quot;, email: &quot;t.suzuki@test.com&quot;, created_at: nil, updated_at: nil&gt;</span>
+=&gt; <span class="synComment">#&lt;User id: nil, firstname: &quot;太郎&quot;, lastname: &quot;鈴木&quot;, email: &quot;t.suzuki@test.com&quot;, created_at: nil, updated_at: nil&gt;</span>
+</pre><p>では、次の行へステップ実行します。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>[<span class="synConstant">1</span>] pry(<span class="synComment">#&lt;UsersController&gt;)&gt; next  # 次の行へ実行</span>
+execute     <span class="synComment"># puts &quot;execute&quot; でexecuteが出力された</span>
+
+<span class="synConstant">From</span>: /<span class="synType">Users</span>/nipe0324/<span class="synType">Google</span> <span class="synType">Drive</span>/rails/rails_samples/pry_test/app/controllers/users_controller.rb @ line <span class="synConstant">31</span> <span class="synType">UsersController</span><span class="synComment">#create:</span>
+
+    <span class="synConstant">26</span>: <span class="synPreProc">def</span> <span class="synIdentifier">create</span>
+    <span class="synConstant">27</span>:   <span class="synIdentifier">@user</span> = <span class="synType">User</span>.new(user_params)
+    <span class="synConstant">28</span>:   binding.pry <span class="synComment"># ブレークポイントを設定</span>
+    <span class="synConstant">29</span>:   puts <span class="synSpecial">&quot;</span><span class="synConstant">execute</span><span class="synSpecial">&quot;</span>
+    <span class="synConstant">30</span>:
+ =&gt; <span class="synConstant">31</span>:   respond_to <span class="synStatement">do</span> |<span class="synIdentifier">format</span>|
+    <span class="synConstant">32</span>:     <span class="synStatement">if</span> <span class="synIdentifier">@user</span>.save
+    <span class="synConstant">33</span>:       format.html { redirect_to <span class="synIdentifier">@user</span>, <span class="synConstant">notice</span>: <span class="synSpecial">'</span><span class="synConstant">User was successfully created.</span><span class="synSpecial">'</span> }
+    <span class="synConstant">34</span>:       format.json { render <span class="synConstant">:show</span>, <span class="synConstant">status</span>: <span class="synConstant">:created</span>, <span class="synConstant">location</span>: <span class="synIdentifier">@user</span> }
+    <span class="synConstant">35</span>:     <span class="synStatement">else</span>
+    <span class="synConstant">36</span>:       format.html { render <span class="synConstant">:new</span> }
+    <span class="synConstant">37</span>:       format.json { render <span class="synConstant">json</span>: <span class="synIdentifier">@user</span>.errors, <span class="synConstant">status</span>: <span class="synConstant">:unprocessable_entity</span> }
+    <span class="synConstant">38</span>:     <span class="synStatement">end</span>
+    <span class="synConstant">39</span>:   <span class="synStatement">end</span>
+    <span class="synConstant">40</span>: <span class="synPreProc">end</span>
+
+[<span class="synConstant">1</span>] pry(<span class="synComment">#&lt;UsersController&gt;)&gt;</span>
+</pre><p>といったようにデバッグができます。</p><p>pry-byebugで使えるコマンドは次のとおりです。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synType">Pry</span>-byebug (v2.<span class="synConstant">0.0</span>)
+  <span class="synStatement">break</span>              ブレークポイントをセットか編集する
+  breakpoints        定義されたブレークポイントのリストを表示
+  continue           プログラム実行をコンティニューする。そして、<span class="synType">Pry</span>セッションを終了させる。
+  finish             現在のスタックフレームが終わるまで実行する
+  <span class="synStatement">next</span>               現在のスタックフレーム内の次の列を実行する
+  step               次の行かメソッドの内をステップ実行する
+</pre><p></p><p><h3 id="pry-pry-stack_explorer">pry-stack_explorerでより深くデバッグ</h3></p><p>では、また、画面からUserを作成しましょう。<br />
+すると、<code>binding.pry</code>を記述したブレークポイントで止まります。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synType">Frame</span> <span class="synConstant">number</span>: <span class="synConstant">0</span>/<span class="synConstant">76</span>
+
+<span class="synConstant">From</span>: /<span class="synType">Users</span>/nipe0324/<span class="synType">Google</span> <span class="synType">Drive</span>/rails/rails_samples/pry_test/app/controllers/users_controller.rb @ line <span class="synConstant">29</span> <span class="synType">UsersController</span><span class="synComment">#create:</span>
+
+    <span class="synConstant">26</span>: <span class="synPreProc">def</span> <span class="synIdentifier">create</span>
+    <span class="synConstant">27</span>:   <span class="synIdentifier">@user</span> = <span class="synType">User</span>.new(user_params)
+    <span class="synConstant">28</span>:   binding.pry <span class="synComment"># ブレークポイントを設定</span>
+ =&gt; <span class="synConstant">29</span>:   puts <span class="synSpecial">&quot;</span><span class="synConstant">execute</span><span class="synSpecial">&quot;</span>
+    <span class="synConstant">30</span>: 
+    <span class="synConstant">31</span>:   respond_to <span class="synStatement">do</span> |<span class="synIdentifier">format</span>|
+    <span class="synConstant">32</span>:     <span class="synStatement">if</span> <span class="synIdentifier">@user</span>.save
+    <span class="synConstant">33</span>:       format.html { redirect_to <span class="synIdentifier">@user</span>, <span class="synConstant">notice</span>: <span class="synSpecial">'</span><span class="synConstant">User was successfully created.</span><span class="synSpecial">'</span> }
+    <span class="synConstant">34</span>:       format.json { render <span class="synConstant">:show</span>, <span class="synConstant">status</span>: <span class="synConstant">:created</span>, <span class="synConstant">location</span>: <span class="synIdentifier">@user</span> }
+    <span class="synConstant">35</span>:     <span class="synStatement">else</span>
+    <span class="synConstant">36</span>:       format.html { render <span class="synConstant">:new</span> }
+    <span class="synConstant">37</span>:       format.json { render <span class="synConstant">json</span>: <span class="synIdentifier">@user</span>.errors, <span class="synConstant">status</span>: <span class="synConstant">:unprocessable_entity</span> }
+    <span class="synConstant">38</span>:     <span class="synStatement">end</span>
+    <span class="synConstant">39</span>:   <span class="synStatement">end</span>
+    <span class="synConstant">40</span>: <span class="synPreProc">end</span>
+</pre><p>次にpry上で<code>show-stack</code>と打つとスタックトレースが表示されます。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>[<span class="synConstant">1</span>] pry(<span class="synComment">#&lt;UsersController&gt;)&gt; show-stack</span>
+when_started hook <span class="synConstant">failed</span>: <span class="synConstant">NoMethodError</span>: <span class="synStatement">private</span> method <span class="synSpecial">`</span><span class="synConstant">eval' called for nil:NilClass</span>
+<span class="synConstant">/Users/nipe0324/.rbenv/versions/2.1.2/lib/ruby/gems/2.1.0/gems/pry-stack_explorer-0.4.9.1/lib/pry-stack_explorer.rb:109:in </span><span class="synSpecial">`</span>bindings_equal?<span class="synSpecial">'</span>
+<span class="synConstant">(see _pry_.hooks.errors to debug)</span>
+
+<span class="synConstant">Showing all accessible frames in stack (77 in total):</span>
+<span class="synConstant">--</span>
+<span class="synConstant">=&gt; #0  create &lt;UsersController#create()&gt;</span>
+<span class="synConstant">   #1 [block]   block in run &lt;PryByebug::Processor#run(initial=?, &amp;_block)&gt;</span>
+<span class="synConstant">   #2 [method]  run &lt;PryByebug::Processor#run(initial=?, &amp;_block)&gt;</span>
+<span class="synConstant">   #3 [method]  resume_pry &lt;PryByebug::Processor#resume_pry(context)&gt;</span>
+<span class="synConstant">   #4 [method]  at_line &lt;PryByebug::Processor#at_line(context, _file, _line)&gt;</span>
+<span class="synConstant">   #5 [method]  at_line &lt;Byebug::Context#at_line(file, line)&gt;</span>
+<span class="synConstant">   #6 [method]  create &lt;UsersController#create()&gt;</span>
+<span class="synConstant">   #7 [method]  send_action &lt;ActionController::ImplicitRender#send_action(method, *args)&gt;</span>
+<span class="synConstant">   #8 [method]  process_action &lt;AbstractController::Base#process_action(method_name, *args)&gt;</span>
+<span class="synConstant">   #9 [method]  process_action &lt;ActionController::Rendering#process_action(*arg1)&gt;</span>
+</pre><p>そして、<code>frame [スタック番号]</code>を打つと、スタックを辿れ、そこでコマンドを実行することができます。</p>
+<pre class="code" data-lang="" data-unlink>[2] pry(#&lt;UsersController&gt;)&gt; frame 7
+
+Frame number: 7/76
+Frame type: method
+
+From: /Users/nipe0324/.rbenv/versions/2.1.2/lib/ruby/gems/2.1.0/gems/actionpack-4.1.5/lib/action_controller/metal/implicit_render.rb @ line 4 ActionController::ImplicitRender#send_action:
+
+    3: def send_action(method, *args)
+ =&gt; 4:   ret = super
+    5:   default_render unless performed?
+    6:   ret
+    7: end</pre><p><br />
+以上です。<br />
+Pryを使うことで、rails consoleを拡張できるだけでなく、有用な情報を簡単に表示できること、デバッグができることなど便利ですので、是非使いこなせるようになってみるといいかもしれません。</p>
+
+</div>
+</div>
+<div class="section">
+    <h3>参考文献</h3>
+    
+<ul>
+<li><a href="https://github.com/rweng/pry-rails">rweng/pry-rails &middot; GitHub</a></li>
+<li><a href="https://github.com/pry/pry-stack_explorer">pry/pry-stack_explorer &middot; GitHub</a></li>
+<li>パーフェクトRuby on Rails</li>
+</ul>
+</div>
+        
+      
+    </div>
+    <footer class="entry-footer">
+      <p class="entry-footer-section">
+        <span class="author vcard"><span class="fn" data-load-nickname="1" data-user-name="nipe880324">nipe880324</span></span>
+        <span class="entry-footer-time"><a href="../../../entry/20141024/1414081224.html"><time data-relative datetime="2014-10-23T16:20:24Z" title="2014-10-23T16:20:24Z" pubdate class="updated">2014-10-24 01:20</time></a></span>
+      </p>
+
+      
+
+      
+<div class="social-buttons">
+  
+  
+    <div class="social-button-item">
+      <a href="http://b.hatena.ne.jp/entry/http://ruby-rails.hatenadiary.com/entry/20141024/1414081224" class="hatena-bookmark-button" data-hatena-bookmark-layout="vertical-balloon" data-hatena-bookmark-lang="ja" title="この記事をはてなブックマークに追加"><img src="https://b.st-hatena.com/images/entry-button/button-only.gif" alt="この記事をはてなブックマークに追加" width="20" height="20" style="border: none;" /></a>
+    </div>
+  
+  
+  
+    <div class="social-button-item">
+      <a href="https://twitter.com/search?q=http%3A%2F%2Fruby-rails.hatenadiary.com%2Fentry%2F20141024%2F1414081224" class="social-button-twitter-balloon" target="_blank">
+        <span class="social-button-twitter-balloon-list">list</span>
+        <i class="social-button-twitter-balloon-arrow-border"></i>
+        <u class="social-button-twitter-balloon-arrow"></u>
+      </a>
+      <a href="https://twitter.com/share" class="twitter-share-button" data-url="http://ruby-rails.hatenadiary.com/entry/20141024/1414081224" data-count="vertical" data-text="Railsの開発効率をあげる - Pryを使ってRailsのコンソールをパワーアップ &amp; デバッグをする - Rails Webook" data-lang="ja">Tweet</a>
+    </div>
+  
+  
+  
+  
+  
+    <div class="social-button-item">
+      <a data-pocket-label="pocket" data-save-url="http://ruby-rails.hatenadiary.com/entry/20141024/1414081224" data-pocket-count="vertical" class="pocket-btn" data-lang="en"></a>
+    </div>
+  
+</div>
+
+
+      
+        
+          
+            
+            <div class="google-afc-image test-google-rectangle-ads ">
+              
+              
+                <script>
+  var hatenadfp = hatenadfp || {};
+  hatenadfp.adUnits = hatenadfp.adUnits || [];
+  hatenadfp.adUnits.push(
+    
+      { unitName: 'blog_user', size: [[300, 250], [336, 280]], divId: 'google_afc_user_container_0', allowContentMatch: true }
+    
+  );
+  hatenadfp.isNGContent = false;
+  
+</script>
+
+                <div id="google_afc_user_container_0" class="google_afc_blocklink2_5 google_afc_boder"></div>
+                
+                  <a href="http://blog.hatena.ne.jp/guide/pro" class="open-pro-modal" data-guide-pro-modal-ad-url="http://hatenablog.com/guide/pro/modal/ad">広告を非表示にする</a>
+                
+                
+              
+            </div>
+          
+        
+      
+
+      <div class="customized-footer">
+
+        
+
+      </div>
+
+      <div class="comment-box">
+        
+        <ul class="comment">
+          
+             <li class="read-more-comments" style="display: none;"><a>もっと読む (0)</a></li>
+          
+        </ul>
+        
+          <a class="leave-comment-title">コメントを書く</a>
+        
+      </div>
+      <!-- enjapan ad -->
+      
+    </footer>
+  </div>
+</article>
+
+                
+
+                
+
+              
+                <article class="entry hentry js-entry-article date-last autopagerize_page_element chars-6000 words-600 mode-hatena entry-even" id="entry-8454420450069964670" data-keyword-campaign="" data-uuid="8454420450069964670">
+  <div class="entry-inner">
+    <header class="entry-header">
+      <div class="entry-date date last">
+        <a href="24.html" rel="nofollow">
+          <time pubdate datetime="2014-10-24T14:16:29Z" title="2014-10-24T14:16:29Z">
+            <span class="date-year">2014</span><span class="hyphen">-</span><span class="date-month">10</span><span class="hyphen">-</span><span class="date-day">24</span>
+          </time>
+        </a>
+      </div>
+      <h1 class="entry-title">
+        <a href="../../../entry/20141024/1414160189.html" class="entry-title-link bookmark">Railsの開発効率をあげる - Hirbを使ってRailsでコンソールのModelの出力結果を表形式で分かりやすく表示する</a>
+      </h1>
+      
+      
+        <div class="entry-categories categories">
+          
+          <a href="../../../archive/category/Rails%20gem.html">Rails gem</a>
+          
+          <a href="../../../archive/category/%E9%96%8B%E7%99%BA%E3%82%92%E5%8A%B9%E7%8E%87%E5%8C%96%E3%81%99%E3%82%8B.html">開発を効率化する</a>
+          
+        </div>
+      
+      
+
+      
+    </header>
+        
+    <div class="entry-content">
+
+      
+        <p><code>rails console</code>でモデルの内容をきれいに表形式で表示できるようにする<code>hirb</code>というgemのインストール方法を説明します。<br />
+<br />
+</p>
+
+<div class="section">
+    <h5>Hirb導入前</h5>
+    <p>値が表示されているが、複数表示された時にデータが見づらい。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>$ rails c
+<span class="synType">Loading</span> development environment (<span class="synType">Rails</span> <span class="synConstant">4.1</span>.<span class="synConstant">5</span>)
+
+irb(main):<span class="synConstant">001</span>:<span class="synConstant">0</span>&gt; <span class="synType">User</span>.all
+  <span class="synType">User</span> Load (<span class="synConstant">1</span>.1ms)  <span class="synType">SELECT</span> <span class="synSpecial">&quot;</span><span class="synConstant">users</span><span class="synSpecial">&quot;</span>.* <span class="synType">FROM</span> <span class="synSpecial">&quot;</span><span class="synConstant">users</span><span class="synSpecial">&quot;</span>
+=&gt; <span class="synComment">#&lt;ActiveRecord::Relation [#&lt;User id: 1, firstname: &quot;太郎&quot;, lastname: &quot;鈴木&quot;, email: &quot;t.suzuki@test.com&quot;, created_at: &quot;2014-10-23 17:07:14&quot;, updated_at: &quot;2014-10-23 17:07:14&quot;&gt;, #&lt;User id: 2, firstname: &quot;花子&quot;, lastname: &quot;佐藤&quot;, email: &quot;h.satou@test.com&quot;, created_at: &quot;2014-10-23 17:07:57&quot;, updated_at: &quot;2014-10-23 17:07:57&quot;&gt;]&gt;</span>
+</pre>
+</div>
+<div class="section">
+    <h5>Hirb導入後</h5>
+    <p>表形式で結果が表示されるため、各データがとても見やすい。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>$ rails c
+<span class="synType">Loading</span> development environment (<span class="synType">Rails</span> <span class="synConstant">4.1</span>.<span class="synConstant">5</span>)
+
+irb(main):<span class="synConstant">001</span>:<span class="synConstant">0</span>&gt; <span class="synType">User</span>.all
+  <span class="synType">User</span> Load (<span class="synConstant">0</span>.4ms)  <span class="synType">SELECT</span> <span class="synSpecial">&quot;</span><span class="synConstant">users</span><span class="synSpecial">&quot;</span>.* <span class="synType">FROM</span> <span class="synSpecial">&quot;</span><span class="synConstant">users</span><span class="synSpecial">&quot;</span>
++----+-----------+----------+-------------------+-------------------------+-------------------------+
+| id | firstname | lastname | email             | created_at              | updated_at              |
++----+-----------+----------+-------------------+-------------------------+-------------------------+
+| <span class="synConstant">1</span>  | 太郎      | 鈴木     | t.suzuki<span class="synIdentifier">@test</span>.com  | <span class="synConstant">2014</span>-<span class="synConstant">10</span>-<span class="synConstant">23</span> <span class="synConstant">17</span>:<span class="synConstant">07</span>:<span class="synConstant">14</span>    | <span class="synConstant">2014</span>-<span class="synConstant">10</span>-<span class="synConstant">23</span> <span class="synConstant">17</span>:<span class="synConstant">07</span>:<span class="synConstant">14</span>  |
+| <span class="synConstant">2</span>  | 花子      | 佐藤     | h.satou<span class="synIdentifier">@test</span>.com   | <span class="synConstant">2014</span>-<span class="synConstant">10</span>-<span class="synConstant">23</span> <span class="synConstant">17</span>:<span class="synConstant">07</span>:<span class="synConstant">57</span>    | <span class="synConstant">2014</span>-<span class="synConstant">10</span>-<span class="synConstant">23</span> <span class="synConstant">17</span>:<span class="synConstant">07</span>:<span class="synConstant">57</span>  |
++----+-----------+----------+-------------------+-------------------------+-------------------------+
+<span class="synConstant">2</span> rows <span class="synStatement">in</span> set
+</pre>
+</div>
+<div class="section">
+    <h3>対象読者</h3>
+    
+<ul>
+<li>Railsの開発効率を上げたい方（特に、consoleでModelの内容をよく確認する方）</li>
+</ul>
+</div>
+<div class="section">
+    <h3>動作確認</h3>
+    
+<ul>
+<li>Rails 4.1</li>
+<li>hirb  0.7.2</li>
+<li>hirb-unicode 0.0.5</li>
+</ul>
+</div>
+<div class="section">
+    <h3>目次</h3>
+    
+<ul>
+<li><a href="24.html#hirb-create-rails">Railsプロジェクトを作成</a></li>
+<li><a href="24.html#hirb-install">Hirbをインストール</a></li>
+<li><a href="24.html#hirb-with-pry">HirbをPryと一緒に使う</a></li>
+</ul><p><br />
+<h3 id="hirb-create-rails">1. Railsプロジェクトを作成</h3></p><p>まずはRailsプロジェクトを作成します。</p>
+<pre class="code" data-lang="" data-unlink>rails new hirb_test
+cd hirb_test</pre><p>次にHirbの挙動を確認するために、UserモデルとCommentモデルを作成します。</p>
+<pre class="code" data-lang="" data-unlink>rails g scaffold User firstname:string lastname:string email:string
+rails g model Comment body:string user:references
+rake db:migrate</pre><p>Userモデルにアソシエーションを追加します。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synComment"># app/models/user.rb</span>
+<span class="synPreProc">class</span> <span class="synType">User</span> &lt; <span class="synType">ActiveRecord</span>::<span class="synType">Base</span>
+  has_many <span class="synConstant">:comments</span>
+<span class="synPreProc">end</span>
+</pre><p>Commentモデルを作成したときに<code>user:references</code>を追加したので既にアソシエーションがついています。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synComment"># app/models/comment.rb</span>
+<span class="synPreProc">class</span> <span class="synType">Comment</span> &lt; <span class="synType">ActiveRecord</span>::<span class="synType">Base</span>
+  belongs_to <span class="synConstant">:user</span>
+<span class="synPreProc">end</span>
+</pre><p>Modelのデータを表示する必要があるため、データを2件ほど追加しておきます。</p>
+<pre class="code" data-lang="" data-unlink>$ rails c
+Loading development environment (Rails 4.1.5)
+irb(main):001:0&gt; User.create(firstname: &#34;太郎&#34;, lastname: &#34;鈴木&#34;, email: &#34;t.suzuki@test.com&#34;)
+...
+irb(main):002:0&gt; User.create(firstname: &#34;花子&#34;, lastname: &#34;佐藤&#34;, email: &#34;h.satou@test.com&#34;)
+...</pre><p></p><p><h3 id="hirb-install">2. Hirbをインストール</h3></p><p><code>Gemfile</code>にHirbを追加します。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synComment"># Gemfile</span>
+
+group <span class="synConstant">:development</span>, <span class="synConstant">:test</span> <span class="synStatement">do</span>
+  gem <span class="synSpecial">'</span><span class="synConstant">hirb</span><span class="synSpecial">'</span>         <span class="synComment"># モデルの出力結果を表形式で表示するGem</span>
+  gem <span class="synSpecial">'</span><span class="synConstant">hirb-unicode</span><span class="synSpecial">'</span> <span class="synComment"># 日本語などマルチバイト文字の出力時の出力結果のずれに対応</span>
+<span class="synStatement">end</span>
+</pre><p>Bundlerでgemをインストールします。</p>
+<pre class="code" data-lang="" data-unlink>bundle install</pre><p>では、<code>rails c</code>でconsoleを開いて、Hirbの出力結果を確認しましょう。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>$ rails c
+<span class="synType">Loading</span> development environment (<span class="synType">Rails</span> <span class="synConstant">4.1</span>.<span class="synConstant">5</span>)
+[<span class="synConstant">1</span>] irb(main)&gt;
+</pre><p>ちなみに、Pryを入れていない場合は、Rubyに標準で付属しているirbが使われます。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>$ rails c
+<span class="synType">Loading</span> development environment (<span class="synType">Rails</span> <span class="synConstant">4.1</span>.<span class="synConstant">5</span>)
+irb(main):<span class="synConstant">001</span>:<span class="synConstant">0</span>&gt; <span class="synType">User</span>.all  <span class="synComment"># Hirbの有効化前。表示が見にくい。</span>
+  <span class="synType">User</span> Load (<span class="synConstant">1</span>.1ms)  <span class="synType">SELECT</span> <span class="synSpecial">&quot;</span><span class="synConstant">users</span><span class="synSpecial">&quot;</span>.* <span class="synType">FROM</span> <span class="synSpecial">&quot;</span><span class="synConstant">users</span><span class="synSpecial">&quot;</span>
+=&gt; <span class="synComment">#&lt;ActiveRecord::Relation [#&lt;User id: 1, firstname: &quot;太郎&quot;, lastname: &quot;鈴木&quot;, email: &quot;t.suzuki@test.com&quot;, created_at: &quot;2014-10-23 17:07:14&quot;, updated_at: &quot;2014-10-23 17:07:14&quot;&gt;, #&lt;User id: 2, firstname: &quot;花子&quot;, lastname: &quot;佐藤&quot;, email: &quot;h.satou@test.com&quot;, created_at: &quot;2014-10-23 17:07:57&quot;, updated_at: &quot;2014-10-23 17:07:57&quot;&gt;]&gt;</span>
+
+irb(main):<span class="synConstant">002</span>:<span class="synConstant">0</span>&gt; <span class="synType">Hirb</span>.enable  <span class="synComment"># Hirbの有効化</span>
+=&gt; <span class="synConstant">true</span>
+
+irb(main):<span class="synConstant">003</span>:<span class="synConstant">0</span>&gt; <span class="synType">User</span>.all   <span class="synComment"># Hirbの有効化後。表示が見やすい。</span>
+  <span class="synType">User</span> Load (<span class="synConstant">0</span>.4ms)  <span class="synType">SELECT</span> <span class="synSpecial">&quot;</span><span class="synConstant">users</span><span class="synSpecial">&quot;</span>.* <span class="synType">FROM</span> <span class="synSpecial">&quot;</span><span class="synConstant">users</span><span class="synSpecial">&quot;</span>
++----+-----------+----------+-------------------+-------------------------+-------------------------+
+| id | firstname | lastname | email             | created_at              | updated_at              |
++----+-----------+----------+-------------------+-------------------------+-------------------------+
+| <span class="synConstant">1</span>  | 太郎      | 鈴木     | t.suzuki<span class="synIdentifier">@test</span>.com | <span class="synConstant">2014</span>-<span class="synConstant">10</span>-<span class="synConstant">23</span> <span class="synConstant">17</span>:<span class="synConstant">07</span>:<span class="synConstant">14</span>     | <span class="synConstant">2014</span>-<span class="synConstant">10</span>-<span class="synConstant">23</span> <span class="synConstant">17</span>:<span class="synConstant">07</span>:<span class="synConstant">14</span>  |
+| <span class="synConstant">2</span>  | 花子      | 佐藤     | h.satou<span class="synIdentifier">@test</span>.com  | <span class="synConstant">2014</span>-<span class="synConstant">10</span>-<span class="synConstant">23</span> <span class="synConstant">17</span>:<span class="synConstant">07</span>:<span class="synConstant">57</span>     | <span class="synConstant">2014</span>-<span class="synConstant">10</span>-<span class="synConstant">23</span> <span class="synConstant">17</span>:<span class="synConstant">07</span>:<span class="synConstant">57</span>  |
++----+-----------+----------+-------------------+-------------------------+-------------------------+
+<span class="synConstant">2</span> rows <span class="synStatement">in</span> set
+</pre><p>このようにHirbを使うことでActiveRecordの出力結果が見やすくなります。</p><br />
+<br />
+<p><h3 id="hirb-with-pry">3. HirbをPryと一緒に使う</h3>以前紹介したパワフルなconsoleのPryと一緒にHirbを使うためには設定が必要です。</p><p>Pryのインストール方法や使い方に「<a href="../../../entry/20141024/1414081224.html" target="_blank">Pryを使ってconsoleを拡張/デバッグを実施</a>」を参照して下さい。</p><p><code>Gemfile</code>にPryを追加します。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synComment"># Gemfile</span>
+
+group <span class="synConstant">:development</span>, <span class="synConstant">:test</span> <span class="synStatement">do</span>
+  gem <span class="synSpecial">'</span><span class="synConstant">hirb</span><span class="synSpecial">'</span>         <span class="synComment"># モデルの出力結果を表形式で表示するGem</span>
+  gem <span class="synSpecial">'</span><span class="synConstant">hirb-unicode</span><span class="synSpecial">'</span> <span class="synComment"># 日本語などマルチバイト文字の出力時の出力結果のずれに対応</span>
+
+  gem <span class="synSpecial">'</span><span class="synConstant">pry-rails</span><span class="synSpecial">'</span>  <span class="synComment"># rails console(もしくは、rails c)でirbの代わりにpryを使われる</span>
+  gem <span class="synSpecial">'</span><span class="synConstant">pry-doc</span><span class="synSpecial">'</span>    <span class="synComment"># methodを表示</span>
+  gem <span class="synSpecial">'</span><span class="synConstant">pry-byebug</span><span class="synSpecial">'</span> <span class="synComment"># デバッグを実施</span>
+<span class="synStatement">end</span>
+</pre><p>Bundlerでgemをインストールします。</p>
+<pre class="code" data-lang="" data-unlink>bundle install</pre><p>Railsプロジェクトのルートディレクトリ(Gemfileと同じ場所)に<code>.pryrc</code>を作成し、次の内容を記載します。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synComment"># .pryrc</span>
+<span class="synStatement">begin</span>
+  <span class="synPreProc">require</span> <span class="synSpecial">'</span><span class="synConstant">hirb</span><span class="synSpecial">'</span>
+<span class="synStatement">rescue</span> <span class="synType">LoadError</span>
+  <span class="synComment"># Missing goodies, bummer</span>
+<span class="synStatement">end</span>
+
+<span class="synStatement">if</span> <span class="synStatement">defined?</span> <span class="synType">Hirb</span>
+  <span class="synComment"># Slightly dirty hack to fully support in-session Hirb.disable/enable toggling</span>
+  <span class="synType">Hirb</span>::<span class="synType">View</span>.instance_eval <span class="synStatement">do</span>
+    <span class="synPreProc">def</span> <span class="synIdentifier">enable_output_method</span>
+      <span class="synIdentifier">@output_method</span> = <span class="synConstant">true</span>
+      <span class="synIdentifier">@old_print</span> = <span class="synType">Pry</span>.config.print
+      <span class="synType">Pry</span>.config.print = <span class="synStatement">proc</span> <span class="synStatement">do</span> |*<span class="synIdentifier">args</span>|
+        <span class="synType">Hirb</span>::<span class="synType">View</span>.view_or_page_output(args[<span class="synConstant">1</span>]) || <span class="synIdentifier">@old_print</span>.call(*args)
+      <span class="synStatement">end</span>
+    <span class="synPreProc">end</span>
+
+    <span class="synPreProc">def</span> <span class="synIdentifier">disable_output_method</span>
+      <span class="synType">Pry</span>.config.print = <span class="synIdentifier">@old_print</span>
+      <span class="synIdentifier">@output_method</span> = <span class="synConstant">nil</span>
+    <span class="synPreProc">end</span>
+  <span class="synStatement">end</span>
+
+  <span class="synType">Hirb</span>.enable
+<span class="synStatement">end</span>
+</pre><p>では、Pryのconsole時にHirbが有効になっていることを確認しましょう。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>$ rails c
+<span class="synType">Loading</span> development environment (<span class="synType">Rails</span> <span class="synConstant">4.1</span>.<span class="synConstant">5</span>)
+[<span class="synConstant">1</span>] pry(main)&gt; <span class="synType">User</span>.all
+  <span class="synType">User</span> Load (<span class="synConstant">1</span>.7ms)  <span class="synType">SELECT</span> <span class="synSpecial">&quot;</span><span class="synConstant">users</span><span class="synSpecial">&quot;</span>.* <span class="synType">FROM</span> <span class="synSpecial">&quot;</span><span class="synConstant">users</span><span class="synSpecial">&quot;</span>
++----+-----------+----------+-------------------+-------------------------+-------------------------+
+| id | firstname | lastname | email             | created_at              | updated_at              |
++----+-----------+----------+-------------------+-------------------------+-------------------------+
+| <span class="synConstant">1</span>  | 太郎      | 鈴木     | t.suzuki<span class="synIdentifier">@test</span>.com | <span class="synConstant">2014</span>-<span class="synConstant">10</span>-<span class="synConstant">23</span> <span class="synConstant">17</span>:<span class="synConstant">07</span>:<span class="synConstant">14</span> <span class="synType">UTC</span> | <span class="synConstant">2014</span>-<span class="synConstant">10</span>-<span class="synConstant">23</span> <span class="synConstant">17</span>:<span class="synConstant">07</span>:<span class="synConstant">14</span> <span class="synType">UTC</span> |
+| <span class="synConstant">2</span>  | 花子      | 佐藤     | h.satou<span class="synIdentifier">@test</span>.com  | <span class="synConstant">2014</span>-<span class="synConstant">10</span>-<span class="synConstant">23</span> <span class="synConstant">17</span>:<span class="synConstant">07</span>:<span class="synConstant">57</span> <span class="synType">UTC</span> | <span class="synConstant">2014</span>-<span class="synConstant">10</span>-<span class="synConstant">23</span> <span class="synConstant">17</span>:<span class="synConstant">07</span>:<span class="synConstant">57</span> <span class="synType">UTC</span> |
++----+-----------+----------+-------------------+-------------------------+-------------------------+
+<span class="synConstant">2</span> rows <span class="synStatement">in</span> set
+[<span class="synConstant">2</span>] pry(main)&gt;
+</pre><p>Hirbのおかげで、PryでもModelの結果が表形式に整形されて表示されるようになりました。</p><p>以上です。<br />
+Hirbを使うことで、console上でのModelの結果がとても見やすくなるので、Railsでconsoleをたくさん使う方は是非入れてみることをお勧めします。</p>
+
+</div>
+<div class="section">
+    <h3>参考文献</h3>
+    
+<ul>
+<li><a href="https://github.com/cldwalker/hirb">cldwalker/hirb &middot; GitHub</a></li>
+<li>パーフェクトRuby on Rails</li>
+</ul>
+</div>
+        
+      
+    </div>
+    <footer class="entry-footer">
+      <p class="entry-footer-section">
+        <span class="author vcard"><span class="fn" data-load-nickname="1" data-user-name="nipe880324">nipe880324</span></span>
+        <span class="entry-footer-time"><a href="../../../entry/20141024/1414160189.html"><time data-relative datetime="2014-10-24T14:16:29Z" title="2014-10-24T14:16:29Z" pubdate class="updated">2014-10-24 23:16</time></a></span>
+      </p>
+
+      
+
+      
+<div class="social-buttons">
+  
+  
+    <div class="social-button-item">
+      <a href="http://b.hatena.ne.jp/entry/http://ruby-rails.hatenadiary.com/entry/20141024/1414160189" class="hatena-bookmark-button" data-hatena-bookmark-layout="vertical-balloon" data-hatena-bookmark-lang="ja" title="この記事をはてなブックマークに追加"><img src="https://b.st-hatena.com/images/entry-button/button-only.gif" alt="この記事をはてなブックマークに追加" width="20" height="20" style="border: none;" /></a>
+    </div>
+  
+  
+  
+    <div class="social-button-item">
+      <a href="https://twitter.com/search?q=http%3A%2F%2Fruby-rails.hatenadiary.com%2Fentry%2F20141024%2F1414160189" class="social-button-twitter-balloon" target="_blank">
+        <span class="social-button-twitter-balloon-list">list</span>
+        <i class="social-button-twitter-balloon-arrow-border"></i>
+        <u class="social-button-twitter-balloon-arrow"></u>
+      </a>
+      <a href="https://twitter.com/share" class="twitter-share-button" data-url="http://ruby-rails.hatenadiary.com/entry/20141024/1414160189" data-count="vertical" data-text="Railsの開発効率をあげる - Hirbを使ってRailsでコンソールのModelの出力結果を表形式で分かりやすく表示する - Rails Webook" data-lang="ja">Tweet</a>
+    </div>
+  
+  
+  
+  
+  
+    <div class="social-button-item">
+      <a data-pocket-label="pocket" data-save-url="http://ruby-rails.hatenadiary.com/entry/20141024/1414160189" data-pocket-count="vertical" class="pocket-btn" data-lang="en"></a>
+    </div>
+  
+</div>
+
+
+      
+        
+          
+          <script async src="http://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-4438296558807254"
+     data-ad-slot="4370884664"
+     data-ad-format="horizontal"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+
+          
+        
+      
+
+      <div class="customized-footer">
+
+        
+
+      </div>
+
+      <div class="comment-box">
+        
+        <ul class="comment">
+          
+             <li class="read-more-comments" style="display: none;"><a>もっと読む (0)</a></li>
+          
+        </ul>
+        
+          <a class="leave-comment-title">コメントを書く</a>
+        
+      </div>
+      <!-- enjapan ad -->
+      
+    </footer>
+  </div>
+</article>
+
+                
+
+                
+
+              
+            
+            <!-- rakuten_ad_target_end -->
+            <!-- google_ad_section_end -->
+
+            
+              <div class="pager autopagerize_insert_before">
+                <span class="pager-next">
+                  <a href="22.html" rel="next">次のページ</a>
+                </span>
+              </div>
+            
+          
+        </div>
+      </div>
+
+      
+      <aside id="box1">
+        <div id="box1-inner">
+        </div>
+      </aside>
+
+    </div><!-- #wrapper -->
+
+    <aside id="box2">
+  
+  <div id="box2-inner">
+    
+      
+<div class="hatena-module hatena-module-html">
+  <div class="hatena-module-body">
+    <script async src="http://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- -->
+<ins class="adsbygoogle"
+     style="display:inline-block;width:160px;height:600px"
+     data-ad-client="ca-pub-2736751992834286"
+     data-ad-slot="8116686456"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+  </div>
+</div>
+
+      
+      
+    
+      
+
+<div class="hatena-module hatena-module-profile">
+  <div class="hatena-module-title">
+    プロフィール
+  </div>
+  <div class="hatena-module-body">
+    
+    <a href="../../../about.html" class="profile-icon-link">
+      <img src="http://cdn1.www.st-hatena.com/users/ni/nipe880324/profile.gif?1406435422"
+      alt="id:nipe880324" class="profile-icon" />
+    </a>
+    
+
+    
+    <span class="id">
+      <a href="../../../about.html" class="hatena-id-link"><span data-load-nickname="1" data-user-name="nipe880324">id:nipe880324</span></a>
+      
+  
+    
+    
+  
+
+
+    </span>
+    
+
+    
+
+    
+      <div class="hatena-follow-button-box btn-subscribe js-hatena-follow-button-box"
+  
+  >
+
+  <a href="24.html#" class="hatena-follow-button js-hatena-follow-button">
+    <span class="subscribing">
+      <span class="foreground">読者です</span>
+      <span class="background">読者をやめる</span>
+    </span>
+    <span class="unsubscribing" data-track-name="profile-widget-subscribe-button" data-track-once>
+      <span class="foreground">読者になる</span>
+      <span class="background">読者になる</span>
+    </span>
+  </a>
+  <div class="subscription-count-box js-subscription-count-box">
+    <i></i>
+    <u></u>
+    <span class="subscription-count js-subscription-count">
+    </span>
+  </div>
+</div>
+
+    
+
+    
+
+    
+
+    
+  </div>
+</div>
+
+      
+      
+    
+      
+<div class="hatena-module hatena-module-entries-access-ranking"
+     data-count="4"
+     data-display_entry_category="1"
+     data-display_entry_image="0"
+     data-display_entry_image_size_width="100"
+     data-display_entry_image_size_height="100"
+     data-display_entry_body_length="0"
+     data-display_entry_date="1"
+     data-display_bookmark_count="0"
+     data-source="access"
+>
+  <div class="hatena-module-title">
+    
+      最近のアクセス
+    
+  </div>
+  <div class="hatena-module-body">
+    
+  </div>
+</div>
+
+      
+      
+    
+      
+<div class="hatena-module hatena-module-html">
+    <div class="hatena-module-title">    </div>
+  <div class="hatena-module-body">
+    <nav>
+  <div class="side-category">
+    <span class="side-category-title">Rails 入門</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20140713/1405251091.html">RailsのためのRuby基礎</a></li>
+      <li><a href="../../../entry/20140813/1407915718.html">Rails入門者向け ブログ開発</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Railsコマンド</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20140713/1405251709.html">rails new / server / console</a></li>
+      <li><a href="../../../entry/20150204/1423055537.html">rails new時の有用な6つの設定</a></li>
+      <li><a href="../../../entry/20150208/1423391199.html">rails new時のテンプレート</a></li>
+      <li><a href="../../../entry/20140802/1406948695.html">rails generate</a></li>
+      <li><a href="../../../entry/20141116/1416115266.html">rakeコマンド一覧</a></li>
+      <li><a href="../../../entry/20141117/1416225563.html">自前rakeコマンド</a></li>
+      <li><a href="../../../entry/20141110/1415623670.html">productionモードで起動</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Route / Controller</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20140716/1405451238.html">Routing</a></li>
+      <li><a href="../../../entry/20140810/1407603600.html">レイアウトファイルを指定</a></li>
+      <li><a href="../../../entry/20141125/1416918957.html">ビューを返す(render)</a></li>
+      <li><a href="../../../entry/20140808/1407427457.html">リダイレクトする(redirect_to)</a></li>
+      <li><a href="../../../entry/20141126/1417012848.html">Strong Parameters</a></li>
+      <li><a href="../../../entry/20141129/1417223453.html">フィルタ(before_action, after_action)</a></li>
+      <li><a href="../../../entry/20141127/1417086075.html">簡易なメッセージ表示(Flash)</a></li>
+      <li><a href="../../../entry/20141130/1417334030.html">セッション(session)</a></li>
+      <li><a href="../../../entry/20141201/1417432408.html">リクエストヘッダ、レスポンスヘッダ(request, response)</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Model, Migration</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20140724/1406142120.html">CRUD</a></li>
+      <li><a href="../../../entry/20141203/1417601540.html">1対多関連</a></li>
+      <li><a href="../../../entry/20141204/1417688260.html">多対多関連</a></li>
+      <li><a href="../../../entry/20141205/1417779929.html">1対1関連</a></li>
+      <li><a href="../../../entry/20141206/1417839458.html">STI(単一継承テーブル)</a></li>
+      <li><a href="../../../entry/20141207/1417926599.html">ポリモフィック関連</a></li>
+      <li><a href="../../../entry/20141208/1418018874.html">複数の子レコードを作成/更新</a></li>
+      <li><a href="../../../entry/20140724/1406145303.html">バリデーション(validation)</a></li>
+      <li><a href="../../../entry/20140810/1407623400.html">バリデーションエラー(validation errors)</a></li>
+      <li><a href="../../../entry/20140814/1407994568.html">スコープ(scope)</a></li>
+      <li><a href="../../../entry/20141211/1418301640.html">コールバック(callback)</a></li>
+      <li><a href="../../../entry/20150428/1430154446.html">複雑なSELECT文のまとめ</a></li>
+      <li><a href="../../../entry/20150710/1436461745.html">enum (Rails 4.1以上)</a></li>
+      <li><a href="../../../entry/20141209/1418123425.html">楽観的ロック</a></li>
+      <li><a href="../../../entry/20141210/1418207618.html">悲観的ロック</a></li>
+      <li><a href="../../../entry/20140810/1407634200.html">Migration(マイグレーション)</a></li>
+      <li><a href="../../../entry/20150607/1433606267.html">Postgresとマイグレーション</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">API</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20150708/1436284476.html">Roar</a></li>
+      <li>ActiveSerializer</li>
+      <li>Versioning</li>
+      <li>CORS</li>
+    </ul>
+  </div>
+
+  <div class="side-category">
+    <span class="side-category-title">View, Helper, Presenter</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20140810/1407603600.html">レイアウトファイルを指定</a></li>
+      <li><a href="../../../entry/20140807/1407419013.html">部分テンプレート</a></li>
+      <li><a href="../../../entry/20140727/1406448610.html">フォーム周りのMVC連携フロー</a></li>
+      <li><a href="../../../entry/20150113/1421149061.html">ビューヘルパーまとめ(View Helper)</a></li>
+      <li><a href="../../../entry/20140802/1406969793.html">フォーマットヘルパー</a></li>
+      <li><a href="../../../entry/20140803/1407049200.html">独自ヘルパー作成</a></li>
+      <li><a href="../../../entry/20141208/1418018874.html">複数の子レコード(has_many)を作成/更新するフォーム</a></li>
+      <li><a href="../../../entry/20141225/1419515057.html">1フォームに複数のSubmitボタンを配置</a></li>
+      <li><a href="../../../entry/20140730/1406700205.html">simple_form</a></li>
+      <li><a href="../../../entry/20150415/1429031791.html">Draper</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">テンプレートエンジン</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20140929/1411997071.html">HTMLテンプレートエンジンまとめ</a></li>
+      <li><a href="../../../entry/20140929/1411997071.html">Slim</a></li>
+      <li><a href="../../../entry/20141001/1412097051.html">Haml</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">ActionSupport / ActionMailer / ActiveJob / i18n</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20141217/1418817120.html">タイムゾーン、時刻処理</a></li>
+      <li><a href="../../../entry/20141218/1418901424.html">Timecop 時刻処理のテスト</a></li>
+      <li><a href="../../../entry/20141216/1418729961.html">クラス名,DB名,ファイル名の変換</a></li>
+      <li><a href="../../../entry/20141230/1419936984.html">JSON, XML, YAMLの読み書き</a></li>
+      <li><a href="../../../entry/20141030/1414599853.html">文字コード/エンコード</a></li>
+      <li><a href="../../../entry/20140828/1409236436.html">メール送信</a></li>
+      <li><a href="../../../entry/20150304/1425396671.html">DelayedJob バックグラウンド処理</a></li>
+      <li><a href="../../../entry/20150110/1420863998.html">ログ・ログレベル・ログフォーマット(log, logger)</a></li>
+      <li><a href="../../../entry/20150226/1424937175.html">i18nまとめ</a></li>
+      <li><a href="../../../entry/20141111/1415707101.html">エラーハンドリング</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">テスト</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20150101/1420093487.html">RSpec/Capybaraの導入方法</a></li>
+      <li><a href="../../../entry/20150103/1420280252.html">RSpec/Capybaraのレシピ集</a></li>
+      <li><a href="../../../entry/20150101/1420093487.html">FactoryGirlのレシピ集</a></li>
+      <li><a href="../../../entry/20150105/1420465062.html">Jasmine(Javascriptの単体テスト)</a></li>
+      <li><a href="../../../entry/20150108/1420675366.html">APIの作成とテスト</a></li>
+      <li><a href="../../../entry/20150106/1420545920.html">RSpecテストを速くする</a></li>
+      <li><a href="../../../entry/20150108/1420721205.html">デバッグ(debug)</a></li>
+      <li><a href="../../../entry/20150420/1429462755.html">Seleniumでスタンドアローンなテスト</a></li>
+      <li><a href="../../../entry/20140719/1405708234.html">Cucumber+RSpec+Capybara インストール</a></li>
+      <li><a href="../../../entry/20140719/1405777918.html">Cucumber+RSpec+Capybara BDD/TDD開発例</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Security</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20141215/1418641291.html">ログ上での秘密情報のフィルタリング</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">パフォーマンス</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20141109/1415522242.html">Bullet</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">設定</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20141224/1419414316.html">新しいEnvironmentを追加</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">UI/UX</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20140801/1406818800.html">Twitter Bootstrap 3</a></li>
+      <li><a href="../../../entry/20141112/1415804076.html">select2</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Gemの基礎</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20140715/1405361727.html">RubyGemsの選び方</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">ログイン/認証機能</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20140801/1406907000.html">devise1 インストール</a></li>
+      <li><a href="../../../entry/20140804/1407168000.html">devise2 カスタマイズ</a></li>
+      <li><a href="../../../entry/20140805/1407200400.html">devise3 Twitterでログイン(OAuth連携)</a></li>
+      <li><a href="../../../entry/20141212/1418380288.html">devise4 ゲストユーザー(Guest)作成</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">ファイルアップロード機能</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20140716/1405443484.html">PaperClip</a></li>
+      <li><a href="../../../entry/20141015/1413300088.html">CarrierWave1 インストール</a></li>
+      <li><a href="../../../entry/20141022/1413907332.html">CarrierWave2 カスタマイズ</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">検索機能・Elasticsearch</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20141008/1412774436.html">Ransack 検索機能</a></li>
+      <li><a href="../../../entry/20150224/1424776132.html">Sunspot 全文検索</a></li>
+      <li><a href="../../../entry/20151018/1445142266.html">Elasticsearch 1: 全文検索・フィルタ</a></li>
+      <li><a href="../../../entry/20151019/1445265581.html">Elasticsearch 2: ページネーション</a></li>
+      <li><a href="../../../entry/20151021/1445353566.html">Elasticsearch 3: ソート</a></li>
+      <li><a href="../../../entry/20151022/1445439798.html">Elasticsearch 4: アグリゲーション（ファセット）・post_filter</a></li>
+      <li><a href="../../../20151025/1445703231.html">Elasticsearch 5: ハイライト</a></li>
+      <li><a href="../../../entry/20151027/1445957667.html">Elasticsearch 6: サジェスト</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">ページネーション</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20141118/1416314608.html">ページネーションまとめ</a></li>
+      <li><a href="../../../entry/20141113/1415874683.html">kaminari</a></li>
+      <li><a href="../../../entry/20141114/1415967206.html">will_paginate</a></li>
+      <li><a href="../../../entry/20141115/1416021886.html">動的ページロード</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">CSV</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20141119/1416398472.html">CSVダウンロード</a></li>
+      <li><a href="../../../entry/20141120/1416483136.html">CSVアップロード</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">PDFファイル作成機能</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20140906/1409995011.html">PDF作成Gem まとめ</a></li>
+      <li><a href="../../../entry/20140907/1410078997.html">コードのみでPDF作成 Prawn</a></li>
+      <li><a href="../../../entry/20140908/1410176894.html">HTMLを変換してPDF作成 PDFKit + wkhtmltopdf</a></li>
+      <li><a href="../../../entry/20140909/1410241835.html">GUIツールでPDF作成 ThinReports</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">開発効率をあげる</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20141026/1414289421.html">Spring</a></li>
+      <li><a href="../../../entry/20141016/1413389293.html">Guard-LiveReload</a></li>
+      <li><a href="../../../entry/20141021/1413819783.html">Guard-RSpec</a></li>
+      <li><a href="../../../entry/20141019/1413698128.html">Guard-RuboCop</a></li>
+      <li><a href="../../../entry/20141024/1414081224.html">Pry-Rails / Pry-BuyBug</a></li>
+      <li><a href="../../../entry/20141024/1414160189.html">Hirb</a></li>
+      <li><a href="../../../entry/20141028/1414505988.html">Awesome Print</a></li>
+      <li><a href="../../../entry/20141029/1414584929.html">Quiet Assets</a></li>
+      <li><a href="../../../entry/20141025/1414225490.html">Better_Errors</a></li>
+      <li><a href="../../../entry/20141027/1414409495.html">Rails-ERD</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">その他Gem</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20150225/1424858414.html">acts-as-taggable-on タグ管理</a></li>
+      <li><a href="../../../entry/20141016/1413389293.html">wenerber Cron設定</a></li>
+      <li><a href="../../../entry/20150221/1424489524.html">friendly_id URLスラッグ</a></li>
+      <li><a href="../../../entry/20150216/1424092796.html">awesome_nested_set ツリー構造</a></li>
+      <li><a href="../../../entry/20150217/1424179269.html">awesome_nested_set にjsTreeを追加</a></li>
+      <li><a href="../../../entry/20150214/1423923524.html">PaperTrail 取り消し機能</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Tips</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20141229/1419856433.html">Virtual Attributes(仮想属性)</a></li>
+      <li><a href="../../../entry/20141226/1419600679.html">日付/時刻のフォーマット</a></li>
+      <li><a href="../../../entry/20141225/1419515057.html">1フォームに複数のSubmitボタンを配置</a></li>
+      <li><a href="../../../entry/20141223/1419334845.html">URLのパーマリンクをID以外に変更</a></li>
+      <li><a href="../../../entry/20141220/1419058040.html">CSSスタイリングのコントローラー単位で分割</a></li>
+      <li><a href="../../../entry/20141219/1418990626.html">ページタイトルの変更</a></li>
+      <li><a href="../../../entry/20150101/1420049679.html">Ruby/Railsの便利なメソッド(useful methods)</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Rubyテクニック</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20150921/1442839934.html">キーワード引数</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">良い設計/リファクタリング</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20150922/1442923521.html">デメテルの法則(Law of Demeter)</a></li>
+      <li><a href="../../../entry/20150312/1426141352.html">HTML/CSS/JSを疎結合にする方法</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">JavaScript</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20150311/1426062668.html">オブジェクト指向</a></li>
+      <li><a href="../../../entry/20150313/1426238835.html">thisの参照先</a></li>
+      <li><a href="../../../entry/20150317/1426599220.html">設定データを分離</a></li>
+      <li><a href="../../../entry/20150607/1433652441.html">ページを離れる時にアラートを出す</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">jQuery</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20150325/1427291741.html">Ajax</a></li>
+      <li><a href="../../../entry/20150326/1427379215.html">イベント処理(Event)</a></li>
+      <li><a href="../../../entry/20150331/1427809820.html">DOM操作</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">React.js</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20151122/1448118932.html">React.jsチュートリアル: メッセージボックス</a></li>
+      <li><a href="../../../entry/20151124/1448300267.html">サーバーレンダリング</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">AngularJS</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20150114/1421235346.html">AngularJSのインストール</a></li>
+      <li><a href="../../../entry/20150115/1421316461.html">UI Bootstrapのインストール</a></li>
+      <li><a href="../../../entry/20150116/1421407124.html">AngularJS Controller</a>
+      <li><a href="../../../entry/20150119/1421666497.html">ngResource + RailsでAPI作成</a></li>
+      <li><a href="../../../entry/20150120/1421761471.html">ngRoute</a></li>
+      <li><a href="../../../entry/20150126/1422276839.html">編集可能(Editable)</a></li>
+      <li><a href="../../../entry/20150127/1422357163.html">ソート可能(Sortable)</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">開発手法</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20140917/1410963376.html">スクラム開発</a></li>
+      <li><a href="../../../entry/20141010/1412867452.html">カイゼンフレームワークKPT</a>
+      <li><a href="../../../entry/20140816/1408126999.html">GitHubを使ったチーム開発フロー</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">開発ツール</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20141103/1414940400.html">git - 初期設定と便利なエイリアス</a></li>
+      <li><a href="../../../entry/20140713/1405248403.html">git - よく使うコマンド</a></li>
+      <li><a href="../../../entry/20140724/1406137504.html">SublimeText3 - 便利コマンドとプラグイン</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">DB</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20140726/1406331785.html">MongoDBの基礎入門 CRUD操作</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">インフラ</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20150719/1437249020.html">Vagrant</a></li>
+      <li><a href="../../../entry/20150721/1437404524.html">Chef(Rails環境構築)</a></li>
+      <li><a href="../../../entry/20150314/1426332751.html">Herokuの準備とデプロイ</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">リファレンス</span>
+    <ul class="side-category-list">
+      <li><a href="https://github.com/" target="_blank">GitHub</a></li>
+      <li><a href="http://guides.rubyonrails.org/index.html" target="_blank">RailsGuides</a></li>
+      <li><a href="http://railscasts.com/" target="_blank">RailsCast</a></li>
+      <li><a href="https://rubygems.org/" target="_blank">RubyGems</a></li>
+      <li><a href="https://www.ruby-toolbox.com/" target="_blank">RubyToolbox</a></li>
+      <li><a href="http://rubular.com/" target="_blank">正規表現 Rubular</a></li>
+      <li><a href="http://ruby-doc.org/core-2.1/" target="_blank">Ruby API (2.1)</a></li>
+      <li><a href="http://api.rubyonrails.org/" target="_blank">Ruby on Rails API (4.1)</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Phoenix</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20151011/1444560106.html">Phoenix環境設定(Phoenix入門1)</a></li>
+      <li><a href="../../../entry/20151013/1444662887.html">基本的な認証機能(Phoenix入門2)</a></li>
+      <li><a href="../../../entry/20151016/1444930756.html">基本的なチャット機能(Phoenix入門3)</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">その他</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20150401/1427898898.html">広告収入向上</a></li>
+      <li><a href="../../../entry/20140830/1409361710.html">著者が読んだ本</a></li>
+    </ul>
+  </div>
+</nav>
+
+  </div>
+</div>
+
+      
+      
+    
+      
+
+<div class="hatena-module hatena-module-archive" data-archive-type="default" data-archive-url="http://ruby-rails.hatenadiary.com/archive">
+  <div class="hatena-module-title">
+    <a href="../../../archive.html">月別アーカイブ</a>
+  </div>
+  <div class="hatena-module-body">
+  </div>
+</div>
+
+      
+      
+    
+    
+  </div>
+</aside>
+
+  </div>
+</div>
+
+
+
+
+        
+        
+          <script type="text/javascript" src="http://b.hatena.ne.jp/js/hatena_dfp2.js"></script>
+        
+        
+          <div id="bottom-editarea">
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script>
+$('.unsubscribing').on('click', function() {
+    ga('send', 'event', 'button', 'click', 'hatenaReader');  
+});
+</script>
+          </div>
+        
+      </div>
+    </div>
+
+    
+      <footer id="footer" data-brand="hatenablog">
+  <div id="footer-inner">
+    <address>
+      
+      <a href="../../../about.html"><img src="http://cdn1.www.st-hatena.com/users/ni/nipe880324/profile.gif" width="16" height="16" alt=""/>
+        <span data-load-nickname="1" data-user-name="nipe880324">nipe880324</span>
+      </a>
+    </address>
+    <p class="services">Powered by <a href="http://hatenablog.com/">Hatena Blog</a></p>
+  </div>
+</footer>
+
+    
+
+    
+  <script type="text/javascript">!function(d,i){if(!d.getElementById(i)){var j=d.createElement("script");j.id=i;j.src="https://widgets.getpocket.com/v1/j/btn.js?v=1";var w=d.getElementById(i);d.body.appendChild(j);}}(document,"pocket-btn-js");</script>
+
+
+    
+
+    <script type="text/javascript" src="https://platform.twitter.com/widgets.js"></script>
+<script type="text/javascript" src="https://apis.google.com/js/plusone.js">
+  {"parsetags": "explicit"}
+</script>
+<script type="text/javascript" src="https://b.st-hatena.com/js/bookmark_button.js" charset="utf-8" async="async"></script>
+
+
+
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.7/react-with-addons.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.7/react-dom.min.js"></script>
+
+
+<script type="text/javascript" src="http://cdn7.www.st-hatena.com/js/jquery-1.9.1.min.js"></script>
+<script type="text/javascript" src="http://cdn7.www.st-hatena.com/js/jquery/jquery-ui.1.10.0.custom.min.js"></script>
+<script type="text/javascript" src="http://cdn7.www.st-hatena.com/js/jquery/jquery.flot.0.8.3.js"></script>
+<script type="text/javascript" src="http://cdn7.www.st-hatena.com/js/jquery/jquery.flot.time.0.8.3.js"></script>
+
+
+
+<script id="hatenablog-js" data-env="production"
+  type="text/javascript" src="https://blog.st-hatena.com/js/hatenablog.js?version=228df9a6e5a3ae04fdb53d33befa3556" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://blog.st-hatena.com/js/texts-ja.js?version=228df9a6e5a3ae04fdb53d33befa3556"></script>
+
+
+  <script type="text/javascript">Hatena.Diary.GlobalHeader.init()</script>
+
+
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
+
+
+
+    
+
+
+    
+       
+
+  <script id="hatena-counter-script" type="text/javascript"><!--
+      hatena_counter_name = "nipe880324";
+      hatena_counter_id = "102";
+      hatena_counter_ref = document.referrer+"";
+      hatena_counter_screen = screen.width + "x" + screen.height+","+screen.colorDepth;
+  //--></script>
+  <script type="text/javascript" src="http://counter.hatena.ne.jp/js/counter.js"></script>
+  <noscript><img src="http://counter.hatena.ne.jp/nipe880324/102" border="0" alt="counter"></noscript>
+
+
+    
+
+  </body>
+</html>

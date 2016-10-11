@@ -1,0 +1,231 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>アルゴリズム - Rails Webook</title>
+    <link>http://ruby-rails.hatenadiary.com/category/%E3%82%A2%E3%83%AB%E3%82%B4%E3%83%AA%E3%82%BA%E3%83%A0</link>
+    <description>自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</description>
+    <lastBuildDate>Fri, 18 Dec 2015 02:44:31 +0900</lastBuildDate>
+    <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+    <generator>Hatena::Blog</generator>
+    
+      
+      
+        <item>
+          <title>Rubyでグラフ間の最短経路を求めるダイクストラ法を実装</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20140709/1404902249</link>
+          <description>&lt;p&gt;グラフ間の最短経路を求めるダイクストラ法をRubyで作成しました。&lt;/p&gt;&lt;p&gt;次のサイトを参考にして作りました。&lt;br /&gt;
+&lt;a href=&quot;http://www.deqnotes.net/acmicpc/dijkstra/&quot;&gt;&amp;#x30C0;&amp;#x30A4;&amp;#x30AF;&amp;#x30B9;&amp;#x30C8;&amp;#x30E9;&amp;#x6CD5;&amp;#xFF08;&amp;#x6700;&amp;#x77ED;&amp;#x7D4C;&amp;#x8DEF;&amp;#x554F;&amp;#x984C;&amp;#xFF09;&lt;/a&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;ダイクストラ法では最短経路や最安値などを求める事ができるので、&lt;br /&gt;
+応用例として、カーナビや路線検索アプリ、PERT図のクリティカルパスの算出等で使われている思います。&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;ダイクストラ法の例題&lt;/h3&gt;
+    &lt;p&gt;次のような経路情報があると想定します。各ノードは「駅」、各エッジは駅から駅まで移動するときの「時間」とします。&lt;br /&gt;
+このとき、スタート地点の「横浜」からゴール地点の「新宿」まで&lt;b&gt;どの経路を辿って、どのぐらいの時間で辿り着けるか&lt;/b&gt;を計算してみます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140226/20140226181715.png&quot; alt=&quot;f:id:nipe880324:20140226181715p:plain:w480&quot; title=&quot;f:id:nipe880324:20140226181715p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;出力結果&lt;/h3&gt;
+    &lt;p&gt;上記のサンプル問題の結果です。&lt;br /&gt;
+これは簡易な例ですが、もっと複雑な路線図の場合、人間ではできないことなので、とても有用なアルゴリズムだと思います。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;&amp;#34;yokohama から shinjuku の 最短経路 は [:yokohama, :shibuya, :shinjuku] です。&amp;#34;
+&amp;#34;yokohama から shinjuku の 時間 は 5 です。&amp;#34;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;ソースコード&lt;/h3&gt;
+    &lt;p&gt;上記のサンプル状況に対して適応しました。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# encoding: utf-8&lt;/span&gt;
+ 
+&lt;span class=&quot;synComment&quot;&gt;=begin&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;アルゴリズム参考URL&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;http://www.deqnotes.net/acmicpc/dijkstra/&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt; &lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;アルゴリズム&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;  1. 初期化&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;     スタートノードの値（最小コスト候補）を０、他のノードの値を未定義に設定&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;  2. 確定ノードをピックアップすることができなくなるまで以下のループを繰り返す&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;    2-1. まだ確定されていないノードのうち、最小の値を持つノードを見つけ、確定ノードとする（確定フラグをたてる）&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;    2-2. 確定ノードからの伸びているエッジをそれぞれチェックし、「確定ノードまでのコスト＋エッジのコスト」を計算し、&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;    そのノードの現在値よりも小さければ更新する。（経路情報も必要であれば、どこから来たのかを示す変数が確定ノードをさすようにする&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt; &lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;特徴&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;・負のコスト（距離or時間）を持つエッジは扱えない&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;・特定のノードからの最短距離およびその経路が全てのノードに対して求まる&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;=end&lt;/span&gt;
+ 
+ 
+&lt;span class=&quot;synComment&quot;&gt;# ダイクストラ法をアルゴリズムとしたグラフクラス&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Graph&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# グラフを構成するノード&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Node&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;attr_accessor&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;:nid&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:edges&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:cost&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:from_nid&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:fixed&lt;/span&gt;
+    
+    &lt;span class=&quot;synComment&quot;&gt;# nid (Symbol)   e.g. :a&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# edges (Array)  e.g. [[cost, nid], [cost, nid], ...]&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# cost コスト値　(nil の場合コストが未設定)&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# from_nid nid格納 (nil の場合存在しない)&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# fixed 確定ノードか否かの判定フラグ&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;initialize&lt;/span&gt;(nid, edges=[], cost=&lt;span class=&quot;synConstant&quot;&gt;nil&lt;/span&gt;, from_nid=&lt;span class=&quot;synConstant&quot;&gt;nil&lt;/span&gt;, fixed=&lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;)
+      &lt;span class=&quot;synIdentifier&quot;&gt;@nid&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;@edges&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;@cost&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;@from_nid&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;@fixed&lt;/span&gt; = nid, edges, cost, from_nid, fixed
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+ 
+    &lt;span class=&quot;synComment&quot;&gt;# ノードの情報を表示&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;show&lt;/span&gt;
+      p &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;#{&lt;/span&gt;nid&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;(&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;cost&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;from_nid&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;fixed&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;) -&amp;gt; &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;edges&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+ 
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;initialize&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@nodes&lt;/span&gt; = {}
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+ 
+  &lt;span class=&quot;synComment&quot;&gt;# ノードを追加する&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;add_node&lt;/span&gt;(nid, edges)
+    n = &lt;span class=&quot;synType&quot;&gt;Node&lt;/span&gt;.new(nid, edges)
+    &lt;span class=&quot;synIdentifier&quot;&gt;@nodes&lt;/span&gt;[nid] = n
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+ 
+  &lt;span class=&quot;synComment&quot;&gt;# 開始位置を設定&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;set_start&lt;/span&gt;(sid)
+    &lt;span class=&quot;synComment&quot;&gt;# 開始位置を保存&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@sid&lt;/span&gt; = sid
+ 
+    &lt;span class=&quot;synComment&quot;&gt;# ノードのダイクストラ法のためのデータを初期化&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# 開始ノードと同じノードだけコストを0にする &lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@nodes&lt;/span&gt;.each &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;nid&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;node&lt;/span&gt;|
+      node.cost = (&lt;span class=&quot;synIdentifier&quot;&gt;@sid&lt;/span&gt; == nid) ? &lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt; : &lt;span class=&quot;synConstant&quot;&gt;nil&lt;/span&gt;
+      node.from_nid = &lt;span class=&quot;synConstant&quot;&gt;nil&lt;/span&gt;
+      node.fixed = &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+ 
+    &lt;span class=&quot;synComment&quot;&gt;#　ダイクストラ法を実施&lt;/span&gt;
+    dijkstra
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+ 
+  &lt;span class=&quot;synComment&quot;&gt;# 終了地点までの経路を取得&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# 開始地点までの経路を辿れない場合nilを返す&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;route&lt;/span&gt;(gid)
+    &lt;span class=&quot;synComment&quot;&gt;# 経路情報格納変数&lt;/span&gt;
+    path = []
+ 
+    &lt;span class=&quot;synComment&quot;&gt;# 終点ノードを格納&lt;/span&gt;
+    node = &lt;span class=&quot;synIdentifier&quot;&gt;@nodes&lt;/span&gt;[gid]
+    path.push(node)
+ 
+    &lt;span class=&quot;synComment&quot;&gt;# 開始地点に辿りつくか、経路を辿れなかくなるまでループ&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;loop&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;# 前のノードを取得し経路情報を格納&lt;/span&gt;
+      node = &lt;span class=&quot;synIdentifier&quot;&gt;@nodes&lt;/span&gt;[node.from_nid]
+      path.push(node)
+ 
+      &lt;span class=&quot;synComment&quot;&gt;# 開始地点に辿り着いたらループを終了&lt;/span&gt;
+      &lt;span class=&quot;synStatement&quot;&gt;break&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; node.nid == &lt;span class=&quot;synIdentifier&quot;&gt;@sid&lt;/span&gt;
+ 
+      &lt;span class=&quot;synComment&quot;&gt;# 開始地点までの経路を辿れない場合nilを返す&lt;/span&gt;
+      &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;nil&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; node.from_nid.nil?
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  
+    &lt;span class=&quot;synComment&quot;&gt;# 終点から辿って格納したので順番を入れ替える&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# そして、nibだけを取り出した配列を返すf&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; path.reverse!.map { |&lt;span class=&quot;synIdentifier&quot;&gt;node&lt;/span&gt;| node.nid }
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+ 
+  &lt;span class=&quot;synComment&quot;&gt;# 終了地点までのコストを取得&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;cost&lt;/span&gt;(gid)
+    &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;@nodes&lt;/span&gt;[gid].cost
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+ 
+  &lt;span class=&quot;synComment&quot;&gt;# 現在のグラフ情報を表示&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;show&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@nodes&lt;/span&gt;.map { |&lt;span class=&quot;synIdentifier&quot;&gt;k&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;node&lt;/span&gt;| node.show } 
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+ 
+&lt;span class=&quot;synStatement&quot;&gt;private&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# ダイクストラ法のアルゴリズムを実施する&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;dijkstra&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;loop&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;# 確定ノード(fixed_node)を探す&lt;/span&gt;
+      fixed_node = &lt;span class=&quot;synConstant&quot;&gt;nil&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;@nodes&lt;/span&gt;.each &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;nib&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;node&lt;/span&gt;|
+        &lt;span class=&quot;synStatement&quot;&gt;next&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; node.fixed || node.cost.nil?
+        fixed_node = node &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; fixed_node.nil? || node.cost &amp;lt; fixed_node.cost
+      &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+ 
+      &lt;span class=&quot;synComment&quot;&gt;# 全てのノードが確定ノードに成った場合ループを終了&lt;/span&gt;
+      &lt;span class=&quot;synStatement&quot;&gt;break&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; fixed_node.nil?
+ 
+      &lt;span class=&quot;synComment&quot;&gt;# 確定フラグを立てる&lt;/span&gt;
+      fixed_node.fixed = &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;# 確定ノードに隣接するノードのコストと経路情報を更新する&lt;/span&gt;
+      fixed_node.edges.each &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;edge_cost&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;edge_nid&lt;/span&gt;|
+        &lt;span class=&quot;synComment&quot;&gt;# 隣接するノードまでのコストを計算&lt;/span&gt;
+        cost = fixed_node.cost + edge_cost
+        &lt;span class=&quot;synComment&quot;&gt;# 隣接するノードのコストが存在しない場合、もしくは、既に存在している値より計算した値が小さい(より短い経路)の場合&lt;/span&gt;
+        &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;@nodes&lt;/span&gt;[edge_nid].cost.nil? || cost &amp;lt; &lt;span class=&quot;synIdentifier&quot;&gt;@nodes&lt;/span&gt;[edge_nid].cost &lt;span class=&quot;synStatement&quot;&gt;then&lt;/span&gt;
+          &lt;span class=&quot;synComment&quot;&gt;# コストと経路情報を更新する&lt;/span&gt;
+          &lt;span class=&quot;synIdentifier&quot;&gt;@nodes&lt;/span&gt;[edge_nid].cost = cost
+          &lt;span class=&quot;synIdentifier&quot;&gt;@nodes&lt;/span&gt;[edge_nid].from_nid = fixed_node.nid
+        &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+      &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+ 
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+ 
+ 
+&lt;span class=&quot;synComment&quot;&gt;#########################################&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;## 処理を実施&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#########################################&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;__FILE__&lt;/span&gt; == &lt;span class=&quot;synIdentifier&quot;&gt;$0&lt;/span&gt;
+ 
+  &lt;span class=&quot;synComment&quot;&gt;# データを用意&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# 全てのノードからのエッジをデータを作成&lt;/span&gt;
+  data = {     
+    &lt;span class=&quot;synConstant&quot;&gt;:yokohama&lt;/span&gt; =&amp;gt; [[&lt;span class=&quot;synConstant&quot;&gt;5&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:shinagawa&lt;/span&gt;], [&lt;span class=&quot;synConstant&quot;&gt;4&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:shibuya&lt;/span&gt;]],
+    &lt;span class=&quot;synConstant&quot;&gt;:shinagawa&lt;/span&gt; =&amp;gt; [[&lt;span class=&quot;synConstant&quot;&gt;5&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:yokohama&lt;/span&gt;], [&lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:shibuya&lt;/span&gt;], [&lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:tokyo&lt;/span&gt;]],
+    &lt;span class=&quot;synConstant&quot;&gt;:shibuya&lt;/span&gt; =&amp;gt; [[&lt;span class=&quot;synConstant&quot;&gt;6&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:yokohama&lt;/span&gt;], [&lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:shinagawa&lt;/span&gt;], [&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:shinjuku_sancho_me&lt;/span&gt;], [&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:shinjuku&lt;/span&gt;]],
+    &lt;span class=&quot;synConstant&quot;&gt;:tokyo&lt;/span&gt; =&amp;gt; [[&lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:shinagawa&lt;/span&gt;], [&lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:shinjuku&lt;/span&gt;]],
+    &lt;span class=&quot;synConstant&quot;&gt;:shinjuku_sancho_me&lt;/span&gt; =&amp;gt; [[&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:shibuya&lt;/span&gt;], [&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:shinjuku&lt;/span&gt;]],
+    &lt;span class=&quot;synConstant&quot;&gt;:shinjuku&lt;/span&gt; =&amp;gt; [[&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:shibuya&lt;/span&gt;], [&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:shinjuku_sancho_me&lt;/span&gt;], [&lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:tokyo&lt;/span&gt;]]
+  }
+ 
+  &lt;span class=&quot;synComment&quot;&gt;# 開始ノードと終了ノードを設定&lt;/span&gt;
+  sid = &lt;span class=&quot;synConstant&quot;&gt;:yokohama&lt;/span&gt;
+  gid = &lt;span class=&quot;synConstant&quot;&gt;:shinjuku&lt;/span&gt;
+ 
+  &lt;span class=&quot;synComment&quot;&gt;# グラフを作成&lt;/span&gt;
+  g = &lt;span class=&quot;synType&quot;&gt;Graph&lt;/span&gt;.new
+ 
+  &lt;span class=&quot;synComment&quot;&gt;# グラフにノードを追加&lt;/span&gt;
+  data.each &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;nid&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;edges&lt;/span&gt;|
+    g.add_node(nid, edges)
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+ 
+  &lt;span class=&quot;synComment&quot;&gt;# グラフに開始位置を設定&lt;/span&gt;
+  g.set_start(sid)
+ 
+  &lt;span class=&quot;synComment&quot;&gt;# 終了地点までの経路を取得&lt;/span&gt;
+  p &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;#{&lt;/span&gt;sid&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; から &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;gid&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; の 最短経路 は &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;g.route(gid)&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; です。&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+ 
+  &lt;span class=&quot;synComment&quot;&gt;# 終了地点までのコストを取得&lt;/span&gt;
+  p &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;#{&lt;/span&gt;sid&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; から &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;gid&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; の 時間 は &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;g.cost(gid)&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; です。&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+ 
+  &lt;span class=&quot;synComment&quot;&gt;# グラフの情報を表示&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# g.show&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;</description>
+          <pubDate>Wed, 09 Jul 2014 19:37:29 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/12921228815727792395</guid>
+          
+            <category>Ruby</category>
+          
+            <category>アルゴリズム</category>
+          
+        </item>
+      
+    
+  </channel>
+</rss>

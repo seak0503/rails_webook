@@ -1,0 +1,351 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>i18n - Rails Webook</title>
+    <link>http://ruby-rails.hatenadiary.com/category/i18n</link>
+    <description>自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</description>
+    <lastBuildDate>Fri, 18 Dec 2015 02:44:31 +0900</lastBuildDate>
+    <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+    <generator>Hatena::Blog</generator>
+    
+      
+      
+        <item>
+          <title>Railsのi18nの基本的な使い方まとめ</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20150226/1424937175</link>
+          <description>&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150226/20150226164508.jpg&quot; alt=&quot;f:id:nipe880324:20150226164508j:plain:w480&quot; title=&quot;f:id:nipe880324:20150226164508j:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+&lt;i&gt;Photo by &lt;a href=&quot;https://www.flickr.com/photos/m-i-k-e/&quot;&gt;Michael Kappel | Flickr - Photo Sharing!&lt;/a&gt;&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;での国際化（&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/i18n&quot;&gt;i18n&lt;/a&gt;: Internationalization）の方法をまとめています。&lt;br /&gt;
+デフォルトのlocale設定、基本的な翻訳の流れ、翻訳ファイルの作成、localeを動的に変更する方法を説明します。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Ruby&quot;&gt;Ruby&lt;/a&gt;  2.2.0&lt;/li&gt;
+&lt;li&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt; 4.2.0&lt;/li&gt;
+&lt;li&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/i18n&quot;&gt;i18n&lt;/a&gt; 0.7.0&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;1. &lt;a href=&quot;#i18n-default_locale_and_read_traslation_files&quot;&gt;デフォルトのlocaleの設定と翻訳ファイルの読み込み&lt;/a&gt;&lt;/h4&gt;
+    
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;2. &lt;a href=&quot;#i18n-basic_usage&quot;&gt;i18nの翻訳の基本&lt;/a&gt;&lt;/h4&gt;
+    
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;3. &lt;a href=&quot;#i18n-create_translation_files&quot;&gt;翻訳ファイルの作成&lt;/a&gt;&lt;/h4&gt;
+    &lt;p&gt;3.1.  &lt;a href=&quot;#i18n-directory&quot;&gt;翻訳ファイルのディレクトリ構成&lt;/a&gt;&lt;br /&gt;
+3.2.  &lt;a href=&quot;#i18n-template_translation_files&quot;&gt;各言語の基本的な翻訳テンプレートファイル&lt;/a&gt;&lt;br /&gt;
+3.3.  &lt;a href=&quot;#i18n-lazy_lookup&quot;&gt;遅延参照（lazy lookup）&lt;/a&gt;&lt;br /&gt;
+3.4.  &lt;a href=&quot;#i18n-interpolation&quot;&gt;式展開&lt;/a&gt;&lt;br /&gt;
+3.5.  &lt;a href=&quot;#i18n-use_htmol&quot;&gt;翻訳ファイル内でのHTMLの使用&lt;/a&gt;&lt;br /&gt;
+3.6.  &lt;a href=&quot;#i18n-translate_active_record&quot;&gt;ActiveRecordの翻訳&lt;/a&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;4. &lt;a href=&quot;#i18n-locale_from_url&quot;&gt;URLによるlocaleの設定方法&lt;/a&gt;&lt;/h4&gt;
+    &lt;p&gt;4.1.  &lt;a href=&quot;#i18n-locale_from_subdomain&quot;&gt;サブドメイン名からlocaleを設定&lt;/a&gt;&lt;br /&gt;
+4.2.  &lt;a href=&quot;#i18n-locale_from_subdirectory&quot;&gt;URLのサブディレクトリからlocaleを取得&lt;/a&gt;&lt;br /&gt;
+4.3.  &lt;a href=&quot;#i18n-locale_from_url_parameter&quot;&gt;URLパラメータからlocaleを取得&lt;/a&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;i18n-default_locale_and_read_traslation_files&quot;&gt;1. デフォルトのlocaleの設定と翻訳ファイルの読み込み&lt;/h3&gt;デフォルトのlocaleは暗黙的に&lt;code&gt;:en&lt;/code&gt;です。他のlocaleを設定したい場合は、明示的に指定する必要があります。&lt;br /&gt;
+また、翻訳ファイルは&lt;code&gt;config/locales/*.rb,yml&lt;/code&gt;に配置し、自動的にロードされるようになっています。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;デフォルトのlocaleの設定や翻訳ファイルのディレクトリの追加をしたい場合、&lt;code&gt;application.rb&lt;/code&gt;を修正します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# config/application.rb&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# デフォルトのlocaleを日本語(:ja)にする&lt;/span&gt;
+config.i18n.default_locale = &lt;span class=&quot;synConstant&quot;&gt;:ja&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 翻訳ファイルのディレクトを追加する場合は、次の行のコメントを外しパスを追加してください。&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# config.i18n.load_path += Dir[Rails.root.join(&#39;my&#39;, &#39;locales&#39;, &#39;*.{rb,yml}&#39;).to_s]&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+設定できるlocaleは次の&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;で確認できます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synType&quot;&gt;I18n&lt;/span&gt;.available_locales
+&lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; [:en, :&amp;quot;de-AT&amp;quot;, :&amp;quot;de-CH&amp;quot;, :de, :&amp;quot;en-au-ocker&amp;quot;, :&amp;quot;en-AU&amp;quot;, :&amp;quot;en-BORK&amp;quot;, :&amp;quot;en-CA&amp;quot;, :&amp;quot;en-GB&amp;quot;, ...]&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;code&gt;I18n.load_path&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;で現在ロードしている翻訳ファイルの一覧を表示することができます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synType&quot;&gt;I18n&lt;/span&gt;.load_path
+&lt;span class=&quot;synComment&quot;&gt;#=&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#[&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#  &amp;quot;/.../gems/2.2.0/gems/activesupport-4.2.0/lib/active_support/locale/en.yml&amp;quot;,&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#  &amp;quot;/.../gems/activemodel-4.2.0/lib/active_model/locale/en.yml&amp;quot;,&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#  &amp;quot;/.../gems/activerecord-4.2.0/lib/active_record/locale/en.yml&amp;quot;,&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#  &amp;quot;/.../gems/actionview-4.2.0/lib/action_view/locale/en.yml&amp;quot;,&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#  &amp;quot;/.../gems/faker-1.4.3/lib/locales/de-AT.yml&amp;quot;,&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#  &amp;quot;/.../gems/faker-1.4.3/lib/locales/de-CH.yml&amp;quot;,&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#  &amp;quot;/.../gems/faker-1.4.3/lib/locales/de.yml&amp;quot;,&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#  &amp;quot;/.../gems/faker-1.4.3/lib/locales/en-au-ocker.yml&amp;quot;,&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#  &amp;quot;/.../gems/faker-1.4.3/lib/locales/en-AU.yml&amp;quot;,&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#  &amp;quot;/.../gems/faker-1.4.3/lib/locales/en-BORK.yml&amp;quot;,&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#  ...&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;#]&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;i18n-basic_usage&quot;&gt;2. &lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/i18n&quot;&gt;i18n&lt;/a&gt;の翻訳の基本&lt;/h3&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/i18n&quot;&gt;i18n&lt;/a&gt;は、現在のlocaleに応じて、読み込んだ翻訳ファイルから適切な翻訳文を取得し、表示します。&lt;/p&gt;&lt;p&gt;翻訳ファイルは次のようになっています。&lt;/p&gt;
+&lt;pre class=&quot;code lang-yaml&quot; data-lang=&quot;yaml&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# config/locales/ja.yml&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;ja&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;hello&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;こんにちは&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;formats&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;default&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;!&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;&#39;%Y/%m/%d %H:%M:%S&#39;&lt;/span&gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;# config/locales/es.yml&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;es&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;hello&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;hola mundo&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;time&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;formats&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;default&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;!&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;&#39;%A, %d de %B de %Y %H:%M:%S %z&#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+変換には「翻訳(translate)を行う&lt;code&gt;t&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;」と「DateやTimeをlocalizeする&lt;code&gt;l&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;」を使います。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ rails c
+
+&lt;span class=&quot;synComment&quot;&gt;# localeを日本語(:ja)に設定し、翻訳した文字を表示する&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;I18n&lt;/span&gt;.locale = &lt;span class=&quot;synConstant&quot;&gt;:ja&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;I18n&lt;/span&gt;.t &lt;span class=&quot;synConstant&quot;&gt;:hello&lt;/span&gt;   &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;こんにちは&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;I18n&lt;/span&gt;.l &lt;span class=&quot;synType&quot;&gt;Time&lt;/span&gt;.now &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;2015/02/24 14:53:03&amp;quot;&lt;/span&gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;# localeをスペイン語(:es)に設定し、翻訳した文字を表示する&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;I18n&lt;/span&gt;.locale = &lt;span class=&quot;synConstant&quot;&gt;:es&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;I18n&lt;/span&gt;.t &lt;span class=&quot;synConstant&quot;&gt;:hello&lt;/span&gt;   &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;hola mundo&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;I18n&lt;/span&gt;.l &lt;span class=&quot;synType&quot;&gt;Time&lt;/span&gt;.now &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;martes, 24 de febrero de 2015 14:57:17 +0900&amp;quot;&lt;/span&gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;# localeを指定して、設定されていない文字を表示できる&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;I18n&lt;/span&gt;.locale  &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; :es&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;I18n&lt;/span&gt;.t &lt;span class=&quot;synConstant&quot;&gt;:hello&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;locale&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:ja&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;こんにちは&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;i18n-create_translation_files&quot;&gt;3. 翻訳ファイルの作成&lt;/h3&gt;&lt;h3 id=&quot;i18n-directory&quot;&gt;3.1. 翻訳ファイルのディレクトリ構成&lt;/h3&gt;１つの翻訳に管理するのが難しくなってしまうので、プロジェクト規模に応じて、次のように&lt;code&gt;config/locales/&lt;/code&gt;配下のディレクトリ構成を行うとよいです。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;config/locales/
+├─ defaults
+│  ├─ ja.rb
+│  └─ en.rb
+├── models
+│   └─ product
+│      ├─ ja.rb
+│      └─ en.rb
+└─ views
+   ├─ defaults
+   │  ├─ ja.rb
+   │  └─ en.rb
+   ├─ products
+   │  ├─ ja.rb
+   │  └─ en.rb
+   └─ navigation
+      ├─ ja.rb
+      └─ en.rb&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;i18n-template_translation_files&quot;&gt;3.2. 各言語の基本的な翻訳テンプレートファイル&lt;/h3&gt;各言語の基本的な翻訳ファイルは「&lt;a href=&quot;https://github.com/svenfuchs/rails-i18n/tree/master/rails/locale&quot;&gt;https://github.com/svenfuchs/rails-i18n/tree/master/rails/locale&lt;/a&gt;」から取得できます。&lt;br /&gt;
+日付、時刻、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/ActiveRecord&quot;&gt;ActiveRecord&lt;/a&gt;のバリデーションエラー文言、数字などの基本的な翻訳が記載されていまので、上記でいう、&lt;code&gt;config/locales/defaults/&lt;/code&gt;配下に配置するようなファイルを取得できます。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;i18n-lazy_lookup&quot;&gt;3.3. 遅延参照（lazy lookup）&lt;/h3&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;のビューファイルのディレクトリ構造と翻訳ファイルの階層構造を合わせることで、ビューに長ったらしくを書かなくてもよくなります。&lt;/p&gt;
+&lt;pre class=&quot;code lang-yaml&quot; data-lang=&quot;yaml&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;ja&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;projects&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt;&lt;span class=&quot;synComment&quot;&gt; # app/views/projectsを表す&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;index&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt; # app/views/projects/index.html.erb&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;title&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;プロジェクト一覧&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;deadlines&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt; # app/views/_deadlines.html.erb&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;due_date&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;期限&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- app/views/projects/index.html.erb --&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- t &#39;projects.index.title&#39; を t &#39;.title&#39; と短くかける --&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; t&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;.title&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;  # =&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt; &amp;quot;プロジェクト一覧&amp;quot;
+
+&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- app/views/projects/_deadlines.html.erb --&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- t &#39;projects.deadlines.due_date&#39; を t &#39;.due_date&#39; と短くかける --&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; t&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;.due_date&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;  # =&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt; &amp;quot;期限&amp;quot;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;i18n-interpolation&quot;&gt;3.4. 式展開&lt;/h3&gt;翻訳文内で式展開を行うことができます。&lt;/p&gt;&lt;p&gt;翻訳ファイル内で&lt;code&gt;%{}&lt;/code&gt;で変数名を定義します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-yaml&quot; data-lang=&quot;yaml&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;ja&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;hello&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;&#39;こんにちは %{name}&#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;そして、&lt;code&gt;t&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;でKey-Valueで変数に値を設定します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; t&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :hello, &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;太郎&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt; # =&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt; &amp;quot;こんにちは 太郎&amp;quot;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;i18n-use_htmol&quot;&gt;3.5. 翻訳ファイル内でのHTMLの使用&lt;/h3&gt;翻訳ファイル内でHTMLを使用するには、キーに「&lt;code&gt;_html&lt;/code&gt;で終わる」か「&lt;code&gt;html&lt;/code&gt;というキー名」の場合、HTMLはエスケープされません。そのため、記載したHTMLが解釈されて表示されます。&lt;/p&gt;&lt;p&gt;翻訳ファイル内で&lt;code&gt;_html&lt;/code&gt;で終わるキー名にします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-yaml&quot; data-lang=&quot;yaml&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;ja&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;hello_html&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;&#39;&amp;lt;b&amp;gt;こんにちは %{name}&amp;lt;/b&amp;gt;&#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;そして、&lt;code&gt;t&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;で表示します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; t&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :hello_html, &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;太郎&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt; #=&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt; 太字になった「こんにち　太郎」が表示される
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+次のように&lt;code&gt;hello_html&lt;/code&gt;の値にHTMLセーフでない文字を入力するとそれが表示されてしまうので注意してください。&lt;/p&gt;
+&lt;pre class=&quot;code lang-yaml&quot; data-lang=&quot;yaml&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;ja&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;hello_html&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;&#39;こんにちは %{name} &amp;lt;script&amp;gt;alert(&amp;quot;alertが表示される&amp;quot;);&amp;lt;/script&amp;gt;&#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+逆に、式展開の&lt;code&gt;%{}&lt;/code&gt;のHTMLはエスケープされます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; t&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :hello_html, &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;&amp;lt;script&amp;gt;alert(&amp;quot;太郎&amp;quot;);&amp;lt;/script&amp;gt;&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt; #=&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt; &amp;quot;こんにちは &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;script&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;alert&lt;/span&gt;(&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;太郎&amp;quot;&lt;/span&gt;)&lt;span class=&quot;synSpecial&quot;&gt;;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;script&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;&amp;quot;と表示される
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;i18n-translate_active_record&quot;&gt;3.6. &lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/ActiveRecord&quot;&gt;ActiveRecord&lt;/a&gt;/ActiveModelの翻訳&lt;/h3&gt;&lt;code&gt;activerecord/activemodel.models&lt;/code&gt;と&lt;code&gt;activerecord/activemodel.attributes&lt;/code&gt;を使うことで&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/ActiveRecord&quot;&gt;ActiveRecord&lt;/a&gt;の翻訳を行えます。&lt;/p&gt;&lt;p&gt;次の翻訳ファイルは、&lt;code&gt;Product&lt;/code&gt;モデルの翻訳例です。&lt;/p&gt;
+&lt;pre class=&quot;code lang-yaml&quot; data-lang=&quot;yaml&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;ja&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;activerecord&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;&amp;amp;activerecord&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;models&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;product&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;商品&amp;quot;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;search_form&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;検索フォーム&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;attributes&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;product&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt;  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;商品名&amp;quot;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;price&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;値段&amp;quot;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;released_on&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;発売日&amp;quot;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;search_form&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;q&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;検索フィールド&amp;quot;&lt;/span&gt;
+
+ &lt;span class=&quot;synComment&quot;&gt; # activemodelの翻訳もactiverecordに記載している&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;activemodel&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;synSpecial&quot;&gt;&amp;lt;&amp;lt;:&lt;/span&gt; activerecord
+&lt;/pre&gt;&lt;p&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/YAML&quot;&gt;YAML&lt;/a&gt;を開いて適切な設定になっているか確認できます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synType&quot;&gt;YAML&lt;/span&gt;.load_file(&lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt;.root.join(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;config/locales/ja.yml&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;))
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+モジュールなどで階層構造の翻訳ファイルを書くときには、`/`で区切って階層構造を表します。&lt;br /&gt;
+次のようなモジュールが入れ子の構造の場合、&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synPreProc&quot;&gt;module&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Forms&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ProductForm&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;attr_accessor&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;attributesの下位階層でモジュールを/で区切って表す(`forms/product_form`)&lt;/p&gt;
+&lt;pre class=&quot;code lang-yaml&quot; data-lang=&quot;yaml&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;ja&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;activemodel&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;attributes&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;forms/product_form&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;:&lt;/span&gt;       &lt;span class=&quot;synConstant&quot;&gt;&#39;商品名&#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;次のようにして、ビューファイル内で利用します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- tメソッドでアクセスできます --&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; t&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;activerecord.models.product&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;          #=&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt; &amp;quot;商品&amp;quot;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; t&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;activerecord.attributes.product.name&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt; #=&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt; &amp;quot;商品名&amp;quot;
+
+&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- 次のようにしてもアクセスできます --&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; Product.model_name.human&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;                 #=&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt; &amp;quot;商品&amp;quot;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; Product.human_attribute_name(&#39;name&#39;)&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;     #=&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt; &amp;quot;商品名&amp;quot;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; Forms::ProductForm.human_attribute_name(&#39;name&#39;)&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;     #=&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt; &amp;quot;商品名&amp;quot;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;i18n-locale_from_url&quot;&gt;4. URLによるlocaleの設定方法&lt;/h3&gt;他言語のサイト（&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%CA%A3%BF%F4&quot;&gt;複数&lt;/a&gt;のlocaleのサイト）を作成するには、「URLからlocaleを取得する方法」が推奨です。&lt;br /&gt;
+「URLからlocaleを取得する方法」は次のとおりです。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150226/20150226164143.jpg&quot; alt=&quot;f:id:nipe880324:20150226164143j:plain:w560&quot; title=&quot;f:id:nipe880324:20150226164143j:plain:w560&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:560px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;詳細は、&lt;a href=&quot;https://support.google.com/webmasters/answer/182192?hl=ja&quot;&gt;&amp;#x591A;&amp;#x5730;&amp;#x57DF;&amp;#x3001;&amp;#x591A;&amp;#x8A00;&amp;#x8A9E;&amp;#x306E;&amp;#x30B5;&amp;#x30A4;&amp;#x30C8; - Search Console &amp;#x30D8;&amp;#x30EB;&amp;#x30D7;&lt;/a&gt;を参照してください。&lt;br /&gt;
+他地域、他言語のサイトを作成するときに、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/SEO&quot;&gt;SEO&lt;/a&gt;的にどうすれば良いかといったヒントが書かれています。&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;i18n-locale_from_subdomain&quot;&gt;4.1. &lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B5%A5%D6%A5%C9%A5%E1%A5%A4%A5%F3&quot;&gt;サブドメイン&lt;/a&gt;名からlocaleを設定&lt;/h3&gt;次のように&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B5%A5%D6%A5%C9%A5%E1%A5%A4%A5%F3&quot;&gt;サブドメイン&lt;/a&gt;名からlocaleを設定するようにしてみます。&lt;br /&gt;
+&lt;a href=&quot;https://support.google.com/webmasters/answer/182192?hl=ja&quot; target=&quot;_blank&quot;&gt;Googleの他地域、他言語のサイト&lt;/a&gt;では「gTLD を使用した&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B5%A5%D6%A5%C9%A5%E1%A5%A4%A5%F3&quot;&gt;サブドメイン&lt;/a&gt;」に対応します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;example.com      &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; デフォルトのlocale&lt;/span&gt;
+ja.example.com   &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 日本のlocale&lt;/span&gt;
+en.example.com   &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 英語のlocale&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+まず、&lt;code&gt;applicaiton_controller.rb&lt;/code&gt;にlocaleを設定する&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;を追記します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/application_controller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActionController&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  ...
+
+  before_action &lt;span class=&quot;synConstant&quot;&gt;:set_locale&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;set_locale&lt;/span&gt;
+    &lt;span class=&quot;synType&quot;&gt;I18n&lt;/span&gt;.locale = extract_locale_from_tld || &lt;span class=&quot;synType&quot;&gt;I18n&lt;/span&gt;.default_locale
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# サブドメインからlocaleを取得する&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# 有効なlocaleが見つからない場合は、nilを返す&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;extract_locale_from_tld&lt;/span&gt;
+    parsed_locale = request.subdomains.first
+    &lt;span class=&quot;synType&quot;&gt;I18n&lt;/span&gt;.available_locales.map(&amp;amp;&lt;span class=&quot;synConstant&quot;&gt;:to_s&lt;/span&gt;).include?(parsed_locale) ? parsed_locale : &lt;span class=&quot;synConstant&quot;&gt;nil&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+そして、&lt;code&gt;application.html.erb&lt;/code&gt;などのビューファイルで次のように言語を変更するリンクを追加することで、言語を変更できます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to_if&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; request.subdomains.first != &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;ja&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;日本語&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;,   &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;http://ja.example.com:3000#{request.path}&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;%&amp;gt;&lt;/span&gt; |
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to_if&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; request.subdomains.first != &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;en&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;English&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;http://en.example.com:3000#{request.path}&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;i&gt;URL部分は簡易的に直書きをしていますが、設定ファイルからの値を取得することをお勧めします。&lt;/i&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;code&gt;http://ja.example.com:3000/...&lt;/code&gt;にアクセスすると、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;のlocaleは、ja(日本語)になるので、日本語で画面に表示されています。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150226/20150226163943.jpg&quot; alt=&quot;f:id:nipe880324:20150226163943j:plain:w320&quot; title=&quot;f:id:nipe880324:20150226163943j:plain:w320&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:320px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;code&gt;http://en.example.com:3000/...&lt;/code&gt;にアクセスすると、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;のlocaleは、en(英語)になるので、英語で画面に表示されています。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150226/20150226164013.jpg&quot; alt=&quot;f:id:nipe880324:20150226164013j:plain:w320&quot; title=&quot;f:id:nipe880324:20150226164013j:plain:w320&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:320px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;i18n-locale_from_subdirectory&quot;&gt;4.2. URLのサブディレクトリからlocaleを取得&lt;/h3&gt;&lt;a href=&quot;https://support.google.com/webmasters/answer/182192?hl=ja&quot; target=&quot;_blank&quot;&gt;Googleの他地域、他言語のサイト&lt;/a&gt;では「gTLD を使用したサブディレクトリ」に対応します。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;次のようにサブディレクトリ名からlocaleを設定するようにしてみます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;example.com/     &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; デフォルトのlocale&lt;/span&gt;
+example.com/ja/  &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 日本のlocale&lt;/span&gt;
+example.com/en/  &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; 英語のlocale&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+まず、ルートに&lt;code&gt;scoope&lt;/code&gt;で&lt;code&gt;:locale&lt;/code&gt;を追加します。かっこがあることで、存在しない場合は、デフォルトのlocaleが使われます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# config/routes.rb&lt;/span&gt;
+scope &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;(:locale)&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  resources &lt;span class=&quot;synConstant&quot;&gt;:products&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+URLの&lt;code&gt;locale&lt;/code&gt;は、&lt;code&gt;parmas[:locale]&lt;/code&gt;で取得できるので次のようにします。&lt;br /&gt;
+また、&lt;code&gt;default_url_options&lt;/code&gt;をオーバーライドすることで、すべてのリンクに現在のlocaleを設定することができます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/application_controller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActionController&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  ...
+  before_action &lt;span class=&quot;synConstant&quot;&gt;:set_locale&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;set_locale&lt;/span&gt;
+    &lt;span class=&quot;synType&quot;&gt;I18n&lt;/span&gt;.locale = params[&lt;span class=&quot;synConstant&quot;&gt;:locale&lt;/span&gt;] || &lt;span class=&quot;synType&quot;&gt;I18n&lt;/span&gt;.default_locale
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;default_url_options&lt;/span&gt;(options = {})
+    { &lt;span class=&quot;synConstant&quot;&gt;locale&lt;/span&gt;: &lt;span class=&quot;synType&quot;&gt;I18n&lt;/span&gt;.locale }.merge options
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+そして、&lt;code&gt;application.html.erb&lt;/code&gt;などのビューファイルで次のように言語を変更するリンクを追加することで、言語を変更できます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to_if&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; params[:locale].present?, &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;日本語&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;,  url_for(controller: controller.controller_name, &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;: controller.action_name, locale: &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;) %&amp;gt;&lt;/span&gt; |
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to_if&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; params[:locale] != &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;en&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;,  &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;English&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;,  url_for(controller: controller.controller_name, &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;action&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;: controller.action_name, locale: &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;en&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;) %&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+URLに&lt;code&gt;locale&lt;/code&gt;がない場合は、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;のlocaleは、デフォルトのlocaleの日本語なので、日本語で表示されています。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150226/20150226164033.jpg&quot; alt=&quot;f:id:nipe880324:20150226164033j:plain:w320&quot; title=&quot;f:id:nipe880324:20150226164033j:plain:w320&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:320px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;「English」リンクを押すことで、URLに&lt;code&gt;en&lt;/code&gt;が追加され、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;のlocaleが英語になるので、英語表示になります。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150226/20150226164041.jpg&quot; alt=&quot;f:id:nipe880324:20150226164041j:plain:w320&quot; title=&quot;f:id:nipe880324:20150226164041j:plain:w320&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:320px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;i18n-locale_from_url_parameter&quot;&gt;4.3. URLパラメータからlocaleを取得&lt;/h3&gt;次のようにURLパタメータにlocaleを設定することでlocaleを設定するようにします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;example.com           &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; デフォルトのlocale&lt;/span&gt;
+example.com?locale=ja &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; 日本語(ja)のlocale&lt;/span&gt;
+example.com?locale=es &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; スペイン語(es)のlocale&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;a href=&quot;https://support.google.com/webmasters/answer/182192?hl=ja&quot; target=&quot;_blank&quot;&gt;Googleの他地域、他言語のサイト&lt;/a&gt;によると、非推奨の方法です。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;まず、&lt;code&gt;applicaiton_controller.rb&lt;/code&gt;にlocaleを設定する&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;を追記します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/application_controller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActionController&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  ...
+
+  before_action &lt;span class=&quot;synConstant&quot;&gt;:set_locale&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;set_locale&lt;/span&gt;
+    &lt;span class=&quot;synType&quot;&gt;I18n&lt;/span&gt;.locale = params[&lt;span class=&quot;synConstant&quot;&gt;:locale&lt;/span&gt;] || &lt;span class=&quot;synType&quot;&gt;I18n&lt;/span&gt;.default_locale
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# link_toなどのすべてのURLにlocaleパラメータを設定するようにする&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;default_url_options&lt;/span&gt;(options = {})
+    { &lt;span class=&quot;synConstant&quot;&gt;locale&lt;/span&gt;: &lt;span class=&quot;synType&quot;&gt;I18n&lt;/span&gt;.locale }.merge options
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+そして、&lt;code&gt;application.html.erb&lt;/code&gt;などのビューファイルで次のように言語を変更するリンクを追加することで、言語を変更できます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to_if&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; params[:locale].present?, &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;日本語&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;#{request.path}&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt; |
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to_if&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; params[:locale] != &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;en&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;English&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;#{request.path}?locale=en&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+URLに&lt;code&gt;locale&lt;/code&gt;がない場合は、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;のlocaleは、デフォルトのlocaleの日本語なので、日本語で表示されています。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150226/20150226164100.jpg&quot; alt=&quot;f:id:nipe880324:20150226164100j:plain:w320&quot; title=&quot;f:id:nipe880324:20150226164100j:plain:w320&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:320px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;「English」リンクを押すことで、&lt;code&gt;locale=en&lt;/code&gt;がURLに追加され、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;のlocaleが英語になるので、英語表示になります。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150226/20150226164106.jpg&quot; alt=&quot;f:id:nipe880324:20150226164106j:plain:w320&quot; title=&quot;f:id:nipe880324:20150226164106j:plain:w320&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:320px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://guides.rubyonrails.org/i18n.html&quot;&gt;Rails Internationalization (I18n) API &amp;mdash; Ruby on Rails Guides&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://morizyun.github.io/blog/i18n-english-rails-ruby-many-languages/&quot;&gt;Rails&amp;#x306E;&amp;#x591A;&amp;#x8A00;&amp;#x8A9E;&amp;#x5316;&amp;#x5BFE;&amp;#x5FDC; i18n&amp;#x306E;&amp;#x3084;&amp;#x308A;&amp;#x65B9;&amp;#x3092;&amp;#x6574;&amp;#x7406;&amp;#x3057;&amp;#x3066;&amp;#x307F;&amp;#x305F;&amp;#xFF01;&amp;#x3010;&amp;#x56FD;&amp;#x969B;&amp;#x5316;/&amp;#x82F1;&amp;#x8A9E;&amp;#x5316;&amp;#x3011; - &amp;#x9152;&amp;#x3068;&amp;#x6CEA;&amp;#x3068;Ruby&amp;#x3068;Rails&amp;#x3068;&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Thu, 26 Feb 2015 16:52:55 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450085563841</guid>
+          
+            <category>Rails初級</category>
+          
+            <category>i18n</category>
+          
+            <category>まとめ</category>
+          
+        </item>
+      
+    
+  </channel>
+</rss>

@@ -1,0 +1,176 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>Google AdSense - Rails Webook</title>
+    <link>http://ruby-rails.hatenadiary.com/category/Google%20AdSense</link>
+    <description>自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</description>
+    <lastBuildDate>Fri, 18 Dec 2015 02:44:31 +0900</lastBuildDate>
+    <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+    <generator>Hatena::Blog</generator>
+    
+      
+      
+        <item>
+          <title>たった10分でGoogle AdSenseの広告収入を2倍にした方法</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20150401/1427898898</link>
+          <description>&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150331/20150331232109.jpg&quot; alt=&quot;f:id:nipe880324:20150331232109j:plain&quot; title=&quot;f:id:nipe880324:20150331232109j:plain&quot; class=&quot;hatena-fotolife&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+&lt;i&gt;Photo by &lt;a href=&quot;https://www.flickr.com/photos/68751915@N05/&quot;&gt;Flickr: 401(K) 2013&amp;#39;s Photostream&lt;/a&gt;&lt;/i&gt;&lt;/p&gt;&lt;p&gt;件名の通り、「&lt;b&gt;簡単に広告収入を2倍&lt;/b&gt;」にできました。&lt;/p&gt;&lt;p&gt;対象者として、ブログなどで少し広告収入が稼げたらいいな、まとめサイトなど広告収入がメインの収益などといった方を対象としています。&lt;/p&gt;&lt;p&gt;当たり前ですが、ECサイトでは商品購入、自社サイトでは商品問い合わせや企業への採用応募など&lt;b&gt;サイトの目的が特定の行動への誘導&lt;/b&gt;の場合は、広告収入の向上に注力してしまうと、本来の目的が満たされなくなってしまうので注意してください。&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#adsense-2x-conclusion&quot;&gt;結論&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#adsense-2x-episode&quot;&gt;実例&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#adsense-2x-why&quot;&gt;なぜ、広告収入が2倍になるのか&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#adsense-2x-more&quot;&gt;より広告収入を増やすには&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;adsense-2x-conclusion&quot;&gt;1. 結論&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;結論から言うと、「&lt;b&gt;Google Adsenseの広告サイズと配置、配色を変えるだけ&lt;/b&gt;」です。&lt;/p&gt;&lt;p&gt;そのため、残念ながら広告サイズと配置、配色が既に最適化されている場合は効果は見込めません。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;adsense-2x-episode&quot;&gt;実例&lt;/h3&gt;&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;変更前&lt;/h4&gt;
+    &lt;p&gt;方針:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;個人の感覚で押してくれそうなところにレイアウトに合わせたサイズで配置する作戦&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;具体例:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;デザインに合わせる形で下記のように広告を配置していた。&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;  - ヘッダーの下 920 x 90&lt;br /&gt;
+  - サイドバー 200 x 200&lt;br /&gt;
+  - ページの読み終わり 768 x 90&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;変更後&lt;/h4&gt;
+    &lt;p&gt;方針:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Googleの推奨を準拠しながら、適宜実験を行う作戦&lt;/li&gt;
+&lt;li&gt;Googleの推奨は統計的に成果が出ている方法であるので、効率的だと思う。&lt;/li&gt;
+&lt;li&gt;しかし、各サイト毎で最適解はことなるので、それをベースに実験を行い検証する。&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;具体例:&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;広告サイズと配置をGoogle推奨にする&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;  - ヘッダーの下 768 x 90&lt;br /&gt;
+  - サイドバー 120 x 600&lt;br /&gt;
+  - ページの読み終わり 768 x 90&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;配色と枠線をサイトの背景色と同じにする。また、リンク色はサイトのリンク色（Webでは青が基本）と同じにする。&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;Google AdSenseの配置&lt;iframe width=&quot;420&quot; height=&quot;315&quot; frameborder=&quot;0&quot; allowfullscreen=&quot;&quot; src=&quot;https://youtube.googleapis.com/v/G8lpZFJTpWk&amp;amp;source=uds&quot;&gt;&lt;/iframe&gt;&lt;br&gt;&lt;a href=&quot;http://www.youtube.com/watch?v=G8lpZFJTpWk&quot;&gt;AdSense Tips: Consider Your Content When ...&lt;/a&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;結果&lt;/h4&gt;
+    &lt;p&gt;広告収益は2倍になりました。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150401/20150401233412.jpg&quot; alt=&quot;f:id:nipe880324:20150401233412j:plain:w480&quot; title=&quot;f:id:nipe880324:20150401233412j:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;PV数の伸びを計算にいれても、クリック率が2倍になったため、トータルとしての広告収入が増えました。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;adsense-2x-why&quot;&gt;なぜ、広告収入が2倍になるのか&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;広告収入がなぜ2倍になったのかを説明します。&lt;/p&gt;&lt;p&gt;まず、広告収入は次の等式が成り立ちます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;広告収入 = 広告クリック率 x 1クリック当たりの広告収入(CPC) x 広告表示回数(=PV数)&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+各項目は掛け算なので、どれか一つの項目を2倍にすることで、広告収入が2倍になります。&lt;br /&gt;
+そして、今回は「Google Adsenseの広告サイズと配置、配色を変える」ことにより、広告クリック率を2倍にあげました。(※1)&lt;br /&gt;
+&lt;i&gt;※1 サイトの現状、レイアウト、内容により効果は異なると考えられます。&lt;/i&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;広告クリック率は、1%程度までならいけるらしいです。&lt;br /&gt;
+今回は &lt;b&gt;0.13%から0.27% (約2倍) &lt;/b&gt;になったため、最終的な広告収入も2倍になりました。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;では、なぜ、広告クリック率が上がったか説明します。&lt;br /&gt;
+一部仮説もあるので間違いがある可能性があります。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;広告サイズの最適化により、有用な広告を表示できるようになる。&lt;/h4&gt;
+    &lt;p&gt;　広告を出す側も、複数の広告サイズに合わせて広告を作るのは大変です。そのため、多くの広告主がいる広告サイズというのは決まっています。&lt;br /&gt;
+　それが、768 x 90 であったり、120 x 600 であったりするのです。広告主が多くいることにより、サイトに訪問した多様なユーザに興味のある広告をクリックさせることができ、ユーザの広告クリック率を向上させることができるようになります。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;広告を見える場所に大きく表示することで、広告に興味を持ちやすくなる。&lt;/h4&gt;
+    &lt;p&gt;　広告をファーストビュー（サイトを開いたときに見える場所）に配置することで、広告が目に入るので、意識するようになります。&lt;br /&gt;
+　もし、その広告に興味のある内容が表示されている場合、思わずクリックしてしまうと想定されます。&lt;br /&gt;
+　しかし、内容ありきなので、広告を表示しすぎて、UUやPVの低下などが起こるほどのやりすぎには注意してください。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;配色と枠線を同じ色にすることで、広告臭を下げられる。&lt;/h4&gt;
+    &lt;p&gt;　Googleの統計的な経験則的に広告収入が最大15%向上するらしい。&lt;br /&gt;
+　これは、広告臭がなくなることで、ユーザがサイトのコンテンツとしてクリックしてくれやすくなるのかなと思います。&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;adsense-2x-more&quot;&gt;より広告収入を増やすには&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;最後に「より広告収入を増やす方法」を説明します。&lt;br /&gt;
+先ほどの広告収入の等式を再び見てみます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;広告収入 = 広告クリック率 x 1クリック当たりの広告収入(CPC) x 広告表示回数(=PV数)&lt;/pre&gt;&lt;p&gt;それぞれ、細かく考えていきます。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;広告クリック率&lt;/h4&gt;
+    &lt;p&gt;広告クリック率はある程度サイトの属性やユーザー層などに応じて上限が決まっているので配置や色、サイズを調整しながら、0.4〜1%を目指していけばよいと思います。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;1クリックあたりの広告収入(CPC)&lt;/h4&gt;
+    &lt;p&gt;確かではないですが、「CPCの高い広告」と「クリックした後のユーザの行動」が重要らしいです。&lt;/p&gt;&lt;p&gt;・「CPCの高い広告」というのは、例えば、株式やカードローンの広告の1クリックは数千円の収益になり、あまりな広告の1クリックは数10円程度という広告自体の価値があります。&lt;br /&gt;
+　つまり、「CPCが高い広告」をたくさん表示できるようにすればよいことになり、そのためには、「CPCが高い広告」に興味があるユーザーを集めれるサイトを作ることで、広告エリアに「CPCが高い広告」が表示されやすくなります。&lt;/p&gt;&lt;p&gt;「CPCが高い広告」を調べるには、Google キーワードプランナーである程度確認することができぽいです。&lt;br /&gt;
+（CPCが高い広告のためにサイトを運営しているわけではないので、私は意識していないので詳しくはわかりません）&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;・「クリックした後のユーザの行動」というのは、多分ですが、Googleはユーザーが広告をクリックした後に、実際に購入をした、問い合わせをしたといった広告主の収益につながる行動を起こしたかどうかも確認しているらしいです。&lt;br /&gt;
+　ユーザーが広告主の収益につながる行動をした場合はCPCが上がります。逆に、収益につながらない行動（ただアクセスするだけですぐに離脱するなど）の場合はCPCが下がるようです。&lt;br /&gt;
+　&lt;br /&gt;
+この情報は確かではないですが、ユーザーに間違いを誘発させるように広告を押させたりして広告クリック率を上げたとしても、ユーザーは広告主の収益につながる行動をしないので、CPCが下がり、広告収入はクリック率の上昇に比べて増えないと考えられます。&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;広告表示回数（PV数）&lt;/h4&gt;
+    &lt;p&gt;PV数を上げることがサイト全体で見た場合に、伸びしろがあり、資産として積み上がっていくのでやりがいもある箇所です。&lt;br /&gt;
+PVを上げるにはどうすればよいかというと「良質な記事を書き続ける」につきると思います。&lt;/p&gt;&lt;p&gt;とある調査で、ブログを1年書き続ける人は50%、ブログを2年書き続ける人は20%、ブログを3年書き続ける人は10%程度しかいないようです。&lt;br /&gt;
+つまり、記事を書き続けているだけで競合が減っていき、記事が増えていくので多くのユーザーの目に止まりやすくなります。&lt;br /&gt;
+そして、数年の経験で、記事を書く技術や、あるテーマへの知識レベルも高くなるので、より良い記事を書くことができます。&lt;/p&gt;&lt;p&gt;そのため、いかに続けるかが重要です。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;基本はこれとして、次のようなテクニックを使うことでより、さらなるPV数の向上を測れると思います。&lt;br /&gt;
+・大量アクセスがあるキーワードや競合が少ないキーワードの選定する&lt;br /&gt;
+・そのキーワードに適した記事を書く（キーワードはニーズが隠れているので、読者を想定して、いかにニーズを満たせるか考える）&lt;br /&gt;
+・それらをGoogle Analyticsなどで分析しながら改善していく&lt;br /&gt;
+ということを続けていくことで、PV数は着実に上がると考えています。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;以上です。&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://www.nusacm.org/blog-of-adsense-revenue&quot;&gt;&amp;#x30D6;&amp;#x30ED;&amp;#x30AC;&amp;#x30FC;&amp;#x5FC5;&amp;#x8AAD;&amp;#xFF01;&amp;#x30D6;&amp;#x30ED;&amp;#x30B0;&amp;#x306E;&amp;#x30A2;&amp;#x30C9;&amp;#x30BB;&amp;#x30F3;&amp;#x30B9;&amp;#x53CE;&amp;#x5165;&amp;#x3092;&amp;#x30A2;&amp;#x30C3;&amp;#x30D7;&amp;#x3059;&amp;#x308B;&amp;#x65B9;&amp;#x6CD5;&amp;#xFF18;&amp;#x9078;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://kanemotilevel.com/add/kizi289.html&quot;&gt;&amp;#x30A2;&amp;#x30C9;&amp;#x30BB;&amp;#x30F3;&amp;#x30B9;&amp;#x3067;&amp;#x6708;&amp;#xFF15;&amp;#x4E07;&amp;#x7A3C;&amp;#x3050;&amp;#x305F;&amp;#x3081;&amp;#x306E;&amp;#xFF11;&amp;#xFF15;&amp;#x306E;&amp;#x30CE;&amp;#x30A6;&amp;#x30CF;&amp;#x30A6;-&amp;#x30D6;&amp;#x30ED;&amp;#x30B0;&amp;#xFF0B;GoogleAdsense&amp;#x3067;&amp;#x304A;&amp;#x91D1;&amp;#x3092;&amp;#x7A3C;&amp;#x3050;&amp;#x65B9;&amp;#x6CD5;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://afi8.com/2011/06/27/3180/&quot;&gt;&amp;#x30B5;&amp;#x30A4;&amp;#x30C8;&amp;#x3054;&amp;#x3068;&amp;#x306B;&amp;#x7570;&amp;#x306A;&amp;#x308B;AdSense&amp;#x306E;&amp;#x30AF;&amp;#x30EA;&amp;#x30C3;&amp;#x30AF;&amp;#x7387;(CTR)&amp;#x3084;CPC | &amp;#x30A2;&amp;#x30D5;&amp;#x30A3;&amp;#x30EA;&amp;#x30A8;&amp;#x30A4;&amp;#x30C8;&amp;#x91CE;&amp;#x90CE;&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://laugh-raku.com/archives/4326&quot;&gt;Adsense&amp;#x5148;&amp;#x751F;&amp;#x3059;&amp;#x3052;&amp;#x30FC;&amp;#x30C3;&amp;#xFF01;&amp;#xFF01;&amp;#x30AF;&amp;#x30EA;&amp;#x30C3;&amp;#x30AF;&amp;#x7387;&amp;#x3068;&amp;#x53CE;&amp;#x76CA;&amp;#x304C;1.88&amp;#x500D;&amp;#x306B;&amp;#x306A;&amp;#x308B;Adsense&amp;#x5E83;&amp;#x544A;&amp;#x4F4D;&amp;#x7F6E; | &amp;#x3089;&amp;#x3075;&amp;#x3089;&amp;#x304F;^^ ~&amp;#x30D6;&amp;#x30ED;&amp;#x30B0;&amp;#x3067;&amp;#x98EF;&amp;#x3092;&amp;#x98DF;&amp;#x3046;~&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://wp-d.org/2013/02/05/2428/&quot;&gt;Google AdSense&amp;#x3060;&amp;#x3051;&amp;#x3067;&amp;#x5BB6;&amp;#x65CF;&amp;#x3092;&amp;#x990A;&amp;#x3063;&amp;#x3066;&amp;#x304D;&amp;#x305F;&amp;#x50D5;&amp;#x304C;&amp;#x3001;&amp;#x4ECA;&amp;#x307E;&amp;#x3067;&amp;#x3084;&amp;#x3063;&amp;#x3066;&amp;#x304D;&amp;#x305F;&amp;#x30D6;&amp;#x30ED;&amp;#x30B0;&amp;#x904B;&amp;#x55B6;&amp;#x8853;&amp;#x3092;&amp;#x30AC;&amp;#x30C1;&amp;#x3067;&amp;#x89E3;&amp;#x8AAC;&amp;#x3059;&amp;#x308B;&amp;#x3088; | WP-D&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://support.google.com/adsense/answer/48182?hl=ja&quot;&gt;AdSense &amp;#x30D7;&amp;#x30ED;&amp;#x30B0;&amp;#x30E9;&amp;#x30E0; &amp;#x30DD;&amp;#x30EA;&amp;#x30B7;&amp;#x30FC; - AdSense &amp;#x30D8;&amp;#x30EB;&amp;#x30D7;&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Wed, 01 Apr 2015 23:34:58 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450089991700</guid>
+          
+            <category>ABテスト</category>
+          
+            <category>Google AdSense</category>
+          
+        </item>
+      
+    
+  </channel>
+</rss>

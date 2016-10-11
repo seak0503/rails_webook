@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>書籍 - Rails Webook</title>
+    <link>http://ruby-rails.hatenadiary.com/category/%E6%9B%B8%E7%B1%8D</link>
+    <description>自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</description>
+    <lastBuildDate>Fri, 18 Dec 2015 02:44:31 +0900</lastBuildDate>
+    <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+    <generator>Hatena::Blog</generator>
+    
+      
+      
+        <item>
+          <title>ソフトウェアエンジニアが読んだ方がよい本メモ</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20140830/1409361710</link>
+          <description>&lt;p&gt;数が多くなってきたので、GMOペパボのブクログというサービスに集約しました。&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;http://booklog.jp/users/nipe0324&quot;&gt;nipe0324&amp;#x306E;&amp;#x672C;&amp;#x68DA; (nipe0324) - &amp;#x30D6;&amp;#x30AF;&amp;#x30ED;&amp;#x30B0;&lt;/a&gt;&lt;/p&gt;
+</description>
+          <pubDate>Sat, 30 Aug 2014 10:21:50 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/12921228815731607378</guid>
+          
+            <category>まとめ</category>
+          
+            <category>書籍</category>
+          
+        </item>
+      
+    
+  </channel>
+</rss>

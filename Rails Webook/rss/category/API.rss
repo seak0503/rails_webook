@@ -1,0 +1,505 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>API - Rails Webook</title>
+    <link>http://ruby-rails.hatenadiary.com/category/API</link>
+    <description>自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</description>
+    <lastBuildDate>Fri, 18 Dec 2015 02:44:31 +0900</lastBuildDate>
+    <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+    <generator>Hatena::Blog</generator>
+    
+      
+      
+        <item>
+          <title>RailsでRoarを使ってAPIサーバーとAPIクライアントを作る</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20150708/1436284476</link>
+          <description>&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150708/20150708005750.jpg&quot; alt=&quot;f:id:nipe880324:20150708005750j:plain:w420&quot; title=&quot;f:id:nipe880324:20150708005750j:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+&lt;i&gt;&lt;a href=&quot;https://www.flickr.com/photos/130732751@N03/&quot;&gt;samuelrodgers752 | Flickr - Photo Sharing!&lt;/a&gt;&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://github.com/apotonick/roar&quot; target=&quot;_blank&quot;&gt;Roar&lt;/a&gt;はRepresenterを使ってRESTなAPIをパース、レンダーすることができるgemです。&lt;br /&gt;
+つまり、Roarを使うことで、RailsでJSONを返すAPIサーバーを作成したり、逆に、APIサーバーにアクセスするAPIクライアントをRubyで作れます。&lt;/p&gt;&lt;p&gt;下記に記載しましたが、有名なgemに比べて、メリットとしては、Rubyでサーバーとクライアントを作る場合、同じような箇所を幾分か共有できる点です。&lt;br /&gt;
+デメリットとしては、個人的にパースやレンダー時にエラーが発生してもデバッグしづらく対処しづらいことです。&lt;/p&gt;&lt;p&gt;サーバー側でAPIを作る場合、「&lt;a href=&quot;https://www.ruby-toolbox.com/categories/API_Builders&quot; target=&quot;_blank&quot;&gt;Ruby Toolbox - API Builders&lt;/a&gt;」によると、jbuilderやGrape、Rablなどが人気のようです。&lt;br /&gt;
+APIにアクセスするクライアントを作る場合、「&lt;a href=&quot;https://www.ruby-toolbox.com/categories/http_clients&quot; target=&quot;_blank&quot;&gt;Ruby Toolbox - HTTP Clients&lt;/a&gt;」によるとRest-ClientやFaradayなどが人気です。&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    &lt;p&gt;&lt;ul&gt;
+  &lt;li&gt;&lt;a href=&quot;#roar-usage&quot;&gt;1. Roarの簡単な使い方&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#roar-install&quot;&gt;1.1. Railsにインストール&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#roar-define-representer&quot;&gt;1.2. Representerの定義&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#roar-render&quot;&gt;1.3. レンダー(JSON, Hash, XML)&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#roar-parse&quot;&gt;1.4. パース(JSON, Hash, XML)&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#roar-decorator&quot;&gt;1.5. Decoratorの定義と使い方&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#roar-corrabolation&quot;&gt;2. Roarでクライアントとサーバーの連携&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#roar-abstract&quot;&gt;2.1. 概要&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#roar-show&quot;&gt;2.2. showアクション(単一アイテムの取得)&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#roar-index&quot;&gt;2.3. indexアクション(複数アイテムの取得)&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#roar-cud&quot;&gt;2.4. create, update, destroyアクション(アイテムの作成、更新、削除)&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;a href=&quot;#roar-cud&quot;&gt;2.5. 多対多関連のCUD&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails 4.2.3&lt;/li&gt;
+&lt;li&gt;Ruby 2.2.0&lt;/li&gt;
+&lt;li&gt;Roar 1.0.1&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;roar-usage&quot;&gt;1. Roarの簡単な使い方&lt;/h3&gt;&lt;h3 id=&quot;roar-install&quot;&gt;1.1. Railsにインストール&lt;/h3&gt;&lt;code&gt;Gemfile&lt;/code&gt;に追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;roar-rails&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;code&gt;bundle install&lt;/code&gt;を実施すれば完了です。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;roar-define-representer&quot;&gt;1.2. Representerの定義&lt;/h3&gt;&lt;code&gt;rails g representer&lt;/code&gt;コマンドでRepresenterを作ることができます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rails g representer Tweet id content
+      create  app/representers/tweet_representer.rb&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;code&gt;app/representers&lt;/code&gt;配下にRpresenterが作成されます。&lt;br /&gt;
+&lt;code&gt;property&lt;/code&gt;でRepresenterでレンダーやパースする値を定義します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/representers/user_representer.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;module&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;TweetRepresenter&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;include&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Roar&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;JSON&lt;/span&gt;
+
+  property &lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;
+  property &lt;span class=&quot;synConstant&quot;&gt;:content&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+Representerの定義では、他にも、パースやレンダー時に値を変換したり、パースやレンダーをスキップしたりといろいろとカスタマイズができるので、&lt;br /&gt;
+困ったら以下のREADMEを読むと良いと思います。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/apotonick/roar&quot; target=&quot;_blank&quot;&gt;roar&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/apotonick/representable&quot; target=&quot;_blank&quot;&gt;representable&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/apotonick/roar-rails&quot; target=&quot;_blank&quot;&gt;roar-rails&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;roar-render&quot;&gt;1.3. レンダー(JSON, Hash, XML)&lt;/h3&gt;定義したRepresenterを&lt;code&gt;extend&lt;/code&gt;すし、&lt;code&gt;to_json&lt;/code&gt;、&lt;code&gt;to_hash&lt;/code&gt;メソッドを呼ぶことで、JSONやHashを出力することができます。&lt;br /&gt;
+&lt;code&gt;TweetRepresenter&lt;/code&gt;で&lt;code&gt;id&lt;/code&gt;と&lt;code&gt;content&lt;/code&gt;を定義しているのでその2つしか出力されません。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Tweet&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;; &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+tweet = &lt;span class=&quot;synType&quot;&gt;Tweet&lt;/span&gt;.create(&lt;span class=&quot;synConstant&quot;&gt;content&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Hoge&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;)
+tweet.extend(::&lt;span class=&quot;synType&quot;&gt;TweetRepresenter&lt;/span&gt;)
+
+tweet.to_json
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt;&amp;quot;{\&amp;quot;id\&amp;quot;:1,\&amp;quot;content\&amp;quot;:\&amp;quot;Hoge\&amp;quot;}&amp;quot;&lt;/span&gt;
+
+tweet.to_hash
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; {&amp;quot;id&amp;quot;=&amp;gt;1, &amp;quot;content&amp;quot;=&amp;gt;&amp;quot;Hoge&amp;quot;}&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+また、RailsでJSONを返したい場合は、次のようにします。&lt;br /&gt;
+&lt;code&gt;render json:&lt;/code&gt;は引数に渡したオブジェクトの&lt;code&gt;to_json&lt;/code&gt;メソッドを呼び出した結果を返します。&lt;br /&gt;
+そのため、Representerで定義した&lt;code&gt;id&lt;/code&gt;と&lt;code&gt;content&lt;/code&gt;のみが返されます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/api/tweets_controller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Api&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;TweetsController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt;
+  skip_before_action &lt;span class=&quot;synConstant&quot;&gt;:verify_authenticity_token&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;show&lt;/span&gt;
+    tweet = &lt;span class=&quot;synType&quot;&gt;Tweet&lt;/span&gt;.find(params[&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;]).extend(::&lt;span class=&quot;synType&quot;&gt;TweetRepresenter&lt;/span&gt;)
+    render &lt;span class=&quot;synConstant&quot;&gt;json&lt;/span&gt;: tweet
+    &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt;&amp;quot;{\&amp;quot;id\&amp;quot;:1,\&amp;quot;content\&amp;quot;:\&amp;quot;Hoge\&amp;quot;}&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+XML形式で出力したい場合は、Representerに&lt;code&gt;Roar::XML&lt;/code&gt;をincludeし、&lt;code&gt;to_xml&lt;/code&gt;メソッドを呼び出します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Tweet&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;; &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synPreProc&quot;&gt;module&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;TweetRepresenter&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;include&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Roar&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;XML&lt;/span&gt;
+
+  property &lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;
+  property &lt;span class=&quot;synConstant&quot;&gt;:content&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+tweet = &lt;span class=&quot;synType&quot;&gt;Tweet&lt;/span&gt;.last
+tweet.extend(::&lt;span class=&quot;synType&quot;&gt;TweetRepresenter&lt;/span&gt;)
+tweet.to_xml
+&lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;&amp;lt;tweet&amp;gt;\n  &amp;lt;id&amp;gt;1&amp;lt;/id&amp;gt;\n  &amp;lt;content&amp;gt;Hoge&amp;lt;/content&amp;gt;\n&amp;lt;/tweet&amp;gt;&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;roar-parse&quot;&gt;1.4. パース(JSON, Hash, XML)&lt;/h3&gt;定義したRepresenterを&lt;code&gt;extend&lt;/code&gt;すし、&lt;code&gt;to_json&lt;/code&gt;、&lt;code&gt;to_hash&lt;/code&gt;メソッドを呼ぶことで、JSONやHashを出力することができます。&lt;br /&gt;
+&lt;code&gt;TweetRepresenter&lt;/code&gt;で&lt;code&gt;id&lt;/code&gt;と&lt;code&gt;content&lt;/code&gt;を定義しているのでその2つしか出力されません。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Tweet&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;; &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+tweet = &lt;span class=&quot;synType&quot;&gt;Tweet&lt;/span&gt;.new.extend(::&lt;span class=&quot;synType&quot;&gt;TweetRepresenter&lt;/span&gt;)
+tweet.from_json(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;{\&amp;quot;id\&amp;quot;:1,\&amp;quot;content\&amp;quot;:\&amp;quot;Hoge\&amp;quot;}&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;)
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; #&amp;lt;Tweet id: 1, content: &amp;quot;Hoge&amp;quot;, created_at: nil, updated_at: nil&amp;gt;&lt;/span&gt;
+
+tweet = &lt;span class=&quot;synType&quot;&gt;Tweet&lt;/span&gt;.new.extend(::&lt;span class=&quot;synType&quot;&gt;TweetRepresenter&lt;/span&gt;)
+tweet.from_hash({ &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;content&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Hoge&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; })
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; #&amp;lt;Tweet id: 1, content: &amp;quot;Hoge&amp;quot;, created_at: nil, updated_at: nil&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# from_hashはHashのキーがシンボルの場合うまく認識してくれません。&lt;/span&gt;
+tweet = &lt;span class=&quot;synType&quot;&gt;Tweet&lt;/span&gt;.new.extend(::&lt;span class=&quot;synType&quot;&gt;TweetRepresenter&lt;/span&gt;)
+tweet.from_hash({ &lt;span class=&quot;synConstant&quot;&gt;id&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;content&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Hoge&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; })
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; #&amp;lt;Tweet id: nil, content: nil, created_at: nil, updated_at: nil&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# with_indifferent_accessを使いましょう&lt;/span&gt;
+tweet.from_hash({ &lt;span class=&quot;synConstant&quot;&gt;id&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;content&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Hoge&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; }.with_indifferent_access)
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; #&amp;lt;Tweet id: 1, content: &amp;quot;Hoge&amp;quot;, created_at: nil, updated_at: nil&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+また、RailsでJSONやHashを受け取って、オブジェクトを作成したい場合は、&lt;code&gt;from_json&lt;/code&gt;や&lt;code&gt;from_hash&lt;/code&gt;を使います。&lt;br /&gt;
+Representerで定義した&lt;code&gt;id&lt;/code&gt;と&lt;code&gt;content&lt;/code&gt;のみが取得してオブジェクトを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/api/tweets_controller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Api&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;TweetsController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt;
+  skip_before_action &lt;span class=&quot;synConstant&quot;&gt;:verify_authenticity_token&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;create&lt;/span&gt;
+    tweet = &lt;span class=&quot;synType&quot;&gt;Tweet&lt;/span&gt;.new.extend(::&lt;span class=&quot;synType&quot;&gt;TweetRepresenter&lt;/span&gt;)
+    tweet.from_hash(params[&lt;span class=&quot;synConstant&quot;&gt;:tweet&lt;/span&gt;])      &lt;span class=&quot;synComment&quot;&gt;# httpリクエストの場合&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# tweet.from_json(request.body.read) # jsonリクエストの場合&lt;/span&gt;
+
+    &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; tweet.save
+      render &lt;span class=&quot;synConstant&quot;&gt;json&lt;/span&gt;: tweet, &lt;span class=&quot;synConstant&quot;&gt;status&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:created&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;else&lt;/span&gt;
+      render &lt;span class=&quot;synConstant&quot;&gt;json&lt;/span&gt;: tweet.errors.full_messages, &lt;span class=&quot;synConstant&quot;&gt;status&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:unprocessable_entity&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+XMLをパースしたい場合も、レンダーと同じようにRepresenterに&lt;code&gt;Roar::XML&lt;/code&gt;をincludeし、&lt;code&gt;from_xml&lt;/code&gt;を呼び出します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Tweet&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;; &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synPreProc&quot;&gt;module&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;TweetRepresenter&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;include&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Roar&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;XML&lt;/span&gt;
+
+  property &lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;
+  property &lt;span class=&quot;synConstant&quot;&gt;:content&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+xml =&amp;lt;&amp;lt;&lt;span class=&quot;synSpecial&quot;&gt;XML&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;&amp;lt;tweet&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;  &amp;lt;id&amp;gt;1&amp;lt;/id&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;  &amp;lt;content&amp;gt;Hoge&amp;lt;/content&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synConstant&quot;&gt;&amp;lt;/tweet&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;XML&lt;/span&gt;
+
+tweet = &lt;span class=&quot;synType&quot;&gt;Tweet&lt;/span&gt;.new
+tweet.extend(::&lt;span class=&quot;synType&quot;&gt;TweetRepresenter&lt;/span&gt;)
+tweet.from_xml xml
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; #&amp;lt;Tweet id: 1, content: &amp;quot;Hoge&amp;quot;, created_at: nil, updated_at: nil&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;roar-decorator&quot;&gt;1.5. Decoratorの定義と使い方&lt;/h3&gt;パフォーマンスやオブジェクト汚染のため&lt;code&gt;extend&lt;/code&gt;が嫌いな人のために、デコレーターで実行することもできます。&lt;br /&gt;
+次のように&lt;code&gt;Roar::Decorator&lt;/code&gt;を継承することでデコレーターを定義します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/representers/tweet_representer.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;TweetRepresenter&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;Roar&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Decorator&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;include&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Roar&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;JSON&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;include&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Roar&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Hypermedia&lt;/span&gt;
+
+  property &lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;
+  property &lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# Decorator内の represented はデコレートするモデルを表します。&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+作成したデコレーターでラップします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/api/tweets_controller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Api&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;TweetsController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt;
+  skip_before_action &lt;span class=&quot;synConstant&quot;&gt;:verify_authenticity_token&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;show&lt;/span&gt;
+    tweet = &lt;span class=&quot;synType&quot;&gt;Tweet&lt;/span&gt;.find(params[&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;])
+    decorator = &lt;span class=&quot;synType&quot;&gt;TweetRepresenter&lt;/span&gt;.new(tweet)
+    render &lt;span class=&quot;synConstant&quot;&gt;json&lt;/span&gt;: decorator
+    &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt;&amp;quot;{\&amp;quot;id\&amp;quot;:1,\&amp;quot;content\&amp;quot;:\&amp;quot;Hoge\&amp;quot;}&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;roar-corrabolation&quot;&gt;2. Roarでクライアントとサーバーの連携&lt;/h3&gt;&lt;h3 id=&quot;roar-abstract&quot;&gt;2.1. 概要&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;Roarでサーバー側のRailsアプリ(Tweet)とクライアント側のRailsアプリ(Blog)を連携するようにします。&lt;br /&gt;
+サンプルは&lt;a href=&quot;https://github.com/nipe0324/rails_samples/tree/master/roar_test&quot; target=&quot;_blank&quot;&gt;roar_test - GitHub&lt;/a&gt;にあります。&lt;/p&gt;&lt;p&gt;シナリオとしては、Tweetアプリ(サーバー側)を既に運用しており、新しいBlogアプリ(クライアント側)を立ち上げようと考えていて、Tweetアプリにデータを公開したいというという感じをイメージして作りました。&lt;br /&gt;
+ER図は次の通りで、クライアント側は&lt;code&gt;artciles&lt;/code&gt;しかないが、&lt;code&gt;artcile&lt;/code&gt;を投稿した時に、合わせてTag付きでTweetも投稿できるみたいなことをしています。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150708/20150708005219.png&quot; alt=&quot;f:id:nipe880324:20150708005219p:plain:w420&quot; title=&quot;f:id:nipe880324:20150708005219p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;詳細はGitHubを参照してみればいいので、RoarでCRUDをしながら連携する方法の抜粋（かなり雑です）を記載しました。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;roar-show&quot;&gt;2.2. showアクション(単一アイテムの取得)&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;クライアントの詳細画面で、articleとtweetを表示します。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150708/20150708005205.png&quot; alt=&quot;f:id:nipe880324:20150708005205p:plain:w420&quot; title=&quot;f:id:nipe880324:20150708005205p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;クライアントのコントローラーは次の通りです。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/artcles_controller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;show&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# ローカル(クライアント)DBから取得&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;@article&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Article&lt;/span&gt;.find(params[&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;])
+
+  &lt;span class=&quot;synComment&quot;&gt;# Roarでサーバー側からデータを取得&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;@tweet&lt;/span&gt; = ::&lt;span class=&quot;synType&quot;&gt;Json&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Tweet&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Client&lt;/span&gt;.build.show(&lt;span class=&quot;synIdentifier&quot;&gt;@article&lt;/span&gt;.remote_tweet_id)
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+Roarの定義とクライアントのコードです。&lt;br /&gt;
+&lt;code&gt;Roar::Client&lt;/code&gt;をincludeすることで、get, post, put, deleteメソッドがincludeされます。&lt;br /&gt;
+&lt;code&gt;build&lt;/code&gt;メソッドでクライアントを作成し、&lt;code&gt;show&lt;/code&gt;メソッドで、サーバー側のRailsにアクセスしています。&lt;br /&gt;
+レスポンスは、&lt;code&gt;Reprsenter&lt;/code&gt;と&lt;code&gt;Client&lt;/code&gt;で定義されている、id, content, tagsをパースし、OpenStructの値として代入します。&lt;br /&gt;
+このとき、&lt;code&gt;as&lt;/code&gt;オプションを使うことで、Tweet.id を Article.remote_tweet_id に変換しています。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/representer/json/tweet.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;module&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Json&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Tweet&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;OpenStruct&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;module&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Representer&lt;/span&gt;
+      &lt;span class=&quot;synPreProc&quot;&gt;include&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Roar&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;JSON&lt;/span&gt;
+      collection_representer &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt;: ::&lt;span class=&quot;synType&quot;&gt;Json&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Tweet&lt;/span&gt;
+
+      property &lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;
+      property &lt;span class=&quot;synConstant&quot;&gt;:content&lt;/span&gt;
+
+      collection &lt;span class=&quot;synConstant&quot;&gt;:tags&lt;/span&gt;, &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt;: ::&lt;span class=&quot;synType&quot;&gt;Json&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Tag&lt;/span&gt;, &lt;span class=&quot;synPreProc&quot;&gt;extend&lt;/span&gt;: ::&lt;span class=&quot;synType&quot;&gt;Json&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Tag&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Representer&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+    &lt;span class=&quot;synComment&quot;&gt;# only client side&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;module&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Client&lt;/span&gt;
+      &lt;span class=&quot;synPreProc&quot;&gt;include&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Roar&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;JSON&lt;/span&gt;
+      &lt;span class=&quot;synPreProc&quot;&gt;include&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Representer&lt;/span&gt;
+      &lt;span class=&quot;synPreProc&quot;&gt;include&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Roar&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Client&lt;/span&gt;
+
+      &lt;span class=&quot;synComment&quot;&gt;# ServerからClientへ受け取ったときの変換処理&lt;/span&gt;
+      property &lt;span class=&quot;synConstant&quot;&gt;:remote_tweet_id&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;as&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;,    &lt;span class=&quot;synComment&quot;&gt;# Tweet.id =&amp;gt; Article.remote_tweet_id に変換&lt;/span&gt;
+               &lt;span class=&quot;synConstant&quot;&gt;skip_render&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;
+
+      collection &lt;span class=&quot;synConstant&quot;&gt;:tags&lt;/span&gt;, &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt;: ::&lt;span class=&quot;synType&quot;&gt;Json&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Tag&lt;/span&gt;, &lt;span class=&quot;synPreProc&quot;&gt;extend&lt;/span&gt;: ::&lt;span class=&quot;synType&quot;&gt;Json&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Tag&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Client&lt;/span&gt;
+
+      &lt;span class=&quot;synComment&quot;&gt;# Clientの作成メソッド(Singular用)&lt;/span&gt;
+      &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;self&lt;/span&gt;.&lt;span class=&quot;synIdentifier&quot;&gt;build&lt;/span&gt;
+        ::&lt;span class=&quot;synType&quot;&gt;Json&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Tweet&lt;/span&gt;.new.extend(::&lt;span class=&quot;synType&quot;&gt;Json&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Tweet&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Client&lt;/span&gt;)
+      &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+      &lt;span class=&quot;synComment&quot;&gt;# APIのURL&lt;/span&gt;
+      &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;self&lt;/span&gt;.&lt;span class=&quot;synIdentifier&quot;&gt;api_url&lt;/span&gt;
+        &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;http://localhost:3001/api/tweets&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+      &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+      &lt;span class=&quot;synComment&quot;&gt;# リモートのTweetsController#showにアクセス&lt;/span&gt;
+      &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;show&lt;/span&gt;(id)
+        get(&lt;span class=&quot;synConstant&quot;&gt;uri&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;#{&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Json&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Tweet&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Client&lt;/span&gt;.api_url&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;/&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;id&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;as&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;application/json&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;)
+      &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+サーバー側では、単純にServerをextendしているだけです。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/api/tweets_controller.rb&lt;/span&gt;
+
+&lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;show&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;@tweet&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Tweet&lt;/span&gt;.find(params[&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;])
+  render &lt;span class=&quot;synConstant&quot;&gt;json&lt;/span&gt;: &lt;span class=&quot;synIdentifier&quot;&gt;@tweet&lt;/span&gt;.extend(::&lt;span class=&quot;synType&quot;&gt;Json&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Tweet&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Server&lt;/span&gt;)
+    &lt;span class=&quot;synComment&quot;&gt;# {&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;#   &amp;quot;id&amp;quot;: 1,&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;#   &amp;quot;content&amp;quot;: &amp;quot;tweet 1&amp;quot;,&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;#   &amp;quot;tags&amp;quot;: [&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;#     { &amp;quot;id&amp;quot;: 1000, &amp;quot;name&amp;quot;: &amp;quot;tag 1&amp;quot; },&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;#     { &amp;quot;id&amp;quot;: 1001, &amp;quot;name&amp;quot;: &amp;quot;tag 2&amp;quot; }&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;#   ]&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# }&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+サーバー側のRepresenterです。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synPreProc&quot;&gt;module&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Json&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Tweet&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;OpenStruct&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;module&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Representer&lt;/span&gt;
+      &lt;span class=&quot;synPreProc&quot;&gt;include&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Roar&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;JSON&lt;/span&gt;
+      collection_representer &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt;: ::&lt;span class=&quot;synType&quot;&gt;Json&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Tweet&lt;/span&gt;
+
+      property &lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;
+      property &lt;span class=&quot;synConstant&quot;&gt;:content&lt;/span&gt;
+
+      collection &lt;span class=&quot;synConstant&quot;&gt;:tags&lt;/span&gt;, &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt;: ::&lt;span class=&quot;synType&quot;&gt;Json&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Tag&lt;/span&gt;, &lt;span class=&quot;synPreProc&quot;&gt;extend&lt;/span&gt;: ::&lt;span class=&quot;synType&quot;&gt;Json&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Tag&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Representer&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+    &lt;span class=&quot;synPreProc&quot;&gt;module&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Server&lt;/span&gt;
+      &lt;span class=&quot;synPreProc&quot;&gt;include&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Roar&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;JSON&lt;/span&gt;
+      &lt;span class=&quot;synPreProc&quot;&gt;include&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Representer&lt;/span&gt;
+
+      collection &lt;span class=&quot;synConstant&quot;&gt;:tags&lt;/span&gt;, &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt;: ::&lt;span class=&quot;synType&quot;&gt;Tag&lt;/span&gt;, &lt;span class=&quot;synPreProc&quot;&gt;extend&lt;/span&gt;: ::&lt;span class=&quot;synType&quot;&gt;Json&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Tag&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Server&lt;/span&gt;,
+                        &lt;span class=&quot;synConstant&quot;&gt;parse_strategy&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:find_or_instantiate&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;roar-index&quot;&gt;2.3. indexアクション(複数アイテムの取得)&lt;/h3&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;コレクションの取得の場合、コレクション用のクライアントを作成し、一覧を取得します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/articls_controller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;index&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;@articles&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Article&lt;/span&gt;.all
+  &lt;span class=&quot;synComment&quot;&gt;# コレクション用のクライアントを作成し、allメソッドで一覧を取得&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;@tweets&lt;/span&gt; = ::&lt;span class=&quot;synType&quot;&gt;Json&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Tweet&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Client&lt;/span&gt;.build_collection.all
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;コレクションを取得するには、配列をextendします。また、&lt;code&gt;Representer.for_collection&lt;/code&gt;をextendする必要が有ります。&lt;br /&gt;
+&lt;code&gt;all&lt;/code&gt;メソッドは、サーバー側のTweetsController#indexアクションにアクセスします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/representers/json/tweet.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;module&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Json&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Tweet&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;OpenStruct&lt;/span&gt;
+    ...
+
+    &lt;span class=&quot;synComment&quot;&gt;# only client side&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;module&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Client&lt;/span&gt;
+      ...
+
+      &lt;span class=&quot;synComment&quot;&gt;# Clientの作成メソッド(Collection用)&lt;/span&gt;
+      &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;self&lt;/span&gt;.&lt;span class=&quot;synIdentifier&quot;&gt;build_collection&lt;/span&gt;
+        [].extend(::&lt;span class=&quot;synType&quot;&gt;Json&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Tweet&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Client&lt;/span&gt;).extend(::&lt;span class=&quot;synType&quot;&gt;Json&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Tweet&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Representer&lt;/span&gt;.for_collection)
+      &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+      &lt;span class=&quot;synComment&quot;&gt;# リモートのTweetsController#indexにアクセス&lt;/span&gt;
+      &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;all&lt;/span&gt;
+        get(&lt;span class=&quot;synConstant&quot;&gt;uri&lt;/span&gt;: ::&lt;span class=&quot;synType&quot;&gt;Json&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Tweet&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Client&lt;/span&gt;.api_url, &lt;span class=&quot;synConstant&quot;&gt;as&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;application/json&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;)
+      &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+サーバーのコントローラーでも&lt;code&gt;for_collection&lt;/code&gt;を使って、コレクションを返すようにしています。&lt;br /&gt;
+&gt;|ruby&lt;br /&gt;
+def index&lt;br /&gt;
+  @tweets = Tweet.all&lt;br /&gt;
+  render json: @tweets.extend(::Json::Tweet::Server.for_collection)&lt;br /&gt;
+    # [&lt;br /&gt;
+    #   {&lt;br /&gt;
+    #     &quot;id&quot;: 1,&lt;br /&gt;
+    #     &quot;content&quot;: &quot;tweet 1&quot;,&lt;br /&gt;
+    #     &quot;tags&quot;: [&lt;br /&gt;
+    #       { &quot;id&quot;: 1000, &quot;name&quot;: &quot;tag 1&quot; },&lt;br /&gt;
+    #       { &quot;id&quot;: 1001, &quot;name&quot;: &quot;tag 2&quot; }&lt;br /&gt;
+    #     ]&lt;br /&gt;
+    #   },&lt;br /&gt;
+    #   {&lt;br /&gt;
+    #     &quot;id&quot;: 2,&lt;br /&gt;
+    #     &quot;content&quot;: &quot;tweet 2&quot;,&lt;br /&gt;
+    #     &quot;tags&quot;: []&lt;br /&gt;
+    #   }&lt;br /&gt;
+    # ]&lt;br /&gt;
+end&lt;br /&gt;
+|&lt;/p&gt;
+
+&lt;/div&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;roar-cud&quot;&gt;2.4. create, update, destroyアクション(アイテムの作成、更新、削除)&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;コレクションを作成し、作成、更新、削除を行います。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/articles_controller.rb&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# POST /articles&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;create&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;@article&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Article&lt;/span&gt;.new(article_params)
+
+  &lt;span class=&quot;synIdentifier&quot;&gt;@tweet&lt;/span&gt; = ::&lt;span class=&quot;synType&quot;&gt;Json&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Tweet&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Client&lt;/span&gt;.build.from_hash(params[&lt;span class=&quot;synConstant&quot;&gt;:article&lt;/span&gt;])
+  &lt;span class=&quot;synIdentifier&quot;&gt;@tweet&lt;/span&gt;.create
+  &lt;span class=&quot;synIdentifier&quot;&gt;@article&lt;/span&gt;.remote_tweet_id = &lt;span class=&quot;synIdentifier&quot;&gt;@tweet&lt;/span&gt;.remote_tweet_id
+
+  &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;@article&lt;/span&gt;.save
+    redirect_to &lt;span class=&quot;synIdentifier&quot;&gt;@article&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;notice&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Article was successfully created.&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;else&lt;/span&gt;
+    render &lt;span class=&quot;synConstant&quot;&gt;:new&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# PATCH/PUT /articles/1&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;update&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;@article&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Article&lt;/span&gt;.find(params[&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;])
+
+  &lt;span class=&quot;synIdentifier&quot;&gt;@tweet&lt;/span&gt; = ::&lt;span class=&quot;synType&quot;&gt;Json&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Tweet&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Client&lt;/span&gt;.build.from_hash(params[&lt;span class=&quot;synConstant&quot;&gt;:article&lt;/span&gt;])
+  &lt;span class=&quot;synIdentifier&quot;&gt;@tweet&lt;/span&gt;.update(&lt;span class=&quot;synIdentifier&quot;&gt;@article&lt;/span&gt;.remote_tweet_id)
+
+  &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;@article&lt;/span&gt;.update(article_params)
+    redirect_to &lt;span class=&quot;synIdentifier&quot;&gt;@article&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;notice&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Article was successfully updated.&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;else&lt;/span&gt;
+    render &lt;span class=&quot;synConstant&quot;&gt;:edit&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# DELETE /articles/1&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;destroy&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;@article&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Article&lt;/span&gt;.find(params[&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;])
+
+  &lt;span class=&quot;synIdentifier&quot;&gt;@tweet&lt;/span&gt; = ::&lt;span class=&quot;synType&quot;&gt;Json&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Tweet&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Client&lt;/span&gt;.build
+  &lt;span class=&quot;synIdentifier&quot;&gt;@tweet&lt;/span&gt;.destroy(&lt;span class=&quot;synIdentifier&quot;&gt;@article&lt;/span&gt;.remote_tweet_id)
+
+  &lt;span class=&quot;synIdentifier&quot;&gt;@article&lt;/span&gt;.destroy
+  redirect_to articles_url, &lt;span class=&quot;synConstant&quot;&gt;notice&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Article was successfully destroyed.&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;roar-cud&quot;&gt;2.5. 多対多関連のCUD&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;TweetとTagは多対多関係です。&lt;/p&gt;&lt;p&gt;まず、クライアントサイドでは次のようにして、リクエストを送ります。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# 画面から次のようなパラメータがフォームから送られてきます。&lt;/span&gt;
+{
+  &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;utf8&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;✓&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;authenticity_token&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;xxx&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,
+  &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;article&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; {
+    &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;title&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;article 1&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;content&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;client article&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;tags&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; [{ &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;1000&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; }, { &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;1001&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; }, { &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;new tag&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; }]
+  },
+  &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;commit&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Update Article&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,
+  &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+}
+
+&lt;span class=&quot;synComment&quot;&gt;# コントローラーで画面のフォーム情報をfrom_hashでパースして取得します&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# createメソッドでリクエストを送ります。&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;create&lt;/span&gt;
+  ...
+  &lt;span class=&quot;synIdentifier&quot;&gt;@tweet&lt;/span&gt; = ::&lt;span class=&quot;synType&quot;&gt;Json&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Tweet&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Client&lt;/span&gt;.build.from_hash(params[&lt;span class=&quot;synConstant&quot;&gt;:article&lt;/span&gt;])
+  &lt;span class=&quot;synIdentifier&quot;&gt;@tweet&lt;/span&gt;.create
+  ...
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# from_hashのパース時に取得されるデータは次のように定義しています。&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;module&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Json&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Tweet&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;OpenStruct&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;module&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Representer&lt;/span&gt;
+      &lt;span class=&quot;synPreProc&quot;&gt;include&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Roar&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;JSON&lt;/span&gt;
+      collection_representer &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt;: ::&lt;span class=&quot;synType&quot;&gt;Json&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Tweet&lt;/span&gt;
+
+      property &lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;
+      property &lt;span class=&quot;synConstant&quot;&gt;:content&lt;/span&gt;
+
+      collection &lt;span class=&quot;synConstant&quot;&gt;:tags&lt;/span&gt;, &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt;: ::&lt;span class=&quot;synType&quot;&gt;Json&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Tag&lt;/span&gt;, &lt;span class=&quot;synPreProc&quot;&gt;extend&lt;/span&gt;: ::&lt;span class=&quot;synType&quot;&gt;Json&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Tag&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Representer&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+    &lt;span class=&quot;synPreProc&quot;&gt;module&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Client&lt;/span&gt;
+      &lt;span class=&quot;synPreProc&quot;&gt;include&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Roar&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;JSON&lt;/span&gt;
+      &lt;span class=&quot;synPreProc&quot;&gt;include&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Representer&lt;/span&gt;
+      &lt;span class=&quot;synPreProc&quot;&gt;include&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Roar&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Client&lt;/span&gt;
+
+      &lt;span class=&quot;synComment&quot;&gt;# ClientからServerへのリクエストを送るときの変換処理&lt;/span&gt;
+      property &lt;span class=&quot;synConstant&quot;&gt;:title&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;as&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:content&lt;/span&gt;,  &lt;span class=&quot;synComment&quot;&gt;# Article.title =&amp;gt; Tag.content 用にキー名を変換&lt;/span&gt;
+               &lt;span class=&quot;synConstant&quot;&gt;render_filter&lt;/span&gt;: -&amp;gt; (value, _doc, _args) { value.to_s[&lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;10&lt;/span&gt;] + &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;...&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; } &lt;span class=&quot;synComment&quot;&gt;# Twitter用に文字列を短くする&lt;/span&gt;
+      collection &lt;span class=&quot;synConstant&quot;&gt;:tags&lt;/span&gt;, &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt;: ::&lt;span class=&quot;synType&quot;&gt;Json&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Tag&lt;/span&gt;, &lt;span class=&quot;synPreProc&quot;&gt;extend&lt;/span&gt;: ::&lt;span class=&quot;synType&quot;&gt;Json&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Tag&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Client&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synPreProc&quot;&gt;module&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Json&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Tag&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;OpenStruct&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;module&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Representer&lt;/span&gt;
+      &lt;span class=&quot;synPreProc&quot;&gt;include&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Roar&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;JSON&lt;/span&gt;
+      collection_representer &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt;: ::&lt;span class=&quot;synType&quot;&gt;Json&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Tag&lt;/span&gt;
+
+      property &lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;
+      property &lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+    &lt;span class=&quot;synComment&quot;&gt;# only client side&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;module&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Client&lt;/span&gt;
+      &lt;span class=&quot;synPreProc&quot;&gt;include&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Roar&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;JSON&lt;/span&gt;
+      &lt;span class=&quot;synPreProc&quot;&gt;include&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Representer&lt;/span&gt;
+      &lt;span class=&quot;synPreProc&quot;&gt;include&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Roar&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Client&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;サーバーサイドでは次の通りです。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# POSTされるjsonデータは次のようになりmす&lt;/span&gt;
+{&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;content&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;client art...&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;tags&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;[{&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;1000&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;}, {&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;1001&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;}, {&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;new tag&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;}] }
+
+&lt;span class=&quot;synComment&quot;&gt;# controllerで取得し、from_jsonでパースし、値を設定し保存&lt;/span&gt;
+tweet = &lt;span class=&quot;synType&quot;&gt;Tweet&lt;/span&gt;.new.extend(::&lt;span class=&quot;synType&quot;&gt;Json&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Tweet&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Server&lt;/span&gt;).from_json(request.body.read)
+tweet.save
+
+&lt;span class=&quot;synComment&quot;&gt;# パースの内容はRepresenterで定義&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# parse_strategy: :find_or_instantiate はidが既にあればそのインスタンスを返し、&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# idがなければ新しいインスタンスを作成する&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;module&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Server&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;include&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Roar&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;JSON&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;include&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Representer&lt;/span&gt;
+
+  collection &lt;span class=&quot;synConstant&quot;&gt;:tags&lt;/span&gt;, &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt;: ::&lt;span class=&quot;synType&quot;&gt;Tag&lt;/span&gt;, &lt;span class=&quot;synPreProc&quot;&gt;extend&lt;/span&gt;: ::&lt;span class=&quot;synType&quot;&gt;Json&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Tag&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Server&lt;/span&gt;,
+                    &lt;span class=&quot;synConstant&quot;&gt;parse_strategy&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:find_or_instantiate&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+以上です。&lt;/p&gt;
+</description>
+          <pubDate>Wed, 08 Jul 2015 00:54:36 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450100658763</guid>
+          
+            <category>Rails中級</category>
+          
+            <category>API</category>
+          
+            <category>Rails Model</category>
+          
+        </item>
+      
+    
+  </channel>
+</rss>

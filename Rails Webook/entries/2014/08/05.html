@@ -1,0 +1,1866 @@
+<!DOCTYPE html>
+<html
+  lang="ja"
+data-avail-langs="ja en"
+
+data-page="entries-year-month-day"
+data-static-domain="https://blog.st-hatena.com"
+data-blog="ruby-rails.hatenadiary.com"
+data-blog-name="Rails Webook"
+data-blogs-uri-base="http://ruby-rails.hatenadiary.com"
+data-globalheader-color="b"
+data-author="nipe880324"
+data-version="228df9a6e5a3ae04fdb53d33befa3556"
+data-blog-comments-top-is-new=""
+data-plus-available=""
+
+
+
+data-admin-domain="http://blog.hatena.ne.jp"
+
+data-brand="hatenablog"
+
+data-has-touch-view="1"
+
+
+itemscope
+itemtype="http://schema.org/Blog"
+
+
+  data-device="pc"
+  data-globalheader-type="pc"
+  >
+  <head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb#">
+    
+    
+    
+
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=7; IE=9; IE=10; IE=11" />
+    <title>2014-08-05 - Rails Webook</title>
+
+    
+
+    
+
+    
+    
+
+<meta itemprop="name" content="2014-08-05 - Rails Webook"/>
+
+  <meta itemprop="image" content="https://blog.st-hatena.com/images/theme/og-image-1500.png"/>
+
+
+    <meta property="og:title" content="2014-08-05 - Rails Webook"/>
+<meta property="og:type" content="blog"/>
+<meta property="og:url" content=""/>
+
+  
+  
+  
+  <meta property="og:image" content="https://blog.st-hatena.com/images/theme/og-image-1500.png"/>
+
+  <meta property="og:description" content="自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます" />
+<meta property="og:site_name" content="http://ruby-rails.hatenadiary.com/"/>
+
+        <meta name="twitter:card"  content="summary" />  <meta name="twitter:title" content="2014-08-05 - Rails Webook" />  <meta name="twitter:description" content="自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます" />  <meta name="twitter:app:name:iphone" content="はてなブログアプリ" />
+  <meta name="twitter:app:id:iphone" content="583299321" />
+  <meta name="twitter:app:url:iphone" content="hatenablog:///open?uri=http%3A%2F%2Fruby-rails.hatenadiary.com%2Fentries%2F2014%2F08%2F05" />  <meta name="twitter:site" content="@nipe032488" />
+    
+    <meta name="description" content="毎週更新。Railsプログラマがソフトウェア開発を効果的・効率的にするために、分かりやすく・使いやすい形でRailsに関する技術情報を記載。">    <meta name="google-site-verification" content="OyOieuLgSrQckqbACTn_Q3G1dPq6LMlTqBRHa6V1XsA">    <meta name="keywords" content="Rails,Ruby on Rails,gem,Webアプリケーション,開発,構築,運用,インフラ">
+
+    
+<script type="text/javascript">
+// <!--
+
+if (~navigator.userAgent.indexOf('Mac OS X')) {
+  document.write('<style type="text/css">html, body { font-family: \x27Helvetica\x27, \x27Arial\x27, \x27ヒラギノ角ゴ Pro W3\x27, \x27Hiragino Kaku Gothic Pro\x27, sans-serif; } </style>');
+} else {
+  document.write('<style type="text/css">html, body { font-family: \x27Helvetica\x27, \x27Arial\x27, \x27メイリオ\x27, \x27Meiryo\x27, \x27MS PGothic\x27, sans-serif; } </style>');
+}
+
+// -->
+</script>
+
+<!--[if lt IE 9]>
+<script src="https://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+
+
+
+
+    <link rel="shortcut icon" href="https://blog.st-hatena.com/images/favicon.ico">
+<link rel="icon" sizes="192x192" href="https://blog.st-hatena.com/images/common/meta-icon-global.png">
+
+    
+<link rel="alternate" type="application/atom+xml" title="Atom" href="../../../feed"/>
+<link rel="alternate" type="application/rss+xml" title="RSS2.0" href="../../../rss.rss"/>
+
+
+      <link rel="author" href="http://www.hatena.ne.jp/nipe880324/">
+    
+
+    <link rel="stylesheet" type="text/css" href="https://blog.st-hatena.com/css/blog.css?version=228df9a6e5a3ae04fdb53d33befa3556"/>
+
+    
+  <link rel="stylesheet" type="text/css" href="http://blog.hatena.ne.jp/-/blog_style/12921228815727789780/a052dbbef76fd4380abc811c11814f2d9f990b9a"/>
+
+    <script></script>
+
+    
+<style>div#google_afc_user,
+  div#google_afc_user_container_0,
+  div#google_afc_user_container_1,
+  div#google_afc_user_container_2,
+  div#google_afc_user_container_3,
+  div#google_afc_user_container_4,
+  div#google_afc_user_container_5,
+  div.google_afc_image,
+  div.google_afc_blocklink {
+      display: block !important;
+  }
+</style>
+
+
+    
+  </head>
+
+  <body class="page-entries-year-month-day enable-top-editarea enable-bottom-editarea">
+    <!-- Google Universal Analytics -->
+<script id="google-analytics-script">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-29716941-6', 'auto', {'name': 'HatenaBlogTracker', 'sampleRate': 1});
+  ga('HatenaBlogTracker.require', 'displayfeatures');
+  ga('HatenaBlogTracker.send', 'pageview');
+  ga('create', 'UA-29716941-26', 'auto', {'name': 'HatenaBlogSeparatedTracker', 'sampleRate': 10});
+  ga('HatenaBlogSeparatedTracker.require', 'displayfeatures');
+  ga('HatenaBlogSeparatedTracker.send', 'pageview');
+
+    
+      ga('create', 'UA-45988509-6', 'auto', {'name': 'HatenaBlogUserTracker'});
+      ga('HatenaBlogUserTracker.require', 'displayfeatures');
+      ga('HatenaBlogUserTracker.send', 'pageview');
+    
+  
+  ga('create', 'UA-7855606-1', 'auto', {'name': 'HatenaGlobalTracker', 'sampleRate': 1});
+  ga('HatenaGlobalTracker.require', 'displayfeatures');
+  ga('HatenaGlobalTracker.send', 'pageview');
+</script>
+<!-- End Google Universal Analytics -->
+
+    
+    <div id="header-container">
+     <div id="sp-suggest" style="display: none;"><a id="sp-suggest-link" href="05.html#">スマートフォン用の表示で見る</a></div>
+    </div>
+
+    
+
+<div class="quote-box">
+  <div class="tooltip-quote tooltip-quote-star">
+    <i class="blogicon-star" title="引用スターをつける"></i>
+  </div>
+  <div class="tooltip-quote tooltip-quote-stock">
+    <i class="blogicon-quote" title="引用をストック"></i>
+  </div>
+</div>
+
+<div class="message-box" id="quote-star-message-box" style="display: none; position: absolute;">
+  スターをつけました
+</div>
+
+<div class="quote-stock-panel" id="quote-stock-message-box" style="position: absolute; z-index: 3000">
+  <div class="message-box" id="quote-stock-succeeded-message" style="display: none">
+    <p>引用をストックしました</p>
+    <button class="btn btn-primary" id="quote-stock-show-editor-button" data-track-name="curation-quote-edit-button">ストック一覧を見る</button>
+    <button class="btn quote-stock-close-message-button">閉じる</button>
+  </div>
+
+  <div class="message-box" id="quote-login-required-message" style="display: none">
+    <p>引用するにはまずログインしてください</p>
+    <button class="btn btn-primary" id="quote-login-button">ログイン</button>
+    <button class="btn quote-stock-close-message-button">閉じる</button>
+  </div>
+
+  <div class="error-box" id="quote-stock-failed-message" style="display: none">
+    <p>引用をストックできませんでした。再度お試しください</p>
+    <button class="btn quote-stock-close-message-button">閉じる</button>
+  </div>
+
+  <div class="error-box" id="unstockable-quote-message-box" style="display: none; position: absolute; z-index: 3000;">
+    <p>限定公開記事のため引用できません。</p>
+  </div>
+</div>
+
+<script type="x-underscore-template" id="js-requote-button-template">
+  <div class="requote-button js-requote-button">
+    <button class="requote-button-btn tipsy-top" title="引用する"><i class="blogicon-quote"></i></button>
+  </div>
+</script>
+
+
+    <div id="globalheader-container" >
+  <iframe id="globalheader" height="37" frameborder="0" allowTransparency="true"></iframe>
+</div>
+
+
+    
+    <div id="hidden-subscribe-button">
+      <div class="hatena-follow-button-box btn-subscribe js-hatena-follow-button-box"
+  
+  >
+
+  <a href="05.html#" class="hatena-follow-button js-hatena-follow-button">
+    <span class="subscribing">
+      <span class="foreground">読者です</span>
+      <span class="background">読者をやめる</span>
+    </span>
+    <span class="unsubscribing" data-track-name="profile-widget-subscribe-button" data-track-once>
+      <span class="foreground">読者になる</span>
+      <span class="background">読者になる</span>
+    </span>
+  </a>
+  <div class="subscription-count-box js-subscription-count-box">
+    <i></i>
+    <u></u>
+    <span class="subscription-count js-subscription-count">
+    </span>
+  </div>
+</div>
+
+    </div>
+
+    <div id="container">
+      <div id="container-inner">
+        <header id="blog-title" data-brand="hatenablog">
+  <div id="blog-title-inner" >
+    <div id="blog-title-content">
+      <h1 id="title"><a href="../../../index.html">Rails Webook</a></h1>
+      
+        <h2 id="blog-description">自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</h2>
+      
+    </div>
+  </div>
+</header>
+
+        
+          <div id="top-editarea">
+            <!-- start Mixpanel --><script type="text/javascript">(function(e,b){if(!b.__SV){var a,f,i,g;window.mixpanel=b;b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable time_event track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.union people.track_charge people.clear_charges people.delete_user".split(" ");
+for(g=0;g<i.length;g++)f(c,i[g]);b._i.push([a,e,d])};b.__SV=1.2;a=e.createElement("script");a.type="text/javascript";a.async=!0;a.src="undefined"!==typeof MIXPANEL_CUSTOM_LIB_URL?MIXPANEL_CUSTOM_LIB_URL:"file:"===e.location.protocol&&"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js".match(/^\/\//)?"https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js":"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js";f=e.getElementsByTagName("script")[0];f.parentNode.insertBefore(a,f)}})(document,window.mixpanel||[]);
+mixpanel.init("16db652100dca0a23c6a55a9205f0824");</script><!-- end Mixpanel -->
+<script async src="http://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- rails top bar 728 x 90 -->
+<ins class="adsbygoogle"
+     style="display:inline-block;width:728px;height:90px"
+     data-ad-client="ca-pub-2736751992834286"
+     data-ad-slot="6687328050"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+          </div>
+        
+        
+        
+
+
+
+<div id="content" class="hfeed"
+  
+  >
+  <div id="content-inner">
+    <div id="wrapper">
+      <div id="main">
+        <div id="main-inner">
+          
+            
+            <!-- google_ad_section_start -->
+            <!-- rakuten_ad_target_begin -->
+            
+              
+                <article class="entry hentry js-entry-article date-first autopagerize_page_element chars-13200 words-1000 mode-hatena entry-odd" id="entry-12921228815729298218" data-keyword-campaign="" data-uuid="12921228815729298218">
+  <div class="entry-inner">
+    <header class="entry-header">
+      <div class="entry-date date first">
+        <a href="05.html" rel="nofollow">
+          <time pubdate datetime="2014-08-04T16:00:00Z" title="2014-08-04T16:00:00Z">
+            <span class="date-year">2014</span><span class="hyphen">-</span><span class="date-month">08</span><span class="hyphen">-</span><span class="date-day">05</span>
+          </time>
+        </a>
+      </div>
+      <h1 class="entry-title">
+        <a href="../../../entry/20140804/1407168000.html" class="entry-title-link bookmark">Railsのログイン認証gemのDeviseのカスタマイズ方法</a>
+      </h1>
+      
+      
+        <div class="entry-categories categories">
+          
+          <a href="../../../archive/category/Rails%20gem.html">Rails gem</a>
+          
+        </div>
+      
+      
+
+      
+    </header>
+        
+    <div class="entry-content">
+
+      
+        <p><a href="https://camo.githubusercontent.com/b1c21cc10f2f94857dea5135fe55f2e4d451e028/68747470733a2f2f7261772e6769746875622e636f6d2f706c617461666f726d617465632f6465766973652f6d61737465722f6465766973652e706e67" class="http-image" target="_blank"><img src="https://camo.githubusercontent.com/b1c21cc10f2f94857dea5135fe55f2e4d451e028/68747470733a2f2f7261772e6769746875622e636f6d2f706c617461666f726d617465632f6465766973652f6d61737465722f6465766973652e706e67" class="http-image" alt="https://camo.githubusercontent.com/b1c21cc10f2f94857dea5135fe55f2e4d451e028/68747470733a2f2f7261772e6769746875622e636f6d2f706c617461666f726d617465632f6465766973652f6d61737465722f6465766973652e706e67" width="320"></a></p><p>Deviseで認証機能を使う、Viewの編集、日本語化、<code>sign_in</code>や<code>sign_out</code>のURLの変更などdeviseのカスタマイズについて説明します。</p><p><b>実際に試す場合は、前記事を実施済みだと差分を埋め合わせる必要がなくなり簡単です。</b><br />
+</p>
+
+<ol>
+<li><a href="05.html#devise-control-access">Deviseでのアクセス制限をする</a></li>
+<li><a href="05.html#devise-customize-view">DeviseのViewをカスタマイズする</a></li>
+<li><a href="05.html#devise-i18n-ja">Deviseで出力される文字列の日本語化</a></li>
+<li><a href="05.html#devise-root-devise">デバイスの画面をルートに設定</a></li>
+<li><a href="05.html#devise-customize-url">URL(Route)のカスタマイズ</a></li>
+<li><a href="05.html#devise-add-column-to-model">Userモデルにusernameカラムを追加</a></li>
+<li><a href="05.html#devise-test-helper">Deviseのテストヘルパー</a></li>
+</ol>
+<ul>
+<li>前回は、「<a href="../../../entry/20140801/1406907000.html">RailsでDeviseのインストール方法</a>」を説明しました。</li>
+<li>今回はその「Deviseのカスタマイズ方法」について説明します。</li>
+<li>次回は、「<a href="../../../entry/20140805/1407200400.html">DeviseとOmniAuth-Twitter連携（Twitterでログインする）</a>」です。</li>
+</ul>
+<div class="section">
+    <h3>動作確認</h3>
+    <p>・Rails 4.1.4<br />
+・Devise 3.2.4<br />
+<br />
+<br />
+</p>
+
+</div>
+<div class="section">
+    <h3>目次</h3>
+    
+<ol>
+<li><a href="05.html#devise-control-access">Deviseでのアクセス制限をする</a></li>
+<li><a href="05.html#devise-customize-view">DeviseのViewをカスタマイズする</a></li>
+<li><a href="05.html#devise-i18n-ja">Deviseで出力される文字列の日本語化</a></li>
+<li><a href="05.html#devise-root-devise">デバイスの画面をルートに設定</a></li>
+<li><a href="05.html#devise-customize-url">URL(Route)のカスタマイズ</a></li>
+<li><a href="05.html#devise-add-column-to-model">Userモデルにusernameカラムを追加</a></li>
+<li><a href="05.html#devise-test-helper">Deviseのテストヘルパー</a></li>
+</ol><p></p><p><h3 id="devise-control-access">Deviseでのアクセス制限をする</h3>Homeのshow画面へのアクセス制限を追加してみます。<br />
+ログインしてない状態でも、<code>http://localhost:3000/home/show</code>にアクセスできます。<br />
+<span itemscope itemtype="http://schema.org/Photograph"><img src="http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140802/20140802220516.png" alt="f:id:nipe880324:20140802220516p:plain:w320" title="f:id:nipe880324:20140802220516p:plain:w320" class="hatena-fotolife" style="width:320px" itemprop="image"></span></p><p>Controllerに次のようにアクセス制限を追加します。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synPreProc">class</span> <span class="synType">HomeController</span> &lt; <span class="synType">ApplicationController</span>
+  <span class="synComment"># ユーザがログインしていないと&quot;show&quot;にアクセスできない</span>
+  before_action <span class="synConstant">:authenticate_user!</span>, <span class="synConstant">only</span>: <span class="synConstant">:show</span>
+
+  <span class="synPreProc">def</span> <span class="synIdentifier">index</span>
+  <span class="synPreProc">end</span>
+
+  <span class="synPreProc">def</span> <span class="synIdentifier">show</span>
+  <span class="synPreProc">end</span>
+<span class="synPreProc">end</span>
+</pre><p>では、ログインしていない状態のまま、<code>http://localhost:3000/home/show</code>にアクセスしてみましょう。<br />
+アクセスすると、「You need to sign in or sigh up before continuing.」と表示され「Sign in画面」にリダイレクトされます。<br />
+<span itemscope itemtype="http://schema.org/Photograph"><img src="http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140802/20140802220816.png" alt="f:id:nipe880324:20140802220816p:plain:w320" title="f:id:nipe880324:20140802220816p:plain:w320" class="hatena-fotolife" style="width:320px" itemprop="image"></span></p><p>このように、アクセス制限を追加できます。<br />
+ちなみに、異なるユーザの場合表示させないわけではないので、そこは実装が必要です。</p><br />
+<p><h3 id="devise-customize-view">DeviseのViewをカスタマイズする</h3>Sign in画面などdeviseのViewの見た目を変えたいというときがあると思います。<br />
+ここでは、Viewの変え方について説明します。</p><p>次のコマンドを実施することにより、<code>app/views/devise配下</code>にdeviseのViewが作成されます。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>$ rails g devise<span class="synConstant">:views</span>
+     invoke  <span class="synType">Devise</span>::<span class="synType">Generators</span>::<span class="synType">SharedViewsGenerator</span>
+      create    app/views/devise/shared
+      create    app/views/devise/shared/_links.erb
+      invoke  form_for
+      create    app/views/devise/confirmations
+      create    app/views/devise/confirmations/new.html.erb
+      create    app/views/devise/passwords
+      create    app/views/devise/passwords/edit.html.erb
+      create    app/views/devise/passwords/new.html.erb
+      create    app/views/devise/registrations
+      create    app/views/devise/registrations/edit.html.erb
+      create    app/views/devise/registrations/new.html.erb
+      create    app/views/devise/sessions
+      create    app/views/devise/sessions/new.html.erb
+      create    app/views/devise/unlocks
+      create    app/views/devise/unlocks/new.html.erb
+      invoke  erb
+      create    app/views/devise/mailer
+      create    app/views/devise/mailer/confirmation_instructions.html.erb
+      create    app/views/devise/mailer/reset_password_instructions.html.erb
+      create    app/views/devise/mailer/unlock_instructions.html.erb
+</pre><p>この作成されたファイルを編集することにより、deviseのViewの表示をカスタマイズすることができます。<br />
+ちなみに各フォルダの対応は次のようになっています。</p>
+
+<ul>
+<li>app/views/devise/sessions/new.html.erb ... ログイン画面</li>
+<li>app/views/devise/registrations/new.html.erb ... ユーザ登録画面</li>
+<li>app/views/devise/registrations/edit.html.erb ... ユーザ情報変更画面</li>
+<li>app/views/devise/passwords/new.html.erb ... パスワードを変更するためのメールを送信する画面</li>
+<li>app/views/devise/passwords/edit.html.erb ... パスワードを変更する画面</li>
+<li>app/views/devise/confirmations/new.html.erb ... メールによるConfirmをする画面</li>
+<li>app/views/devise/unlocks/new.html.erb ... アカウントのアンロック画面</li>
+</ul><p><br />
+試しに、「Sign in画面」の<code>h2タグのSign inを日本語に変更</code>してみましょう。</p>
+<pre class="code lang-html" data-lang="html" data-unlink># app/views/devise/sessions/new.html.erb
+<span class="synIdentifier">&lt;</span><span class="synStatement">h2</span><span class="synIdentifier">&gt;</span>ログイン<span class="synIdentifier">&lt;/</span><span class="synStatement">h2</span><span class="synIdentifier">&gt;</span>
+
+<span class="synIdentifier">&lt;%=</span><span class="synConstant"> form_for(resource,</span><span class="synIdentifier"> as: resource_name, </span><span class="synType">url</span><span class="synIdentifier">: session_path(resource_name)) do |f| %&gt;</span>
+...
+...
+</pre><p>では、変更後の画面を見てましょう。ページ上部が「ログイン」と表示されているでしょうか。<br />
+<span itemscope itemtype="http://schema.org/Photograph"><img src="http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140802/20140802221957.png" alt="f:id:nipe880324:20140802221957p:plain:w320" title="f:id:nipe880324:20140802221957p:plain:w320" class="hatena-fotolife" style="width:320px" itemprop="image"></span></p><p>今回は小さな変更でしたが、HTMLやCSSをいじることにより、自分の好きなログイン画面やユーザ登録画面を表示することが可能です。</p><br />
+<p><h3 id="devise-i18n-ja">Deviseで出力される文字列の日本語化</h3>日本語化する箇所は２つあります。</p>
+
+<ul>
+<li>上記で行った「DeviseのViewをカスタマイズする」で作成した、Viewファイルのハードコーディングされた英語の文字列を日本語に変更する</li>
+<li>コントローラーやモデルが出力するメッセージを日本語化するために、<code>ja.yml</code>と<code>devise.ja.yml</code>を作成する</li>
+</ul><p>です。</p><p>２番目の日本語化について実施していきます。</p>
+
+<div class="section">
+    <h5><code>ja.yml</code>と<code>devise.ja.yml</code>を作成</h5>
+    <p>幸いなことに、他の方が作った<code>ja.yml</code>と<code>devise.ja.yml</code>がありますのでその内容をコピーします。</p>
+
+<ul>
+<li><a href="https://github.com/svenfuchs/rails-i18n/blob/master/rails/locale/ja.yml" target="_blank">ja.yaml</a> => <code>config/locales/ja.yml</code></li>
+<li><a href="https://gist.github.com/yanagi0324/f63499851fa638690e09" target="_blank">devise.ja.yml (Rails 4 / devise 3.2.2 対応)</a> => <code>config/locales/devise.ja.yml</code></li>
+</ul>
+</div>
+<div class="section">
+    <h4>Railsの<code>defaul_locale</code>を日本語に設定</h4>
+    <p>アプリケーションのデフォルトのロケールを"日本語"に設定します。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synComment"># config/application.rb</span>
+...
+  <span class="synPreProc">class</span> <span class="synType">Application</span> &lt; <span class="synType">Rails</span>::<span class="synType">Application</span>
+  	...
+    <span class="synComment"># config.i18n.default_locale = :de</span>
+    config.i18n.default_locale = <span class="synConstant">:ja</span>
+  <span class="synPreProc">end</span>
+end
+</pre><p>サーバを再起動して、画面を確認するとログイン時などの文字列が日本語になっていると思います。<br />
+<span itemscope itemtype="http://schema.org/Photograph"><img src="http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140802/20140802223537.png" alt="f:id:nipe880324:20140802223537p:plain:w320" title="f:id:nipe880324:20140802223537p:plain:w320" class="hatena-fotolife" style="width:320px" itemprop="image"></span></p><br />
+<p><h3 id="devise-root-devise">デバイスの画面をルートに設定</h3>デバイスの画面をホーム画面(<code>root :to</code>)に設定するには次のように記載します。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synComment"># config/route.rb</span>
+  ...
+  <span class="synComment"># ログイン画面をホームにする</span>
+  devise_scope <span class="synConstant">:user</span> <span class="synStatement">do</span>
+    root <span class="synConstant">:to</span> =&gt; <span class="synSpecial">&quot;</span><span class="synConstant">devise/sessions#new</span><span class="synSpecial">&quot;</span>
+  <span class="synStatement">end</span>
+  ...
+</pre><p>ちなみに、<code>rake routes</code>コマンドで「デバイスの画面」と「コントローラーとアクション」の対応付けを確認できます。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>$ rake routes
+                  <span class="synType">Prefix</span> <span class="synType">Verb</span>   <span class="synType">URI</span> <span class="synType">Pattern</span>                    <span class="synType">Controller</span><span class="synComment">#Action</span>
+                    root <span class="synType">GET</span>    /                              devise/sessions<span class="synComment">#new</span>
+        new_user_session <span class="synType">GET</span>    <span class="synSpecial">/</span><span class="synConstant">users</span><span class="synSpecial">/si</span>gn_in(.<span class="synConstant">:format</span>)       devise/sessions<span class="synComment">#new</span>
+            user_session <span class="synType">POST</span>   <span class="synSpecial">/</span><span class="synConstant">users</span><span class="synSpecial">/si</span>gn_in(.<span class="synConstant">:format</span>)       devise/sessions<span class="synComment">#create</span>
+    destroy_user_session <span class="synType">DELETE</span> <span class="synSpecial">/</span><span class="synConstant">users</span><span class="synSpecial">/si</span>gn_out(.<span class="synConstant">:format</span>)      devise/sessions<span class="synComment">#destroy</span>
+           user_password <span class="synType">POST</span>   <span class="synSpecial">/</span><span class="synConstant">users</span><span class="synSpecial">/</span>password(.<span class="synConstant">:format</span>)      devise/passwords<span class="synComment">#create</span>
+       new_user_password <span class="synType">GET</span>    <span class="synSpecial">/</span><span class="synConstant">users</span><span class="synSpecial">/</span>password/new(.<span class="synConstant">:format</span>)  devise/passwords<span class="synComment">#new</span>
+      edit_user_password <span class="synType">GET</span>    <span class="synSpecial">/</span><span class="synConstant">users</span><span class="synSpecial">/</span>password/edit(.<span class="synConstant">:format</span>) devise/passwords<span class="synComment">#edit</span>
+                         <span class="synType">PATCH</span>  <span class="synSpecial">/</span><span class="synConstant">users</span><span class="synSpecial">/</span>password(.<span class="synConstant">:format</span>)      devise/passwords<span class="synComment">#update</span>
+                         <span class="synType">PUT</span>    <span class="synSpecial">/</span><span class="synConstant">users</span><span class="synSpecial">/</span>password(.<span class="synConstant">:format</span>)      devise/passwords<span class="synComment">#update</span>
+cancel_user_registration <span class="synType">GET</span>    <span class="synSpecial">/</span><span class="synConstant">users</span><span class="synSpecial">/</span>cancel(.<span class="synConstant">:format</span>)        devise/registrations<span class="synComment">#cancel</span>
+       user_registration <span class="synType">POST</span>   <span class="synSpecial">/</span><span class="synConstant">users</span><span class="synSpecial">(.</span><span class="synConstant">:format</span><span class="synSpecial">)</span><span class="synConstant">               devise</span><span class="synSpecial">/</span>registrations<span class="synComment">#create</span>
+   new_user_registration <span class="synType">GET</span>    <span class="synSpecial">/</span><span class="synConstant">users</span><span class="synSpecial">/si</span>gn_up(.<span class="synConstant">:format</span>)       devise/registrations<span class="synComment">#new</span>
+  edit_user_registration <span class="synType">GET</span>    <span class="synSpecial">/</span><span class="synConstant">users</span><span class="synSpecial">/e</span>dit(.<span class="synConstant">:format</span>)          devise/registrations<span class="synComment">#edit</span>
+                         <span class="synType">PATCH</span>  <span class="synSpecial">/</span><span class="synConstant">users</span><span class="synSpecial">(.</span><span class="synConstant">:format</span><span class="synSpecial">)</span><span class="synConstant">               devise</span><span class="synSpecial">/</span>registrations<span class="synComment">#update</span>
+                         <span class="synType">PUT</span>    <span class="synSpecial">/</span><span class="synConstant">users</span><span class="synSpecial">(.</span><span class="synConstant">:format</span><span class="synSpecial">)</span><span class="synConstant">               devise</span><span class="synSpecial">/</span>registrations<span class="synComment">#update</span>
+                         <span class="synType">DELETE</span> <span class="synSpecial">/</span><span class="synConstant">users</span><span class="synSpecial">(.</span><span class="synConstant">:format</span><span class="synSpecial">)</span><span class="synConstant">               devise</span><span class="synSpecial">/</span>registrations<span class="synComment">#destroy</span>
+</pre><p><h3 id="devise-customize-url">URL(Route)のカスタマイズ</h3>deviseのデフォルトのURLが気に入らない場合、変更することが可能です。<br />
+deviseのデフォルトのURLは次のようになっています。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>$ rake routes
+                  <span class="synType">Prefix</span> <span class="synType">Verb</span>   <span class="synType">URI</span> <span class="synType">Pattern</span>                    <span class="synType">Controller</span><span class="synComment">#Action</span>
+        new_user_session <span class="synType">GET</span>    <span class="synSpecial">/</span><span class="synConstant">users</span><span class="synSpecial">/si</span>gn_in(.<span class="synConstant">:format</span>)       devise/sessions<span class="synComment">#new</span>
+            user_session <span class="synType">POST</span>   <span class="synSpecial">/</span><span class="synConstant">users</span><span class="synSpecial">/si</span>gn_in(.<span class="synConstant">:format</span>)       devise/sessions<span class="synComment">#create</span>
+    destroy_user_session <span class="synType">DELETE</span> <span class="synSpecial">/</span><span class="synConstant">users</span><span class="synSpecial">/si</span>gn_out(.<span class="synConstant">:format</span>)      devise/sessions<span class="synComment">#destroy</span>
+           user_password <span class="synType">POST</span>   <span class="synSpecial">/</span><span class="synConstant">users</span><span class="synSpecial">/</span>password(.<span class="synConstant">:format</span>)      devise/passwords<span class="synComment">#create</span>
+       new_user_password <span class="synType">GET</span>    <span class="synSpecial">/</span><span class="synConstant">users</span><span class="synSpecial">/</span>password/new(.<span class="synConstant">:format</span>)  devise/passwords<span class="synComment">#new</span>
+      edit_user_password <span class="synType">GET</span>    <span class="synSpecial">/</span><span class="synConstant">users</span><span class="synSpecial">/</span>password/edit(.<span class="synConstant">:format</span>) devise/passwords<span class="synComment">#edit</span>
+                         <span class="synType">PATCH</span>  <span class="synSpecial">/</span><span class="synConstant">users</span><span class="synSpecial">/</span>password(.<span class="synConstant">:format</span>)      devise/passwords<span class="synComment">#update</span>
+                         <span class="synType">PUT</span>    <span class="synSpecial">/</span><span class="synConstant">users</span><span class="synSpecial">/</span>password(.<span class="synConstant">:format</span>)      devise/passwords<span class="synComment">#update</span>
+cancel_user_registration <span class="synType">GET</span>    <span class="synSpecial">/</span><span class="synConstant">users</span><span class="synSpecial">/</span>cancel(.<span class="synConstant">:format</span>)        devise/registrations<span class="synComment">#cancel</span>
+       user_registration <span class="synType">POST</span>   <span class="synSpecial">/</span><span class="synConstant">users</span><span class="synSpecial">(.</span><span class="synConstant">:format</span><span class="synSpecial">)</span><span class="synConstant">               devise</span><span class="synSpecial">/</span>registrations<span class="synComment">#create</span>
+   new_user_registration <span class="synType">GET</span>    <span class="synSpecial">/</span><span class="synConstant">users</span><span class="synSpecial">/si</span>gn_up(.<span class="synConstant">:format</span>)       devise/registrations<span class="synComment">#new</span>
+  edit_user_registration <span class="synType">GET</span>    <span class="synSpecial">/</span><span class="synConstant">users</span><span class="synSpecial">/e</span>dit(.<span class="synConstant">:format</span>)          devise/registrations<span class="synComment">#edit</span>
+                         <span class="synType">PATCH</span>  <span class="synSpecial">/</span><span class="synConstant">users</span><span class="synSpecial">(.</span><span class="synConstant">:format</span><span class="synSpecial">)</span><span class="synConstant">               devise</span><span class="synSpecial">/</span>registrations<span class="synComment">#update</span>
+                         <span class="synType">PUT</span>    <span class="synSpecial">/</span><span class="synConstant">users</span><span class="synSpecial">(.</span><span class="synConstant">:format</span><span class="synSpecial">)</span><span class="synConstant">               devise</span><span class="synSpecial">/</span>registrations<span class="synComment">#update</span>
+                         <span class="synType">DELETE</span> <span class="synSpecial">/</span><span class="synConstant">users</span><span class="synSpecial">(.</span><span class="synConstant">:format</span><span class="synSpecial">)</span><span class="synConstant">               devise</span><span class="synSpecial">/</span>registrations<span class="synComment">#destroy</span>
+</pre><p>今回は、</p>
+
+<ul>
+<li>サインイン画面は、<code>/users/sign_in</code>から<code>/users/login</code></li>
+<li>サインアウト処理は、<code>/users/sign_out</code>から<code>/users/logout</code></li>
+</ul><p>に変えてみます。</p><p>変更方法は簡単で、<code>routes.rb</code>ファイルを次のように変更させるだけです。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synComment"># config/routes.rb</span>
+  devise_for <span class="synConstant">:users</span>, <span class="synConstant">path_names</span>: { <span class="synConstant">sign_in</span>: <span class="synSpecial">&quot;</span><span class="synConstant">login</span><span class="synSpecial">&quot;</span>, <span class="synConstant">sign_out</span>: <span class="synSpecial">&quot;</span><span class="synConstant">logout</span><span class="synSpecial">&quot;</span>}
+</pre><p>では、<code>$rake routes</code>コマンドでURLを確認してみましょう。<br />
+「URL Pattern」が<code>login</code>と<code>logout</code>になっています。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>$ rake routes
+                  <span class="synType">Prefix</span> <span class="synType">Verb</span>   <span class="synType">URI</span> <span class="synType">Pattern</span>                    <span class="synType">Controller</span><span class="synComment">#Action</span>
+        new_user_session <span class="synType">GET</span>    <span class="synSpecial">/</span><span class="synConstant">users</span><span class="synSpecial">/</span>login(.<span class="synConstant">:format</span>)         devise/sessions<span class="synComment">#new</span>
+            user_session <span class="synType">POST</span>   <span class="synSpecial">/</span><span class="synConstant">users</span><span class="synSpecial">/</span>login(.<span class="synConstant">:format</span>)         devise/sessions<span class="synComment">#create</span>
+    destroy_user_session <span class="synType">DELETE</span> <span class="synSpecial">/</span><span class="synConstant">users</span><span class="synSpecial">/</span>logout(.<span class="synConstant">:format</span>)        devise/sessions<span class="synComment">#destroy</span>
+    ...
+    ...
+</pre><p><br />
+<h3 id="devise-add-column-to-model">Userモデルにusernameカラムを追加</h3>deviseは<code>email</code>と<code>password</code>を使ってログインをします。<br />
+これを、<code>username</code>と<code>password</code>に変える方法を説明します。</p><p>まず、テーブルに<code>username</code>を追加します。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>$ rails g migration add_username_to_users username<span class="synConstant">:string</span>
+</pre><p><code>username</code>は、ログイン時のキーとなるので、indexの追加と一意制約を追加しておきます。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synComment"># db/migrate/20140802133822_add_username_to_users.rb</span>
+<span class="synPreProc">class</span> <span class="synType">AddUsernameToUsers</span> &lt; <span class="synType">ActiveRecord</span>::<span class="synType">Migration</span>
+  <span class="synPreProc">def</span> <span class="synIdentifier">change</span>
+    add_column <span class="synConstant">:users</span>, <span class="synConstant">:username</span>, <span class="synConstant">:string</span>
+    add_index <span class="synConstant">:users</span>, <span class="synConstant">:username</span>, <span class="synConstant">unique</span>: <span class="synConstant">true</span>
+  <span class="synPreProc">end</span>
+<span class="synPreProc">end</span>
+</pre><p>では、マイグレートを実施します。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>$ rake db<span class="synConstant">:migrate</span>
+</pre><p>次に、deviseの設定ファイルで認証キーを<code>email</code>から<code>username</code>に変えます。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synComment"># config/initializers/devise.rb</span>
+  ...
+  <span class="synComment"># ==&gt; Configuration for any authentication mechanism</span>
+  <span class="synComment"># Configure which keys are used when authenticating a user. The default is</span>
+  <span class="synComment"># just :email. You can configure it to use [:username, :subdomain], so for</span>
+  <span class="synComment"># authenticating a user, both parameters are required. Remember that those</span>
+  <span class="synComment"># parameters are used only when authenticating and not when retrieving from</span>
+  <span class="synComment"># session. If you need permissions, you should implement that in a before filter.</span>
+  <span class="synComment"># You can also supply a hash where the value is a boolean determining whether</span>
+  <span class="synComment"># or not authentication should be aborted when the value is not present.</span>
+  <span class="synComment"># config.authentication_keys = [ :email ]</span>
+  config.authentication_keys = [ <span class="synConstant">:username</span> ]
+  ...
+</pre><p>UserモデルにValidateを追加します。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synPreProc">class</span> <span class="synType">User</span> &lt; <span class="synType">ActiveRecord</span>::<span class="synType">Base</span>
+  ...
+
+  validates <span class="synConstant">:username</span>, <span class="synConstant">presence</span>: <span class="synConstant">true</span>, <span class="synConstant">uniqueness</span>: <span class="synConstant">true</span>
+<span class="synPreProc">end</span>
+</pre><p><br />
+ログイン画面の<code>email</code>を<code>username</code>の入力フィールドに変更します。</p>
+<pre class="code lang-html" data-lang="html" data-unlink># app/views/devise/sessions/new.html.erb
+<span class="synIdentifier">&lt;</span><span class="synStatement">h2</span><span class="synIdentifier">&gt;</span>ログイン<span class="synIdentifier">&lt;/</span><span class="synStatement">h2</span><span class="synIdentifier">&gt;</span>
+
+<span class="synIdentifier">&lt;%=</span><span class="synConstant"> form_for(resource,</span><span class="synIdentifier"> as: resource_name, </span><span class="synType">url</span><span class="synIdentifier">: session_path(resource_name)) do |f| %&gt;</span>
+  <span class="synIdentifier">&lt;</span><span class="synStatement">div</span><span class="synIdentifier">&gt;&lt;%=</span><span class="synConstant"> f.label</span><span class="synIdentifier"> :username %&gt;&lt;</span><span class="synStatement">br</span><span class="synIdentifier"> /&gt;</span>
+  <span class="synIdentifier">&lt;%=</span><span class="synConstant"> f.text_field</span><span class="synIdentifier"> :username, autofocus: true %&gt;&lt;/</span><span class="synStatement">div</span><span class="synIdentifier">&gt;</span>
+
+  <span class="synIdentifier">&lt;</span><span class="synStatement">div</span><span class="synIdentifier">&gt;&lt;%=</span><span class="synConstant"> f.label</span><span class="synIdentifier"> :password %&gt;&lt;</span><span class="synStatement">br</span><span class="synIdentifier"> /&gt;</span>
+    <span class="synIdentifier">&lt;%=</span><span class="synConstant"> f.password_field</span><span class="synIdentifier"> :password, autocomplete: </span><span class="synConstant">&quot;off&quot;</span><span class="synIdentifier"> %&gt;&lt;/</span><span class="synStatement">div</span><span class="synIdentifier">&gt;</span>
+
+  <span class="synIdentifier">&lt;% if devise_mapping.rememberable? -%&gt;</span>
+    <span class="synIdentifier">&lt;</span><span class="synStatement">div</span><span class="synIdentifier">&gt;&lt;%=</span><span class="synConstant"> f.check_box</span><span class="synIdentifier"> :remember_me %&gt;</span> <span class="synIdentifier">&lt;%=</span><span class="synConstant"> f.label</span><span class="synIdentifier"> :remember_me %&gt;&lt;/</span><span class="synStatement">div</span><span class="synIdentifier">&gt;</span>
+  <span class="synIdentifier">&lt;% end -%&gt;</span>
+
+  <span class="synIdentifier">&lt;</span><span class="synStatement">div</span><span class="synIdentifier">&gt;&lt;%=</span><span class="synConstant"> f.submit</span><span class="synIdentifier"> </span><span class="synConstant">&quot;Sign in&quot;</span><span class="synIdentifier"> %&gt;&lt;/</span><span class="synStatement">div</span><span class="synIdentifier">&gt;</span>
+<span class="synIdentifier">&lt;% end %&gt;</span>
+
+<span class="synIdentifier">&lt;%=</span><span class="synConstant"> render</span><span class="synIdentifier"> </span><span class="synConstant">&quot;devise/shared/links&quot;</span><span class="synIdentifier"> %&gt;</span>
+</pre><p>サインアップ画面も対応しておきましょう。"username" のフィールドを追加します。</p>
+<pre class="code lang-html" data-lang="html" data-unlink># app/views/devise/registrations/new.html.erb
+<span class="synIdentifier">&lt;</span><span class="synStatement">h2</span><span class="synIdentifier">&gt;</span>Sign up<span class="synIdentifier">&lt;/</span><span class="synStatement">h2</span><span class="synIdentifier">&gt;</span>
+
+<span class="synIdentifier">&lt;%=</span><span class="synConstant"> form_for(resource,</span><span class="synIdentifier"> as: resource_name, </span><span class="synType">url</span><span class="synIdentifier">: registration_path(resource_name)) do |f| %&gt;</span>
+  <span class="synIdentifier">&lt;%=</span><span class="synConstant"> devise_error_messages!</span><span class="synIdentifier"> %&gt;</span>
+
+  <span class="synIdentifier">&lt;</span><span class="synStatement">div</span><span class="synIdentifier">&gt;&lt;%=</span><span class="synConstant"> f.label</span><span class="synIdentifier"> :username %&gt;&lt;</span><span class="synStatement">br</span><span class="synIdentifier"> /&gt;</span>
+  <span class="synIdentifier">&lt;%=</span><span class="synConstant"> f.text_field</span><span class="synIdentifier"> :username, autofocus: true %&gt;&lt;/</span><span class="synStatement">div</span><span class="synIdentifier">&gt;</span>
+
+  <span class="synIdentifier">&lt;</span><span class="synStatement">div</span><span class="synIdentifier">&gt;&lt;%=</span><span class="synConstant"> f.label</span><span class="synIdentifier"> :email %&gt;&lt;</span><span class="synStatement">br</span><span class="synIdentifier"> /&gt;</span>
+  <span class="synIdentifier">&lt;%=</span><span class="synConstant"> f.email_field</span><span class="synIdentifier"> :email %&gt;&lt;/</span><span class="synStatement">div</span><span class="synIdentifier">&gt;</span>
+
+  <span class="synIdentifier">&lt;</span><span class="synStatement">div</span><span class="synIdentifier">&gt;&lt;%=</span><span class="synConstant"> f.label</span><span class="synIdentifier"> :password %&gt;&lt;</span><span class="synStatement">br</span><span class="synIdentifier"> /&gt;</span>
+    <span class="synIdentifier">&lt;%=</span><span class="synConstant"> f.password_field</span><span class="synIdentifier"> :password, autocomplete: </span><span class="synConstant">&quot;off&quot;</span><span class="synIdentifier"> %&gt;&lt;/</span><span class="synStatement">div</span><span class="synIdentifier">&gt;</span>
+
+  <span class="synIdentifier">&lt;</span><span class="synStatement">div</span><span class="synIdentifier">&gt;&lt;%=</span><span class="synConstant"> f.label</span><span class="synIdentifier"> :password_confirmation %&gt;&lt;</span><span class="synStatement">br</span><span class="synIdentifier"> /&gt;</span>
+    <span class="synIdentifier">&lt;%=</span><span class="synConstant"> f.password_field</span><span class="synIdentifier"> :password_confirmation, autocomplete: </span><span class="synConstant">&quot;off&quot;</span><span class="synIdentifier"> %&gt;&lt;/</span><span class="synStatement">div</span><span class="synIdentifier">&gt;</span>
+
+  <span class="synIdentifier">&lt;</span><span class="synStatement">div</span><span class="synIdentifier">&gt;&lt;%=</span><span class="synConstant"> f.submit</span><span class="synIdentifier"> </span><span class="synConstant">&quot;Sign up&quot;</span><span class="synIdentifier"> %&gt;&lt;/</span><span class="synStatement">div</span><span class="synIdentifier">&gt;</span>
+<span class="synIdentifier">&lt;% end %&gt;</span>
+
+<span class="synIdentifier">&lt;%=</span><span class="synConstant"> render</span><span class="synIdentifier"> </span><span class="synConstant">&quot;devise/shared/links&quot;</span><span class="synIdentifier"> %&gt;</span>
+</pre><p>同じく、プロフィール変更画面も、"username"を追加します。</p>
+<pre class="code lang-html" data-lang="html" data-unlink># app/views/devise/registrations/edit.html.erb
+<span class="synIdentifier">&lt;</span><span class="synStatement">h2</span><span class="synIdentifier">&gt;</span>Edit <span class="synIdentifier">&lt;%=</span><span class="synConstant"> resource_name.to_s.humanize</span><span class="synIdentifier"> %&gt;&lt;/</span><span class="synStatement">h2</span><span class="synIdentifier">&gt;</span>
+
+<span class="synIdentifier">&lt;%=</span><span class="synConstant"> form_for(resource,</span><span class="synIdentifier"> as: resource_name, </span><span class="synType">url</span><span class="synIdentifier">: registration_path(resource_name), html: { </span><span class="synType">method</span><span class="synIdentifier">: :put }) do |f| %&gt;</span>
+  <span class="synIdentifier">&lt;%=</span><span class="synConstant"> devise_error_messages!</span><span class="synIdentifier"> %&gt;</span>
+
+  <span class="synIdentifier">&lt;</span><span class="synStatement">div</span><span class="synIdentifier">&gt;&lt;%=</span><span class="synConstant"> f.label</span><span class="synIdentifier"> :username %&gt;&lt;</span><span class="synStatement">br</span><span class="synIdentifier"> /&gt;</span>
+  <span class="synIdentifier">&lt;%=</span><span class="synConstant"> f.text_field</span><span class="synIdentifier"> :username, autofocus: true %&gt;&lt;/</span><span class="synStatement">div</span><span class="synIdentifier">&gt;</span>
+
+  <span class="synIdentifier">&lt;</span><span class="synStatement">div</span><span class="synIdentifier">&gt;&lt;%=</span><span class="synConstant"> f.label</span><span class="synIdentifier"> :email %&gt;&lt;</span><span class="synStatement">br</span><span class="synIdentifier"> /&gt;</span>
+  <span class="synIdentifier">&lt;%=</span><span class="synConstant"> f.email_field</span><span class="synIdentifier"> :email %&gt;&lt;/</span><span class="synStatement">div</span><span class="synIdentifier">&gt;</span>
+
+  <span class="synIdentifier">&lt;% if devise_mapping.confirmable? &amp;&amp; resource.pending_reconfirmation? %&gt;</span>
+    <span class="synIdentifier">&lt;</span><span class="synStatement">div</span><span class="synIdentifier">&gt;</span>Currently waiting confirmation for: <span class="synIdentifier">&lt;%=</span><span class="synConstant"> resource.unconfirmed_email</span><span class="synIdentifier"> %&gt;&lt;/</span><span class="synStatement">div</span><span class="synIdentifier">&gt;</span>
+  <span class="synIdentifier">&lt;% end %&gt;</span>
+
+  <span class="synIdentifier">&lt;</span><span class="synStatement">div</span><span class="synIdentifier">&gt;&lt;%=</span><span class="synConstant"> f.label</span><span class="synIdentifier"> :password %&gt;</span> <span class="synIdentifier">&lt;</span><span class="synStatement">i</span><span class="synIdentifier">&gt;</span>(leave blank if you don't want to change it)<span class="synIdentifier">&lt;/</span><span class="synStatement">i</span><span class="synIdentifier">&gt;&lt;</span><span class="synStatement">br</span><span class="synIdentifier"> /&gt;</span>
+    <span class="synIdentifier">&lt;%=</span><span class="synConstant"> f.password_field</span><span class="synIdentifier"> :password, autocomplete: </span><span class="synConstant">&quot;off&quot;</span><span class="synIdentifier"> %&gt;&lt;/</span><span class="synStatement">div</span><span class="synIdentifier">&gt;</span>
+
+  <span class="synIdentifier">&lt;</span><span class="synStatement">div</span><span class="synIdentifier">&gt;&lt;%=</span><span class="synConstant"> f.label</span><span class="synIdentifier"> :password_confirmation %&gt;&lt;</span><span class="synStatement">br</span><span class="synIdentifier"> /&gt;</span>
+    <span class="synIdentifier">&lt;%=</span><span class="synConstant"> f.password_field</span><span class="synIdentifier"> :password_confirmation, autocomplete: </span><span class="synConstant">&quot;off&quot;</span><span class="synIdentifier"> %&gt;&lt;/</span><span class="synStatement">div</span><span class="synIdentifier">&gt;</span>
+
+  <span class="synIdentifier">&lt;</span><span class="synStatement">div</span><span class="synIdentifier">&gt;&lt;%=</span><span class="synConstant"> f.label</span><span class="synIdentifier"> :current_password %&gt;</span> <span class="synIdentifier">&lt;</span><span class="synStatement">i</span><span class="synIdentifier">&gt;</span>(we need your current password to confirm your changes)<span class="synIdentifier">&lt;/</span><span class="synStatement">i</span><span class="synIdentifier">&gt;&lt;</span><span class="synStatement">br</span><span class="synIdentifier"> /&gt;</span>
+    <span class="synIdentifier">&lt;%=</span><span class="synConstant"> f.password_field</span><span class="synIdentifier"> :current_password, autocomplete: </span><span class="synConstant">&quot;off&quot;</span><span class="synIdentifier"> %&gt;&lt;/</span><span class="synStatement">div</span><span class="synIdentifier">&gt;</span>
+
+  <span class="synIdentifier">&lt;</span><span class="synStatement">div</span><span class="synIdentifier">&gt;&lt;%=</span><span class="synConstant"> f.submit</span><span class="synIdentifier"> </span><span class="synConstant">&quot;Update&quot;</span><span class="synIdentifier"> %&gt;&lt;/</span><span class="synStatement">div</span><span class="synIdentifier">&gt;</span>
+<span class="synIdentifier">&lt;% end %&gt;</span>
+
+<span class="synIdentifier">&lt;</span><span class="synStatement">h3</span><span class="synIdentifier">&gt;</span>Cancel my account<span class="synIdentifier">&lt;/</span><span class="synStatement">h3</span><span class="synIdentifier">&gt;</span>
+
+<span class="synIdentifier">&lt;</span><span class="synStatement">p</span><span class="synIdentifier">&gt;</span>Unhappy? <span class="synIdentifier">&lt;%=</span><span class="synConstant"> button_to</span><span class="synIdentifier"> </span><span class="synConstant">&quot;Cancel my account&quot;</span><span class="synIdentifier">, registration_path(resource_name), </span><span class="synType">data</span><span class="synIdentifier">: { confirm: </span><span class="synConstant">&quot;Are you sure?&quot;</span><span class="synIdentifier"> }, </span><span class="synType">method</span><span class="synIdentifier">: :delete %&gt;&lt;/</span><span class="synStatement">p</span><span class="synIdentifier">&gt;</span>
+
+<span class="synIdentifier">&lt;%=</span><span class="synConstant"> link_to</span><span class="synIdentifier"> </span><span class="synConstant">&quot;Back&quot;</span><span class="synIdentifier">, :back %&gt;</span>
+</pre><p>既にユーザが登録されているため、<code>username</code>に"testuser"という値をコンソールから入力します。<br />
+もちろん、実際に変更するときは、サインインやプロフィール変更などの画面の修正は忘れずに修正してください。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>$ rails c
+<span class="synType">Loading</span> development environment (<span class="synType">Rails</span> <span class="synConstant">4.1</span>.<span class="synConstant">4</span>)
+irb(main):<span class="synConstant">001</span>:<span class="synConstant">0</span>&gt; <span class="synType">User</span>.first
+=&gt; <span class="synComment">#&lt;User id: 2, email: &quot;test@example.com&quot;, encrypted_password: &quot;$2a$10$Oabg0hmZDismBJ2pxtfIxO9MK04/KQ7QtjnITlWXL83...&quot;, reset_password_token: nil, reset_password_sent_at: nil, remember_created_at: nil, sign_in_count: 6, current_sign_in_at: &quot;2014-07-31 08:51:22&quot;, last_sign_in_at: &quot;2014-07-31 08:50:50&quot;, current_sign_in_ip: &quot;127.0.0.1&quot;, last_sign_in_ip: &quot;127.0.0.1&quot;, created_at: &quot;2014-07-31 08:18:45&quot;, updated_at: &quot;2014-07-31 08:51:22&quot;, username: nil&gt;</span>
+&gt; <span class="synType">User</span>.first.update_attribute(<span class="synConstant">:username</span>, <span class="synSpecial">&quot;</span><span class="synConstant">testuser</span><span class="synSpecial">&quot;</span>)
+=&gt; <span class="synConstant">true</span>
+</pre><p>では、ログイン画面を開いてログインしましょう。<br />
+"Username"が表示されていると思います。<br />
+<span itemscope itemtype="http://schema.org/Photograph"><img src="http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140802/20140802230848.png" alt="f:id:nipe880324:20140802230848p:plain:w320" title="f:id:nipe880324:20140802230848p:plain:w320" class="hatena-fotolife" style="width:320px" itemprop="image"></span><br />
+そして、ログインができます。<br />
+<span itemscope itemtype="http://schema.org/Photograph"><img src="http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140802/20140802230853.png" alt="f:id:nipe880324:20140802230853p:plain:w320" title="f:id:nipe880324:20140802230853p:plain:w320" class="hatena-fotolife" style="width:320px" itemprop="image"></span></p><br />
+<p>もし<code>development.log</code>に<code>Unpermitted parameters</code>が出た場合は、"Strong Parameter"のエラーのため、下記のコードを追加して下さい。<br />
+":username"の箇所は、エラー内容で表示されている変数名に変えて下さい。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synComment"># app/controllers/application_controller.rb</span>
+<span class="synPreProc">class</span> <span class="synType">ApplicationController</span> &lt; <span class="synType">ActionController</span>::<span class="synType">Base</span>
+  <span class="synComment"># Prevent CSRF attacks by raising an exception.</span>
+  <span class="synComment"># For APIs, you may want to use :null_session instead.</span>
+  protect_from_forgery <span class="synConstant">with</span>: <span class="synConstant">:exception</span>
+
+  <span class="synComment"># deviceのコントローラーのときに、下記のメソッドを呼ぶ</span>
+  before_action <span class="synConstant">:configure_permitted_parameters</span>, <span class="synStatement">if</span>: <span class="synConstant">:devise_controller?</span>
+
+  <span class="synStatement">protected</span>
+
+    <span class="synPreProc">def</span> <span class="synIdentifier">configure_permitted_parameters</span>
+      <span class="synComment"># sign_inのときに、usernameも許可する</span>
+      devise_parameter_sanitizer.for(<span class="synConstant">:sign_in</span>) &lt;&lt; <span class="synConstant">:username</span>
+      <span class="synComment"># sign_upのときに、usernameも許可する</span>
+      devise_parameter_sanitizer.for(<span class="synConstant">:sign_up</span>) &lt;&lt; <span class="synConstant">:username</span>
+      <span class="synComment">#  account_updateのときに、usernameも許可する</span>
+      devise_parameter_sanitizer.for(<span class="synConstant">:account_update</span>) &lt;&lt; <span class="synConstant">:username</span>
+    <span class="synPreProc">end</span>
+<span class="synStatement">end</span>
+</pre><p></p><p><h3 id="devise-test-helper">Deviseのテストヘルパー</h3>deviseは、テストで有用なテストヘルパーを提供しています。<br />
+それの簡単な使い方について説明します。</p><p>まず、テストにdeviseのテストヘルパーを追加します。</p>
+
+</div>
+<div class="section">
+    <h4>デフォルトのTestフレームワークを使っている場合</h4>
+    <pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synComment"># test/test_helper.rb </span>
+<span class="synPreProc">class</span> <span class="synType">ActiveSupport</span>::<span class="synType">TestCase</span>
+  ...
+  <span class="synPreProc">include</span> <span class="synType">Devise</span>::<span class="synType">TestHelpers</span>
+  ...
+<span class="synPreProc">end</span>
+</pre>
+<div class="section">
+    <h5>RSpecを使っている場合</h5>
+    <pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synComment"># spec/spec_helper.rb </span>
+<span class="synType">RSpec</span>.configure <span class="synStatement">do</span> |<span class="synIdentifier">config</span>|
+  ...
+  config.include <span class="synType">Devise</span>::<span class="synType">TestHelpers</span>, <span class="synConstant">type</span>: <span class="synConstant">:controller</span>
+  ...
+<span class="synStatement">end</span>
+</pre><p>これで、以下のメソッドがControllerの中で利用ができます</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>sign_in <span class="synConstant">:user</span>, <span class="synIdentifier">@user</span>   <span class="synComment"># sign_in(scope, resource)</span>
+sign_in <span class="synIdentifier">@user</span>          <span class="synComment"># sign_in(resource)</span>
+
+sign_out <span class="synConstant">:user</span>         <span class="synComment"># sign_out(scope)</span>
+sign_out <span class="synIdentifier">@user</span>         <span class="synComment"># sign_out(resource)</span>
+</pre><p>テストにおいて、以下の２点ほど注意点があります。</p>
+
+<ol>
+<li><code>Capybara</code>や<code>Webrat</code>などで実行されるインテグレーションテストでは動作しません。機能テストのみでしか使えません。フォーム入力やセッションに値を設定することで代替して下さい。</li>
+<li>Deviseの内部のテストやDeviseのコントローラを継承したコントローラの機能テストをする場合、リクエストをする前に、mapping情報を記載しなければなりません。これは、Deviseはrouteからmapping情報を取得しますが、機能テストではrouteを通らないのでmapping情報を知るすべがないからです。例として、user scopeのテストをする場合は、次のように記載します。</li>
+</ol><pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synIdentifier">@request</span>.env[<span class="synSpecial">&quot;</span><span class="synConstant">devise.mapping</span><span class="synSpecial">&quot;</span>] = <span class="synType">Devise</span>.mappings[<span class="synConstant">:user</span>]
+get <span class="synConstant">:new</span>
+</pre>
+</div>
+</div>
+</div>
+<div class="section">
+    <h3>まとめ</h3>
+    <p>Deviseの一通りのカスタマイズ方法について学べたと思います。これで、Deviseを使って何かするときはほぼ問題ないと思います。<br />
+次は、「<a href="../../../entry/20140805/1407200400.html">DeviseとOmniAuth-Twitter連携（Twitterでログインする）</a>」です。</p>
+
+</div>
+<div class="section">
+    <h3>参考文献</h3>
+    
+<ul>
+<li><a href="https://github.com/plataformatec/devise">plataformatec/devise &middot; GitHub</a></li>
+</ul>
+</div>
+        
+      
+    </div>
+    <footer class="entry-footer">
+      <p class="entry-footer-section">
+        <span class="author vcard"><span class="fn" data-load-nickname="1" data-user-name="nipe880324">nipe880324</span></span>
+        <span class="entry-footer-time"><a href="../../../entry/20140804/1407168000.html"><time data-relative datetime="2014-08-04T16:00:00Z" title="2014-08-04T16:00:00Z" pubdate class="updated">2014-08-05 01:00</time></a></span>
+      </p>
+
+      
+
+      
+<div class="social-buttons">
+  
+  
+    <div class="social-button-item">
+      <a href="http://b.hatena.ne.jp/entry/http://ruby-rails.hatenadiary.com/entry/20140804/1407168000" class="hatena-bookmark-button" data-hatena-bookmark-layout="vertical-balloon" data-hatena-bookmark-lang="ja" title="この記事をはてなブックマークに追加"><img src="https://b.st-hatena.com/images/entry-button/button-only.gif" alt="この記事をはてなブックマークに追加" width="20" height="20" style="border: none;" /></a>
+    </div>
+  
+  
+  
+    <div class="social-button-item">
+      <a href="https://twitter.com/search?q=http%3A%2F%2Fruby-rails.hatenadiary.com%2Fentry%2F20140804%2F1407168000" class="social-button-twitter-balloon" target="_blank">
+        <span class="social-button-twitter-balloon-list">list</span>
+        <i class="social-button-twitter-balloon-arrow-border"></i>
+        <u class="social-button-twitter-balloon-arrow"></u>
+      </a>
+      <a href="https://twitter.com/share" class="twitter-share-button" data-url="http://ruby-rails.hatenadiary.com/entry/20140804/1407168000" data-count="vertical" data-text="Railsのログイン認証gemのDeviseのカスタマイズ方法 - Rails Webook" data-lang="ja">Tweet</a>
+    </div>
+  
+  
+  
+  
+  
+    <div class="social-button-item">
+      <a data-pocket-label="pocket" data-save-url="http://ruby-rails.hatenadiary.com/entry/20140804/1407168000" data-pocket-count="vertical" class="pocket-btn" data-lang="en"></a>
+    </div>
+  
+</div>
+
+
+      
+        
+          
+            
+            <div class="google-afc-image test-google-rectangle-ads ">
+              
+              
+                <script>
+  var hatenadfp = hatenadfp || {};
+  hatenadfp.adUnits = hatenadfp.adUnits || [];
+  hatenadfp.adUnits.push(
+    
+      { unitName: 'blog_user', size: [[300, 250], [336, 280]], divId: 'google_afc_user_container_0', allowContentMatch: true }
+    
+  );
+  hatenadfp.isNGContent = false;
+  
+</script>
+
+                <div id="google_afc_user_container_0" class="google_afc_blocklink2_5 google_afc_boder"></div>
+                
+                  <a href="http://blog.hatena.ne.jp/guide/pro" class="open-pro-modal" data-guide-pro-modal-ad-url="http://hatenablog.com/guide/pro/modal/ad">広告を非表示にする</a>
+                
+                
+              
+            </div>
+          
+        
+      
+
+      <div class="customized-footer">
+
+        
+
+      </div>
+
+      <div class="comment-box">
+        
+        <ul class="comment">
+          
+             <li class="read-more-comments" style="display: none;"><a>もっと読む (0)</a></li>
+          
+        </ul>
+        
+          <a class="leave-comment-title">コメントを書く</a>
+        
+      </div>
+      <!-- enjapan ad -->
+      
+    </footer>
+  </div>
+</article>
+
+                
+
+                
+
+              
+                <article class="entry hentry js-entry-article date-last autopagerize_page_element chars-9200 words-800 mode-hatena entry-even" id="entry-12921228815729428910" data-keyword-campaign="" data-uuid="12921228815729428910">
+  <div class="entry-inner">
+    <header class="entry-header">
+      <div class="entry-date date last">
+        <a href="05.html" rel="nofollow">
+          <time pubdate datetime="2014-08-05T01:00:00Z" title="2014-08-05T01:00:00Z">
+            <span class="date-year">2014</span><span class="hyphen">-</span><span class="date-month">08</span><span class="hyphen">-</span><span class="date-day">05</span>
+          </time>
+        </a>
+      </div>
+      <h1 class="entry-title">
+        <a href="../../../entry/20140805/1407200400.html" class="entry-title-link bookmark">Railsのログイン認証gemのDeviseとOmniAuth-Twitterの連携（Twitterでログインする）</a>
+      </h1>
+      
+      
+        <div class="entry-categories categories">
+          
+          <a href="../../../archive/category/Rails%20gem.html">Rails gem</a>
+          
+        </div>
+      
+      
+
+      
+    </header>
+        
+    <div class="entry-content">
+
+      
+        <p><a href="https://camo.githubusercontent.com/b1c21cc10f2f94857dea5135fe55f2e4d451e028/68747470733a2f2f7261772e6769746875622e636f6d2f706c617461666f726d617465632f6465766973652f6d61737465722f6465766973652e706e67" class="http-image" target="_blank"><img src="https://camo.githubusercontent.com/b1c21cc10f2f94857dea5135fe55f2e4d451e028/68747470733a2f2f7261772e6769746875622e636f6d2f706c617461666f726d617465632f6465766973652f6d61737465722f6465766973652e706e67" class="http-image" alt="https://camo.githubusercontent.com/b1c21cc10f2f94857dea5135fe55f2e4d451e028/68747470733a2f2f7261772e6769746875622e636f6d2f706c617461666f726d617465632f6465766973652f6d61737465722f6465766973652e706e67" width="320"></a></p><br />
+<p>次のように、よく見かける<b>Twitterでユーザ登録</b>や<b>Facebookでユーザ登録</b>のように「<b>RailsでDeviseを使ってTwitterのOAuthを実装する方法</b>」について説明します。<br />
+<span itemscope itemtype="http://schema.org/Photograph"><img src="http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140802/20140802233738.jpg" alt="f:id:nipe880324:20140802233738j:plain" title="f:id:nipe880324:20140802233738j:plain" class="hatena-fotolife" itemprop="image"></span></p><p></p>
+
+<ul>
+<li>前々回は、「<a href="../../../entry/20140801/1406907000.html">Deviseのインストール方法</a>」を説明しました。</li>
+<li>前回は、「<a href="../../../entry/20140804/1407168000.html">Deviseのカスタマイズ方法</a>」を説明しました。</li>
+</ul><p><b>実際に試す場合は、上記の２記事を実施済みだと差分を埋め合わせる必要がなくなり簡単です。</b></p><br />
+<p></p>
+
+<div class="section">
+    <h3>動作確認</h3>
+    
+<ul>
+<li>Rails 4.1.4</li>
+<li>Devise 3.2.4</li>
+<li>OmniAuth</li>
+</ul>
+</div>
+<div class="section">
+    <h3>目次</h3>
+    
+<ol>
+<li>Twitter Developer画面でAPP_IDとAPP_SECRETを取得</li>
+<li>DeviseにOmniAuthのインストールと設定（初期設定とTwitterへの接続）</li>
+<li>DeviseにOmniAuthのインストールと設定（コールバック処理の実装）</li>
+<li>DeviseにOmniAuthのインストールと設定（プロフィール変更の修正）</li>
+</ol>
+</div>
+<div class="section">
+    <h3>Twitter Developer画面で[API key]と[API secret]を取得</h3>
+    
+<div class="section">
+    <h5>1. <a href="https://apps.twitter.com" target="_blank">Twitter Developer画面</a>にアクセスします。（Sign inしてなかったらしてください）</h5>
+    <p><span itemscope itemtype="http://schema.org/Photograph"><img src="http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140803/20140803001147.png" alt="f:id:nipe880324:20140803001147p:plain:w360" title="f:id:nipe880324:20140803001147p:plain:w360" class="hatena-fotolife" style="width:360px" itemprop="image"></span></p><p></p>
+
+</div>
+<div class="section">
+    <h5>2. [Create New App]を押し、各項目を入力して下さい。</h5>
+    
+<ul>
+<li>Name: アプリ名を記載（任意）</li>
+<li>Description: 説明を記載（任意）</li>
+<li>Website: ホームページを記載（ユーザーが認証時に表示されるURLで、OmniAuthの動作に関与しないので任意）</li>
+<li>Callback URL: コールバックURLを記載（今回はテストでローカルサーバーのため<a href="http://127.0.0.1:3000/users/omniauth_callbacks">http://127.0.0.1:3000/users/omniauth_callbacks</a>を指定）</li>
+</ul><p><span itemscope itemtype="http://schema.org/Photograph"><img src="http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140803/20140803001703.png" alt="f:id:nipe880324:20140803001703p:plain:w360" title="f:id:nipe880324:20140803001703p:plain:w360" class="hatena-fotolife" style="width:360px" itemprop="image"></span><br />
+</p>
+
+</div>
+<div class="section">
+    <h5>3. [Create your Twitter application]を押します。</h5>
+    
+</div>
+<div class="section">
+    <h5>4. 作成したアプリの[settings]タブの[Allow this application to be used to Sign in with Twitter]のチェックボックスをONにして、[Update settings]をして下さい。</h5>
+    <p><span itemscope itemtype="http://schema.org/Photograph"><img src="http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140803/20140803001843.png" alt="f:id:nipe880324:20140803001843p:plain:w360" title="f:id:nipe880324:20140803001843p:plain:w360" class="hatena-fotolife" style="width:360px" itemprop="image"></span><br />
+</p>
+
+</div>
+<div class="section">
+    <h5>5. 作成したアプリの[API Keys]タブで[API key]と[API secret]を後から使うのでコピーしておいて下さい。（下の画像では値を隠しています）</h5>
+    <p><span itemscope itemtype="http://schema.org/Photograph"><img src="http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140803/20140803002424.png" alt="f:id:nipe880324:20140803002424p:plain:w360" title="f:id:nipe880324:20140803002424p:plain:w360" class="hatena-fotolife" style="width:360px" itemprop="image"></span></p><br />
+<p></p>
+
+</div>
+</div>
+<div class="section">
+    <h3>DeviseにOmniAuthのインストールと設定（初期設定とTwitterへの接続）</h3>
+    <p>では、RailsにOmniAuthをインストールしていきます。<br />
+まずは、<code>devise</code>と<code>omniauth-twitter</code>をGemfileに追加します。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synComment"># Gemfile</span>
+gem <span class="synSpecial">'</span><span class="synConstant">devise</span><span class="synSpecial">'</span>
+gem <span class="synSpecial">'</span><span class="synConstant">omniauth-twitter</span><span class="synSpecial">'</span>
+</pre><p>次に、gemをインストールします。</p>
+<pre class="code" data-lang="" data-unlink>$ bundle install</pre><p>OAuthで取得する<code>provider</code>と<code>uid</code>を保持するために、Userモデルにカラムを追加します。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>$ rails g migration add_columns_to_users provider uid
+$ rake db<span class="synConstant">:migrate</span>
+</pre><p>Deviseの設定ファイルに先ほど取得した[API key]と[API secret]を追加します。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synComment"># config/initializers/devise.rb</span>
+<span class="synType">Devise</span>.setup <span class="synStatement">do</span> |<span class="synIdentifier">config</span>|
+  ...
+  ...
+  <span class="synComment"># omniauth</span>
+  <span class="synComment"># 先ほど設定した値を記載して下さい。</span>
+  config.omniauth <span class="synConstant">:twitter</span>, <span class="synSpecial">&quot;</span><span class="synConstant">[API Key]</span><span class="synSpecial">&quot;</span>, <span class="synSpecial">&quot;</span><span class="synConstant">[API secret]</span><span class="synSpecial">&quot;</span>
+<span class="synStatement">end</span>
+</pre><p>Userモデルに<code>:omniauthable</code>を設定します。<br />
+下記のケースの場合、<code>:validatable</code>の後に<code>,</code>を忘れないようにして下さい。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synPreProc">class</span> <span class="synType">User</span> &lt; <span class="synType">ActiveRecord</span>::<span class="synType">Base</span>
+  <span class="synComment"># Include default devise modules. Others available are:</span>
+  <span class="synComment"># :confirmable, :lockable and :timeoutable</span>
+  devise <span class="synConstant">:database_authenticatable</span>, <span class="synConstant">:registerable</span>,
+         <span class="synConstant">:recoverable</span>, <span class="synConstant">:rememberable</span>, <span class="synConstant">:trackable</span>, <span class="synConstant">:validatable</span>,
+         <span class="synConstant">:omniauthable</span>, <span class="synConstant">omniauth_providers</span>: [<span class="synConstant">:twitter</span>]
+
+  validates <span class="synConstant">:username</span>, <span class="synConstant">presence</span>: <span class="synConstant">true</span>, <span class="synConstant">uniqueness</span>: <span class="synConstant">true</span>
+<span class="synPreProc">end</span>
+</pre><p><i>注意点として、現在(devise 3.2.4)では、DeviseはOmniAuthを１つのモデルでしか使えません。<br />
+複数のモデルでOmniAuthを使いたい場合は<a href="https://github.com/plataformatec/devise/wiki/OmniAuth-with-multiple-models" target="_blank">ここ</a>を参照して下さい。</i></p><br />
+<p><code>:omniauthable</code>をUserモデルに追加し、<code>config/routes.rb</code>に<code>devise_for :users</code>が設定されている場合、下記の2つのルートが自動で追加されます。<br />
+<code>$ rake routes</code>で確認しましょう。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>$ rake routes
+$ rake routes
+                  <span class="synType">Prefix</span> <span class="synType">Verb</span>     <span class="synType">URI</span> <span class="synType">Pattern</span>                            <span class="synType">Controller</span><span class="synComment">#Action</span>
+  ...
+ user_omniauth_authorize <span class="synType">GET</span>|<span class="synType">POST</span> <span class="synSpecial">/</span><span class="synConstant">users</span><span class="synSpecial">/</span>auth/<span class="synConstant">:provider</span>(.<span class="synConstant">:format</span>)        omniauth_callbacks<span class="synComment">#passthru {:provider=&gt;/twitter/}</span>
+  user_omniauth_callback <span class="synType">GET</span>|<span class="synType">POST</span> <span class="synSpecial">/</span><span class="synConstant">users</span><span class="synSpecial">/</span>auth/<span class="synConstant">:action</span>/callback(.<span class="synConstant">:format</span>) omniauth_callbacks<span class="synComment">#(?-mix:twitter)</span>
+  ...
+</pre><p><i>注意点として、Deviseは上記の2つのパスの<code>*_url</code>を作成しないことと、自分で2番目の<code>user_omniauth_callback</code>はViewなどで指定しません。</i></p><p>では、<code>application.html.erb</code>にリンクを追加しましょう。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synComment"># app/views/layouts/application.html.erb</span>
+....
+&lt;body&gt;
+&lt;header&gt;
+  &lt;nav&gt;
+    &lt;!-- user_signed_in? はユーザがログインしているか調べるdeviseの<span class="synType">Helper</span>メソッド --&gt;
+    &lt;% <span class="synStatement">if</span> user_signed_in? %&gt; 
+      &lt;!-- current_user は現在ログインしている<span class="synType">User</span>オブジェクトを返すdeviseの<span class="synType">Helper</span>メソッド --&gt;
+      &lt;!-- *_path は<span class="synType">User</span>モデルを作成したときに、
+        deviseにより自動で作成されてますので、rake routesで確認できます --&gt;
+      <span class="synType">Logged</span> <span class="synStatement">in</span> as &lt;strong&gt;&lt;%= current_user.email %&gt;&lt;/strong&gt;.
+      &lt;%= link_to <span class="synSpecial">'</span><span class="synConstant">プロフィール変更</span><span class="synSpecial">'</span>, edit_user_registration_path %&gt; |
+      &lt;%= link_to <span class="synSpecial">&quot;</span><span class="synConstant">ログアウト</span><span class="synSpecial">&quot;</span>, destroy_user_session_path, <span class="synConstant">method</span>: <span class="synConstant">:delete</span> %&gt;
+    &lt;% <span class="synStatement">else</span> %&gt;
+      &lt;%= link_to <span class="synSpecial">&quot;</span><span class="synConstant">サインイン</span><span class="synSpecial">&quot;</span>, new_user_registration_path %&gt; |
+      &lt;%= link_to <span class="synSpecial">&quot;</span><span class="synConstant">ログイン</span><span class="synSpecial">&quot;</span>, new_user_session_path %&gt; |
+      &lt;%= link_to <span class="synSpecial">&quot;</span><span class="synConstant">Sign in with Twitter</span><span class="synSpecial">&quot;</span>, user_omniauth_authorize_path(<span class="synConstant">:twitter</span>) %&gt;
+    &lt;% <span class="synStatement">end</span> %&gt;
+  &lt;/nav&gt;
+&lt;/header&gt;
+  
+&lt;p <span class="synPreProc">class</span>=&quot;notice&quot;&gt;&lt;%= notice %&gt;&lt;/p&gt;
+&lt;p <span class="synPreProc">class</span>=&quot;alert&quot;&gt;&lt;%= alert %&gt;&lt;/p&gt;
+
+&lt;%= <span class="synStatement">yield</span> %&gt;
+
+&lt;/body&gt;
+&lt;/html&gt;
+</pre><p><br />
+では、サーバーを再起動し、ログイン画面を確認してみましょう。「Sign in with Twitter」リンクが追加されているはずです。<br />
+これは、<code>app/views/devise/shared/_links.erb_links_erb</code>にデフォルトで<code>:omniauthable</code>が有効化されたらリンクを表示するように記載されていたためです。</p><br />
+<p>では、[Sign in with Twitter]リンクを押すと、Twitter画面に遷移し、その後、Railsにリダイレクトされます。<br />
+<span itemscope itemtype="http://schema.org/Photograph"><img src="http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140803/20140803013919.png" alt="f:id:nipe880324:20140803013919p:plain:w360" title="f:id:nipe880324:20140803013919p:plain:w360" class="hatena-fotolife" style="width:360px" itemprop="image"></span><br />
+<span itemscope itemtype="http://schema.org/Photograph"><img src="http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140803/20140803005647.png" alt="f:id:nipe880324:20140803005647p:plain:w360" title="f:id:nipe880324:20140803005647p:plain:w360" class="hatena-fotolife" style="width:360px" itemprop="image"></span></p><p>そして、コールバックコントローラーがないため、エラーになります。<br />
+<span itemscope itemtype="http://schema.org/Photograph"><img src="http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140803/20140803005648.png" alt="f:id:nipe880324:20140803005648p:plain:w360" title="f:id:nipe880324:20140803005648p:plain:w360" class="hatena-fotolife" style="width:360px" itemprop="image"></span></p><br />
+<p></p>
+
+</div>
+<div class="section">
+    <h3>DeviseにOmniAuthのインストールと設定（コールバック処理の実装）</h3>
+    <p>コールバックコントローラーを作成しましょう。<br />
+まず、コールバックコントローラーへのルートを追加します。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synComment"># config/routes.rb</span>
+  ...
+  devise_for <span class="synConstant">:users</span>, <span class="synConstant">path_names</span>: { <span class="synConstant">sign_in</span>: <span class="synSpecial">&quot;</span><span class="synConstant">login</span><span class="synSpecial">&quot;</span>, <span class="synConstant">sign_out</span>: <span class="synSpecial">&quot;</span><span class="synConstant">logout</span><span class="synSpecial">&quot;</span>},
+    <span class="synConstant">controllers</span>: { <span class="synConstant">omniauth_callbacks</span>: <span class="synSpecial">&quot;</span><span class="synConstant">omniauth_callbacks</span><span class="synSpecial">&quot;</span> }
+  ...
+</pre><p>次に、<code>rails g</code>コマンドでコールバックコントローラーを作成します。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>$ rails g controller omniauth_callbacks
+</pre><p><br />
+では、コールバックコントローラーを実装しましょう。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synComment"># app/controllers/omniauth_callbacks_controller.rb</span>
+<span class="synPreProc">class</span> <span class="synType">OmniauthCallbacksController</span> &lt; <span class="synType">Devise</span>::<span class="synType">OmniauthCallbacksController</span>
+  <span class="synPreProc">def</span> <span class="synIdentifier">all</span>
+    <span class="synComment"># profiderとuidでuserレコードを検索。存在しなければ、新たに作成する</span>
+    user = <span class="synType">User</span>.from_omniauth(request.env[<span class="synSpecial">&quot;</span><span class="synConstant">omniauth.auth</span><span class="synSpecial">&quot;</span>])
+    <span class="synComment"># userレコードが既に保存されているか</span>
+    <span class="synStatement">if</span> user.persisted?
+      <span class="synComment"># ログインに成功</span>
+      flash.notice = <span class="synSpecial">&quot;</span><span class="synConstant">ログインしました!!</span><span class="synSpecial">&quot;</span>
+      sign_in_and_redirect user
+    <span class="synStatement">else</span>
+      <span class="synComment"># ログインに失敗し、サインイン画面に遷移</span>
+      session[<span class="synSpecial">&quot;</span><span class="synConstant">devise.user_attributes</span><span class="synSpecial">&quot;</span>] = user.attributes
+      redirect_to new_user_registration_url
+    <span class="synStatement">end</span>
+  <span class="synPreProc">end</span>
+
+  <span class="synComment"># alias_methodはクラスやモジュールのメソッドに別名をつけます</span>
+  <span class="synComment"># 実態がallメソッドのtwitterメソッドを定義しています</span>
+  <span class="synComment"># こうすることで、様々なメソッド名で同じ処理を実装することができます。</span>
+  <span class="synComment"># OAuthの処理はほとんど同じためこのようにしています。</span>
+  <span class="synComment"># 例えば、Facebookに対応する場合、alias_method :facebook, :allだけですみます</span>
+  alias_method <span class="synConstant">:twitter</span>, <span class="synConstant">:all</span>
+<span class="synPreProc">end</span>
+</pre><p>Userモデルにメソッドを実装します。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synComment"># app/models/user.rb</span>
+  ...
+  <span class="synPreProc">def</span> <span class="synConstant">self</span>.<span class="synIdentifier">from_omniauth</span>(auth)
+    <span class="synComment"># providerとuidでUserレコードを取得する</span>
+    <span class="synComment"># 存在しない場合は、ブロック内のコードを実行して作成する</span>
+    where(auth.slice(<span class="synConstant">:provider</span>, <span class="synConstant">:uid</span>)).first_or_create <span class="synStatement">do</span> |<span class="synIdentifier">user</span>|
+      <span class="synComment"># auth.provider には &quot;twitter&quot;、</span>
+      <span class="synComment"># auth.uidには twitterアカウントに基づいた個別のIDが入っている</span>
+      <span class="synComment"># first_or_createメソッドが自動でproviderとuidを設定してくれるので、</span>
+      <span class="synComment"># ここでは設定は必要ない</span>
+      user.username = auth.info.nickname <span class="synComment"># twitterで利用している名前が入る</span>
+      user.email = auth.info.email <span class="synComment"># twitterの場合入らない</span>
+    <span class="synStatement">end</span>
+  <span class="synPreProc">end</span>
+  ...
+</pre><p><br />
+では、画面から [Sign in with Twitter]を押してみましょう。すると、サインアップ画面が表示されます。<br />
+これは、OmniauthCollbacksControllerの<code>User.from_omniauthメソッド</code>で新規にレコードを作成するので、<code>user.persisted?</code>で「false」になっているためです。<br />
+<span itemscope itemtype="http://schema.org/Photograph"><img src="http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140803/20140803014918.png" alt="f:id:nipe880324:20140803014918p:plain:w480" title="f:id:nipe880324:20140803014918p:plain:w480" class="hatena-fotolife" style="width:480px" itemprop="image"></span></p><br />
+<p>では、サインアップ画面にリダイレクトされたときに、Twitterから取得したデータを表示するようにします。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synComment"># app/models/user.rb</span>
+  ...
+  <span class="synComment"># Devise の RegistrationsController はリソースを生成する前に self.new_sith_session を呼ぶ</span>
+  <span class="synComment"># つまり、self.new_with_sessionを実装することで、サインアップ前のuserオブジェクトを初期化する</span>
+  <span class="synComment"># ときに session からデータをコピーすることができます。</span>
+  <span class="synComment"># OmniauthCallbacksControllerでsessionに値を設定したので、それをuserオブジェクトにコピーします。</span>
+  <span class="synPreProc">def</span> <span class="synConstant">self</span>.<span class="synIdentifier">new_with_session</span>(params, session)
+    <span class="synStatement">if</span> session[<span class="synSpecial">&quot;</span><span class="synConstant">devise.user_attributes</span><span class="synSpecial">&quot;</span>]
+      new(session[<span class="synSpecial">&quot;</span><span class="synConstant">devise.user_attributes</span><span class="synSpecial">&quot;</span>], <span class="synConstant">without_protection</span>: <span class="synConstant">true</span>) <span class="synStatement">do</span> |<span class="synIdentifier">user</span>|
+        user.attributes = params
+        user.valid?
+      <span class="synStatement">end</span>
+    <span class="synStatement">else</span>
+      <span class="synStatement">super</span>
+    <span class="synStatement">end</span>
+  <span class="synPreProc">end</span>
+  ...
+</pre><p>データがコピーされていることを確認するため、 画面で[Sign in with Twitter]を押してましょう。<br />
+EmailとPasswordのエラーが表示されています。<br />
+<span itemscope itemtype="http://schema.org/Photograph"><img src="http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140803/20140803023726.png" alt="f:id:nipe880324:20140803023726p:plain:w480" title="f:id:nipe880324:20140803023726p:plain:w480" class="hatena-fotolife" style="width:480px" itemprop="image"></span></p><br />
+<p>Twitter経由で認証した場合、パスワードを入力しなくてもログインをできるようにする<br />
+TwitterではEmailは取得できないため入力しないといけません、PasswordはTwitterで認証されているため入力はいりません。そのため、パスワードを入力しなくてもログインできるようにしましょう。<br />
+ちなみに、<a href="https://github.com/arunagw/omniauth-twitter#user-content-authentication-hash" blank="_blank">omniauth-twitter 公式ドキュメント</a>に取得できる値が記載されています。</p><p>まずは、Userモデルがproviderが存在する場合にパスワードを要求しないようにします。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synComment"># app/models/user.rb</span>
+  ...
+  <span class="synComment"># providerがある場合（Twitter経由で認証した）は、</span>
+  <span class="synComment"># passwordは要求しないようにする。</span>
+  <span class="synPreProc">def</span> <span class="synIdentifier">password_required?</span>
+    <span class="synStatement">super</span> &amp;&amp; provider.blank?
+  <span class="synPreProc">end</span>
+  ..
+</pre><p>また、Viewではパスワードが要求されていない場合は、<code>f.object.password_required?</code>を追加して、passwordの入力フィールドを表示しないようにします。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synComment"># app/views/devise/registrations/new.html.erb</span>
+&lt;h2&gt;<span class="synType">Sign</span> up&lt;/h2&gt;
+
+&lt;%= form_for(resource, <span class="synConstant">as</span>: resource_name, <span class="synConstant">url</span>: registration_path(resource_name)) <span class="synStatement">do</span> |<span class="synIdentifier">f</span>| %&gt;
+  &lt;%= devise_error_messages! %&gt;
+
+  &lt;div&gt;&lt;%= f.label <span class="synConstant">:username</span> %&gt;&lt;br <span class="synSpecial">/</span><span class="synConstant">&gt;</span>
+<span class="synConstant">  &lt;%= f</span><span class="synSpecial">.</span><span class="synConstant">text_field :username, autofocus: true %&gt;&lt;</span><span class="synSpecial">/</span>div&gt;
+
+  &lt;div&gt;&lt;%= f.label <span class="synConstant">:email</span> %&gt;&lt;br <span class="synSpecial">/</span><span class="synConstant">&gt;</span>
+<span class="synConstant">  &lt;%= f</span><span class="synSpecial">.</span><span class="synConstant">email_field :email %&gt;&lt;</span><span class="synSpecial">/</span>div&gt;
+
+  &lt;% <span class="synStatement">if</span> f.object.password_required? %&gt;
+    &lt;div&gt;&lt;%= f.label <span class="synConstant">:password</span> %&gt;&lt;br <span class="synSpecial">/</span><span class="synConstant">&gt;</span>
+<span class="synConstant">      &lt;%= f</span><span class="synSpecial">.</span><span class="synConstant">password_field :password, autocomplete: &quot;off&quot; %&gt;&lt;</span><span class="synSpecial">/</span>div&gt;
+
+    &lt;div&gt;&lt;%= f.label <span class="synConstant">:password_confirmation</span> %&gt;&lt;br <span class="synSpecial">/</span><span class="synConstant">&gt;</span>
+<span class="synConstant">      &lt;%= f</span><span class="synSpecial">.</span><span class="synConstant">password_field :password_confirmation, autocomplete: &quot;off&quot; %&gt;&lt;</span><span class="synSpecial">/</span>div&gt;
+  &lt;% <span class="synStatement">end</span> %&gt;
+
+  &lt;div&gt;&lt;%= f.submit <span class="synSpecial">&quot;</span><span class="synConstant">Sign up</span><span class="synSpecial">&quot;</span> %&gt;&lt;/div&gt;
+&lt;% <span class="synStatement">end</span> %&gt;
+
+&lt;%= render <span class="synSpecial">&quot;</span><span class="synConstant">devise/shared/links</span><span class="synSpecial">&quot;</span> %&gt;
+</pre><p><br />
+では、画面を開いて、 [Sign in with Twitter]リンクを押しましょう。<br />
+エラーがEmailの未入力だけになっていますね。Emailを入力して、ユーザ登録しましょう。<br />
+<span itemscope itemtype="http://schema.org/Photograph"><img src="http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140803/20140803025926.png" alt="f:id:nipe880324:20140803025926p:plain:w320" title="f:id:nipe880324:20140803025926p:plain:w320" class="hatena-fotolife" style="width:320px" itemprop="image"></span></p><p>ユーザ登録できました。<br />
+<span itemscope itemtype="http://schema.org/Photograph"><img src="http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140803/20140803030035.png" alt="f:id:nipe880324:20140803030035p:plain:w320" title="f:id:nipe880324:20140803030035p:plain:w320" class="hatena-fotolife" style="width:320px" itemprop="image"></span></p><p>ログアウトして、[Sign in with Twitter]リンクをするとログインができます。<br />
+<span itemscope itemtype="http://schema.org/Photograph"><img src="http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140803/20140803030045.png" alt="f:id:nipe880324:20140803030045p:plain:w320" title="f:id:nipe880324:20140803030045p:plain:w320" class="hatena-fotolife" style="width:320px" itemprop="image"></span></p><br />
+<p></p>
+
+</div>
+<div class="section">
+    <h3>DeviseにOmniAuthのインストールと設定（プロフィール変更の修正）</h3>
+    <p>ほぼほぼ完成ですが１つ問題があります。<br />
+パスワードが存在しないためプロフィール変更ができません。</p><p>まず、パスワードがなくても更新できるように、Userモデルにメソッドを追加します。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synComment"># app/models/user.rb</span>
+  ...
+  <span class="synComment"># プロフィールを変更するときによばれる</span>
+  <span class="synPreProc">def</span> <span class="synIdentifier">update_with_password</span>(params, *options)
+    <span class="synComment"># パスワードが空の場合</span>
+    <span class="synStatement">if</span> encrypted_password.blank?
+      <span class="synComment"># パスワードがなくても更新できる</span>
+      update_attributes(params, *options)
+    <span class="synStatement">else</span>
+      <span class="synStatement">super</span>
+    <span class="synStatement">end</span>
+  <span class="synPreProc">end</span>
+  ...
+</pre><p><br />
+Viewで現在のパスワードフィールドを表示しないようにします。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synComment"># app/views/devise/registrations/edit.html.erb</span>
+&lt;h2&gt;<span class="synType">Edit</span> &lt;%= resource_name.to_s.humanize %&gt;&lt;/h2&gt;
+
+&lt;%= form_for(resource, <span class="synConstant">as</span>: resource_name, <span class="synConstant">url</span>: registration_path(resource_name), <span class="synConstant">html</span>: { <span class="synConstant">method</span>: <span class="synConstant">:put</span> }) <span class="synStatement">do</span> |<span class="synIdentifier">f</span>| %&gt;
+  &lt;%= devise_error_messages! %&gt;
+
+  &lt;div&gt;&lt;%= f.label <span class="synConstant">:username</span> %&gt;&lt;br <span class="synSpecial">/</span><span class="synConstant">&gt;</span>
+<span class="synConstant">  &lt;%= f</span><span class="synSpecial">.</span><span class="synConstant">email_field :username, autofocus: true %&gt;&lt;</span><span class="synSpecial">/</span>div&gt;
+
+  &lt;div&gt;&lt;%= f.label <span class="synConstant">:email</span> %&gt;&lt;br <span class="synSpecial">/</span><span class="synConstant">&gt;</span>
+<span class="synConstant">  &lt;%= f</span><span class="synSpecial">.</span><span class="synConstant">email_field :email %&gt;&lt;</span><span class="synSpecial">/</span>div&gt;
+
+  &lt;% <span class="synStatement">if</span> devise_mapping.confirmable? &amp;&amp; resource.pending_reconfirmation? %&gt;
+    &lt;div&gt;<span class="synType">Currently</span> waiting confirmation <span class="synStatement">for</span>: &lt;%= resource.unconfirmed_email %&gt;&lt;/div&gt;
+  &lt;% <span class="synStatement">end</span> %&gt;
+
+  &lt;div&gt;&lt;%= f.label <span class="synConstant">:password</span> %&gt; &lt;i&gt;(leave blank <span class="synStatement">if</span> you don<span class="synSpecial">'</span><span class="synConstant">t want to change it)&lt;/i&gt;&lt;br /&gt;</span>
+<span class="synConstant">    &lt;%= f.password_field :password, autocomplete: &quot;off&quot; %&gt;&lt;/div&gt;</span>
+
+<span class="synConstant">  &lt;div&gt;&lt;%= f.label :password_confirmation %&gt;&lt;br /&gt;</span>
+<span class="synConstant">    &lt;%= f.password_field :password_confirmation, autocomplete: &quot;off&quot; %&gt;&lt;/div&gt;</span>
+
+<span class="synConstant">  &lt;% if f.object.encrypted_password.present? %&gt;</span>
+<span class="synConstant">    &lt;div&gt;&lt;%= f.label :current_password %&gt; &lt;i&gt;(we need your current password to confirm your changes)&lt;/i&gt;&lt;br /&gt;</span>
+<span class="synConstant">      &lt;%= f.password_field :current_password, autocomplete: &quot;off&quot; %&gt;&lt;/div&gt;</span>
+<span class="synConstant">  &lt;% end %&gt;</span>
+
+<span class="synConstant">  &lt;div&gt;&lt;%= f.submit &quot;Update&quot; %&gt;&lt;/div&gt;</span>
+<span class="synConstant">&lt;% end %&gt;</span>
+
+<span class="synConstant">&lt;h3&gt;Cancel my account&lt;/h3&gt;</span>
+
+<span class="synConstant">&lt;p&gt;Unhappy? &lt;%= button_to &quot;Cancel my account&quot;, registration_path(resource_name), data: { confirm: &quot;Are you sure?&quot; }, method: :delete %&gt;&lt;/p&gt;</span>
+
+<span class="synConstant">&lt;%= link_to &quot;Back&quot;, :back %&gt;</span>
+</pre><p>では、画面でプロフィール更新画面で現在のパスワードフィールドが表示されません。<br />
+<span itemscope itemtype="http://schema.org/Photograph"><img src="http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140803/20140803031905.png" alt="f:id:nipe880324:20140803031905p:plain:w320" title="f:id:nipe880324:20140803031905p:plain:w320" class="hatena-fotolife" style="width:320px" itemprop="image"></span></p><br />
+<p>そして、プロフィールが更新できました。<br />
+<span itemscope itemtype="http://schema.org/Photograph"><img src="http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140803/20140803031907.png" alt="f:id:nipe880324:20140803031907p:plain:w320" title="f:id:nipe880324:20140803031907p:plain:w320" class="hatena-fotolife" style="width:320px" itemprop="image"></span></p><br />
+<p>とっても長くなりましたが以上です。<br />
+<br />
+</p>
+
+</div>
+<div class="section">
+    <h3>参考文献</h3>
+    
+<ul>
+<li><a href="https://github.com/plataformatec/devise/wiki/OmniAuth:-Overview">OmniAuth Official Wiki</a></li>
+<li><a href="https://github.com/intridea/omniauth/wiki/List-of-Strategies">OmniAuthの対応しているOAuthプロバイダ</a></li>
+</ul>
+</div>
+        
+      
+    </div>
+    <footer class="entry-footer">
+      <p class="entry-footer-section">
+        <span class="author vcard"><span class="fn" data-load-nickname="1" data-user-name="nipe880324">nipe880324</span></span>
+        <span class="entry-footer-time"><a href="../../../entry/20140805/1407200400.html"><time data-relative datetime="2014-08-05T01:00:00Z" title="2014-08-05T01:00:00Z" pubdate class="updated">2014-08-05 10:00</time></a></span>
+      </p>
+
+      
+
+      
+<div class="social-buttons">
+  
+  
+    <div class="social-button-item">
+      <a href="http://b.hatena.ne.jp/entry/http://ruby-rails.hatenadiary.com/entry/20140805/1407200400" class="hatena-bookmark-button" data-hatena-bookmark-layout="vertical-balloon" data-hatena-bookmark-lang="ja" title="この記事をはてなブックマークに追加"><img src="https://b.st-hatena.com/images/entry-button/button-only.gif" alt="この記事をはてなブックマークに追加" width="20" height="20" style="border: none;" /></a>
+    </div>
+  
+  
+  
+    <div class="social-button-item">
+      <a href="https://twitter.com/search?q=http%3A%2F%2Fruby-rails.hatenadiary.com%2Fentry%2F20140805%2F1407200400" class="social-button-twitter-balloon" target="_blank">
+        <span class="social-button-twitter-balloon-list">list</span>
+        <i class="social-button-twitter-balloon-arrow-border"></i>
+        <u class="social-button-twitter-balloon-arrow"></u>
+      </a>
+      <a href="https://twitter.com/share" class="twitter-share-button" data-url="http://ruby-rails.hatenadiary.com/entry/20140805/1407200400" data-count="vertical" data-text="Railsのログイン認証gemのDeviseとOmniAuth-Twitterの連携（Twitterでログインする） - Rails Webook" data-lang="ja">Tweet</a>
+    </div>
+  
+  
+  
+  
+  
+    <div class="social-button-item">
+      <a data-pocket-label="pocket" data-save-url="http://ruby-rails.hatenadiary.com/entry/20140805/1407200400" data-pocket-count="vertical" class="pocket-btn" data-lang="en"></a>
+    </div>
+  
+</div>
+
+
+      
+        
+          
+          <script async src="http://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<ins class="adsbygoogle"
+     style="display:block"
+     data-ad-client="ca-pub-4438296558807254"
+     data-ad-slot="4370884664"
+     data-ad-format="horizontal"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+
+          
+        
+      
+
+      <div class="customized-footer">
+
+        
+
+      </div>
+
+      <div class="comment-box">
+        
+        <ul class="comment">
+          
+             <li class="read-more-comments" style="display: none;"><a>もっと読む (0)</a></li>
+          
+        </ul>
+        
+          <a class="leave-comment-title">コメントを書く</a>
+        
+      </div>
+      <!-- enjapan ad -->
+      
+    </footer>
+  </div>
+</article>
+
+                
+
+                
+
+              
+            
+            <!-- rakuten_ad_target_end -->
+            <!-- google_ad_section_end -->
+
+            
+              <div class="pager autopagerize_insert_before">
+                <span class="pager-next">
+                  <a href="03.html" rel="next">次のページ</a>
+                </span>
+              </div>
+            
+          
+        </div>
+      </div>
+
+      
+      <aside id="box1">
+        <div id="box1-inner">
+        </div>
+      </aside>
+
+    </div><!-- #wrapper -->
+
+    <aside id="box2">
+  
+  <div id="box2-inner">
+    
+      
+<div class="hatena-module hatena-module-html">
+  <div class="hatena-module-body">
+    <script async src="http://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- -->
+<ins class="adsbygoogle"
+     style="display:inline-block;width:160px;height:600px"
+     data-ad-client="ca-pub-2736751992834286"
+     data-ad-slot="8116686456"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+  </div>
+</div>
+
+      
+      
+    
+      
+
+<div class="hatena-module hatena-module-profile">
+  <div class="hatena-module-title">
+    プロフィール
+  </div>
+  <div class="hatena-module-body">
+    
+    <a href="../../../about.html" class="profile-icon-link">
+      <img src="http://cdn1.www.st-hatena.com/users/ni/nipe880324/profile.gif?1406435422"
+      alt="id:nipe880324" class="profile-icon" />
+    </a>
+    
+
+    
+    <span class="id">
+      <a href="../../../about.html" class="hatena-id-link"><span data-load-nickname="1" data-user-name="nipe880324">id:nipe880324</span></a>
+      
+  
+    
+    
+  
+
+
+    </span>
+    
+
+    
+
+    
+      <div class="hatena-follow-button-box btn-subscribe js-hatena-follow-button-box"
+  
+  >
+
+  <a href="05.html#" class="hatena-follow-button js-hatena-follow-button">
+    <span class="subscribing">
+      <span class="foreground">読者です</span>
+      <span class="background">読者をやめる</span>
+    </span>
+    <span class="unsubscribing" data-track-name="profile-widget-subscribe-button" data-track-once>
+      <span class="foreground">読者になる</span>
+      <span class="background">読者になる</span>
+    </span>
+  </a>
+  <div class="subscription-count-box js-subscription-count-box">
+    <i></i>
+    <u></u>
+    <span class="subscription-count js-subscription-count">
+    </span>
+  </div>
+</div>
+
+    
+
+    
+
+    
+
+    
+  </div>
+</div>
+
+      
+      
+    
+      
+<div class="hatena-module hatena-module-entries-access-ranking"
+     data-count="4"
+     data-display_entry_category="1"
+     data-display_entry_image="0"
+     data-display_entry_image_size_width="100"
+     data-display_entry_image_size_height="100"
+     data-display_entry_body_length="0"
+     data-display_entry_date="1"
+     data-display_bookmark_count="0"
+     data-source="access"
+>
+  <div class="hatena-module-title">
+    
+      最近のアクセス
+    
+  </div>
+  <div class="hatena-module-body">
+    
+  </div>
+</div>
+
+      
+      
+    
+      
+<div class="hatena-module hatena-module-html">
+    <div class="hatena-module-title">    </div>
+  <div class="hatena-module-body">
+    <nav>
+  <div class="side-category">
+    <span class="side-category-title">Rails 入門</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20140713/1405251091.html">RailsのためのRuby基礎</a></li>
+      <li><a href="../../../entry/20140813/1407915718.html">Rails入門者向け ブログ開発</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Railsコマンド</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20140713/1405251709.html">rails new / server / console</a></li>
+      <li><a href="../../../entry/20150204/1423055537.html">rails new時の有用な6つの設定</a></li>
+      <li><a href="../../../entry/20150208/1423391199.html">rails new時のテンプレート</a></li>
+      <li><a href="../../../entry/20140802/1406948695.html">rails generate</a></li>
+      <li><a href="../../../entry/20141116/1416115266.html">rakeコマンド一覧</a></li>
+      <li><a href="../../../entry/20141117/1416225563.html">自前rakeコマンド</a></li>
+      <li><a href="../../../entry/20141110/1415623670.html">productionモードで起動</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Route / Controller</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20140716/1405451238.html">Routing</a></li>
+      <li><a href="../../../entry/20140810/1407603600.html">レイアウトファイルを指定</a></li>
+      <li><a href="../../../entry/20141125/1416918957.html">ビューを返す(render)</a></li>
+      <li><a href="../../../entry/20140808/1407427457.html">リダイレクトする(redirect_to)</a></li>
+      <li><a href="../../../entry/20141126/1417012848.html">Strong Parameters</a></li>
+      <li><a href="../../../entry/20141129/1417223453.html">フィルタ(before_action, after_action)</a></li>
+      <li><a href="../../../entry/20141127/1417086075.html">簡易なメッセージ表示(Flash)</a></li>
+      <li><a href="../../../entry/20141130/1417334030.html">セッション(session)</a></li>
+      <li><a href="../../../entry/20141201/1417432408.html">リクエストヘッダ、レスポンスヘッダ(request, response)</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Model, Migration</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20140724/1406142120.html">CRUD</a></li>
+      <li><a href="../../../entry/20141203/1417601540.html">1対多関連</a></li>
+      <li><a href="../../../entry/20141204/1417688260.html">多対多関連</a></li>
+      <li><a href="../../../entry/20141205/1417779929.html">1対1関連</a></li>
+      <li><a href="../../../entry/20141206/1417839458.html">STI(単一継承テーブル)</a></li>
+      <li><a href="../../../entry/20141207/1417926599.html">ポリモフィック関連</a></li>
+      <li><a href="../../../entry/20141208/1418018874.html">複数の子レコードを作成/更新</a></li>
+      <li><a href="../../../entry/20140724/1406145303.html">バリデーション(validation)</a></li>
+      <li><a href="../../../entry/20140810/1407623400.html">バリデーションエラー(validation errors)</a></li>
+      <li><a href="../../../entry/20140814/1407994568.html">スコープ(scope)</a></li>
+      <li><a href="../../../entry/20141211/1418301640.html">コールバック(callback)</a></li>
+      <li><a href="../../../entry/20150428/1430154446.html">複雑なSELECT文のまとめ</a></li>
+      <li><a href="../../../entry/20150710/1436461745.html">enum (Rails 4.1以上)</a></li>
+      <li><a href="../../../entry/20141209/1418123425.html">楽観的ロック</a></li>
+      <li><a href="../../../entry/20141210/1418207618.html">悲観的ロック</a></li>
+      <li><a href="../../../entry/20140810/1407634200.html">Migration(マイグレーション)</a></li>
+      <li><a href="../../../entry/20150607/1433606267.html">Postgresとマイグレーション</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">API</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20150708/1436284476.html">Roar</a></li>
+      <li>ActiveSerializer</li>
+      <li>Versioning</li>
+      <li>CORS</li>
+    </ul>
+  </div>
+
+  <div class="side-category">
+    <span class="side-category-title">View, Helper, Presenter</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20140810/1407603600.html">レイアウトファイルを指定</a></li>
+      <li><a href="../../../entry/20140807/1407419013.html">部分テンプレート</a></li>
+      <li><a href="../../../entry/20140727/1406448610.html">フォーム周りのMVC連携フロー</a></li>
+      <li><a href="../../../entry/20150113/1421149061.html">ビューヘルパーまとめ(View Helper)</a></li>
+      <li><a href="../../../entry/20140802/1406969793.html">フォーマットヘルパー</a></li>
+      <li><a href="../../../entry/20140803/1407049200.html">独自ヘルパー作成</a></li>
+      <li><a href="../../../entry/20141208/1418018874.html">複数の子レコード(has_many)を作成/更新するフォーム</a></li>
+      <li><a href="../../../entry/20141225/1419515057.html">1フォームに複数のSubmitボタンを配置</a></li>
+      <li><a href="../../../entry/20140730/1406700205.html">simple_form</a></li>
+      <li><a href="../../../entry/20150415/1429031791.html">Draper</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">テンプレートエンジン</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20140929/1411997071.html">HTMLテンプレートエンジンまとめ</a></li>
+      <li><a href="../../../entry/20140929/1411997071.html">Slim</a></li>
+      <li><a href="../../../entry/20141001/1412097051.html">Haml</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">ActionSupport / ActionMailer / ActiveJob / i18n</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20141217/1418817120.html">タイムゾーン、時刻処理</a></li>
+      <li><a href="../../../entry/20141218/1418901424.html">Timecop 時刻処理のテスト</a></li>
+      <li><a href="../../../entry/20141216/1418729961.html">クラス名,DB名,ファイル名の変換</a></li>
+      <li><a href="../../../entry/20141230/1419936984.html">JSON, XML, YAMLの読み書き</a></li>
+      <li><a href="../../../entry/20141030/1414599853.html">文字コード/エンコード</a></li>
+      <li><a href="../../../entry/20140828/1409236436.html">メール送信</a></li>
+      <li><a href="../../../entry/20150304/1425396671.html">DelayedJob バックグラウンド処理</a></li>
+      <li><a href="../../../entry/20150110/1420863998.html">ログ・ログレベル・ログフォーマット(log, logger)</a></li>
+      <li><a href="../../../entry/20150226/1424937175.html">i18nまとめ</a></li>
+      <li><a href="../../../entry/20141111/1415707101.html">エラーハンドリング</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">テスト</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20150101/1420093487.html">RSpec/Capybaraの導入方法</a></li>
+      <li><a href="../../../entry/20150103/1420280252.html">RSpec/Capybaraのレシピ集</a></li>
+      <li><a href="../../../entry/20150101/1420093487.html">FactoryGirlのレシピ集</a></li>
+      <li><a href="../../../entry/20150105/1420465062.html">Jasmine(Javascriptの単体テスト)</a></li>
+      <li><a href="../../../entry/20150108/1420675366.html">APIの作成とテスト</a></li>
+      <li><a href="../../../entry/20150106/1420545920.html">RSpecテストを速くする</a></li>
+      <li><a href="../../../entry/20150108/1420721205.html">デバッグ(debug)</a></li>
+      <li><a href="../../../entry/20150420/1429462755.html">Seleniumでスタンドアローンなテスト</a></li>
+      <li><a href="../../../entry/20140719/1405708234.html">Cucumber+RSpec+Capybara インストール</a></li>
+      <li><a href="../../../entry/20140719/1405777918.html">Cucumber+RSpec+Capybara BDD/TDD開発例</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Security</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20141215/1418641291.html">ログ上での秘密情報のフィルタリング</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">パフォーマンス</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20141109/1415522242.html">Bullet</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">設定</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20141224/1419414316.html">新しいEnvironmentを追加</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">UI/UX</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20140801/1406818800.html">Twitter Bootstrap 3</a></li>
+      <li><a href="../../../entry/20141112/1415804076.html">select2</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Gemの基礎</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20140715/1405361727.html">RubyGemsの選び方</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">ログイン/認証機能</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20140801/1406907000.html">devise1 インストール</a></li>
+      <li><a href="../../../entry/20140804/1407168000.html">devise2 カスタマイズ</a></li>
+      <li><a href="../../../entry/20140805/1407200400.html">devise3 Twitterでログイン(OAuth連携)</a></li>
+      <li><a href="../../../entry/20141212/1418380288.html">devise4 ゲストユーザー(Guest)作成</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">ファイルアップロード機能</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20140716/1405443484.html">PaperClip</a></li>
+      <li><a href="../../../entry/20141015/1413300088.html">CarrierWave1 インストール</a></li>
+      <li><a href="../../../entry/20141022/1413907332.html">CarrierWave2 カスタマイズ</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">検索機能・Elasticsearch</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20141008/1412774436.html">Ransack 検索機能</a></li>
+      <li><a href="../../../entry/20150224/1424776132.html">Sunspot 全文検索</a></li>
+      <li><a href="../../../entry/20151018/1445142266.html">Elasticsearch 1: 全文検索・フィルタ</a></li>
+      <li><a href="../../../entry/20151019/1445265581.html">Elasticsearch 2: ページネーション</a></li>
+      <li><a href="../../../entry/20151021/1445353566.html">Elasticsearch 3: ソート</a></li>
+      <li><a href="../../../entry/20151022/1445439798.html">Elasticsearch 4: アグリゲーション（ファセット）・post_filter</a></li>
+      <li><a href="../../../20151025/1445703231.html">Elasticsearch 5: ハイライト</a></li>
+      <li><a href="../../../entry/20151027/1445957667.html">Elasticsearch 6: サジェスト</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">ページネーション</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20141118/1416314608.html">ページネーションまとめ</a></li>
+      <li><a href="../../../entry/20141113/1415874683.html">kaminari</a></li>
+      <li><a href="../../../entry/20141114/1415967206.html">will_paginate</a></li>
+      <li><a href="../../../entry/20141115/1416021886.html">動的ページロード</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">CSV</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20141119/1416398472.html">CSVダウンロード</a></li>
+      <li><a href="../../../entry/20141120/1416483136.html">CSVアップロード</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">PDFファイル作成機能</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20140906/1409995011.html">PDF作成Gem まとめ</a></li>
+      <li><a href="../../../entry/20140907/1410078997.html">コードのみでPDF作成 Prawn</a></li>
+      <li><a href="../../../entry/20140908/1410176894.html">HTMLを変換してPDF作成 PDFKit + wkhtmltopdf</a></li>
+      <li><a href="../../../entry/20140909/1410241835.html">GUIツールでPDF作成 ThinReports</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">開発効率をあげる</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20141026/1414289421.html">Spring</a></li>
+      <li><a href="../../../entry/20141016/1413389293.html">Guard-LiveReload</a></li>
+      <li><a href="../../../entry/20141021/1413819783.html">Guard-RSpec</a></li>
+      <li><a href="../../../entry/20141019/1413698128.html">Guard-RuboCop</a></li>
+      <li><a href="../../../entry/20141024/1414081224.html">Pry-Rails / Pry-BuyBug</a></li>
+      <li><a href="../../../entry/20141024/1414160189.html">Hirb</a></li>
+      <li><a href="../../../entry/20141028/1414505988.html">Awesome Print</a></li>
+      <li><a href="../../../entry/20141029/1414584929.html">Quiet Assets</a></li>
+      <li><a href="../../../entry/20141025/1414225490.html">Better_Errors</a></li>
+      <li><a href="../../../entry/20141027/1414409495.html">Rails-ERD</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">その他Gem</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20150225/1424858414.html">acts-as-taggable-on タグ管理</a></li>
+      <li><a href="../../../entry/20141016/1413389293.html">wenerber Cron設定</a></li>
+      <li><a href="../../../entry/20150221/1424489524.html">friendly_id URLスラッグ</a></li>
+      <li><a href="../../../entry/20150216/1424092796.html">awesome_nested_set ツリー構造</a></li>
+      <li><a href="../../../entry/20150217/1424179269.html">awesome_nested_set にjsTreeを追加</a></li>
+      <li><a href="../../../entry/20150214/1423923524.html">PaperTrail 取り消し機能</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Tips</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20141229/1419856433.html">Virtual Attributes(仮想属性)</a></li>
+      <li><a href="../../../entry/20141226/1419600679.html">日付/時刻のフォーマット</a></li>
+      <li><a href="../../../entry/20141225/1419515057.html">1フォームに複数のSubmitボタンを配置</a></li>
+      <li><a href="../../../entry/20141223/1419334845.html">URLのパーマリンクをID以外に変更</a></li>
+      <li><a href="../../../entry/20141220/1419058040.html">CSSスタイリングのコントローラー単位で分割</a></li>
+      <li><a href="../../../entry/20141219/1418990626.html">ページタイトルの変更</a></li>
+      <li><a href="../../../entry/20150101/1420049679.html">Ruby/Railsの便利なメソッド(useful methods)</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Rubyテクニック</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20150921/1442839934.html">キーワード引数</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">良い設計/リファクタリング</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20150922/1442923521.html">デメテルの法則(Law of Demeter)</a></li>
+      <li><a href="../../../entry/20150312/1426141352.html">HTML/CSS/JSを疎結合にする方法</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">JavaScript</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20150311/1426062668.html">オブジェクト指向</a></li>
+      <li><a href="../../../entry/20150313/1426238835.html">thisの参照先</a></li>
+      <li><a href="../../../entry/20150317/1426599220.html">設定データを分離</a></li>
+      <li><a href="../../../entry/20150607/1433652441.html">ページを離れる時にアラートを出す</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">jQuery</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20150325/1427291741.html">Ajax</a></li>
+      <li><a href="../../../entry/20150326/1427379215.html">イベント処理(Event)</a></li>
+      <li><a href="../../../entry/20150331/1427809820.html">DOM操作</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">React.js</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20151122/1448118932.html">React.jsチュートリアル: メッセージボックス</a></li>
+      <li><a href="../../../entry/20151124/1448300267.html">サーバーレンダリング</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">AngularJS</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20150114/1421235346.html">AngularJSのインストール</a></li>
+      <li><a href="../../../entry/20150115/1421316461.html">UI Bootstrapのインストール</a></li>
+      <li><a href="../../../entry/20150116/1421407124.html">AngularJS Controller</a>
+      <li><a href="../../../entry/20150119/1421666497.html">ngResource + RailsでAPI作成</a></li>
+      <li><a href="../../../entry/20150120/1421761471.html">ngRoute</a></li>
+      <li><a href="../../../entry/20150126/1422276839.html">編集可能(Editable)</a></li>
+      <li><a href="../../../entry/20150127/1422357163.html">ソート可能(Sortable)</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">開発手法</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20140917/1410963376.html">スクラム開発</a></li>
+      <li><a href="../../../entry/20141010/1412867452.html">カイゼンフレームワークKPT</a>
+      <li><a href="../../../entry/20140816/1408126999.html">GitHubを使ったチーム開発フロー</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">開発ツール</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20141103/1414940400.html">git - 初期設定と便利なエイリアス</a></li>
+      <li><a href="../../../entry/20140713/1405248403.html">git - よく使うコマンド</a></li>
+      <li><a href="../../../entry/20140724/1406137504.html">SublimeText3 - 便利コマンドとプラグイン</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">DB</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20140726/1406331785.html">MongoDBの基礎入門 CRUD操作</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">インフラ</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20150719/1437249020.html">Vagrant</a></li>
+      <li><a href="../../../entry/20150721/1437404524.html">Chef(Rails環境構築)</a></li>
+      <li><a href="../../../entry/20150314/1426332751.html">Herokuの準備とデプロイ</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">リファレンス</span>
+    <ul class="side-category-list">
+      <li><a href="https://github.com/" target="_blank">GitHub</a></li>
+      <li><a href="http://guides.rubyonrails.org/index.html" target="_blank">RailsGuides</a></li>
+      <li><a href="http://railscasts.com/" target="_blank">RailsCast</a></li>
+      <li><a href="https://rubygems.org/" target="_blank">RubyGems</a></li>
+      <li><a href="https://www.ruby-toolbox.com/" target="_blank">RubyToolbox</a></li>
+      <li><a href="http://rubular.com/" target="_blank">正規表現 Rubular</a></li>
+      <li><a href="http://ruby-doc.org/core-2.1/" target="_blank">Ruby API (2.1)</a></li>
+      <li><a href="http://api.rubyonrails.org/" target="_blank">Ruby on Rails API (4.1)</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Phoenix</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20151011/1444560106.html">Phoenix環境設定(Phoenix入門1)</a></li>
+      <li><a href="../../../entry/20151013/1444662887.html">基本的な認証機能(Phoenix入門2)</a></li>
+      <li><a href="../../../entry/20151016/1444930756.html">基本的なチャット機能(Phoenix入門3)</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">その他</span>
+    <ul class="side-category-list">
+      <li><a href="../../../entry/20150401/1427898898.html">広告収入向上</a></li>
+      <li><a href="../../../entry/20140830/1409361710.html">著者が読んだ本</a></li>
+    </ul>
+  </div>
+</nav>
+
+  </div>
+</div>
+
+      
+      
+    
+      
+
+<div class="hatena-module hatena-module-archive" data-archive-type="default" data-archive-url="http://ruby-rails.hatenadiary.com/archive">
+  <div class="hatena-module-title">
+    <a href="../../../archive.html">月別アーカイブ</a>
+  </div>
+  <div class="hatena-module-body">
+  </div>
+</div>
+
+      
+      
+    
+    
+  </div>
+</aside>
+
+  </div>
+</div>
+
+
+
+
+        
+        
+          <script type="text/javascript" src="http://b.hatena.ne.jp/js/hatena_dfp2.js"></script>
+        
+        
+          <div id="bottom-editarea">
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script>
+$('.unsubscribing').on('click', function() {
+    ga('send', 'event', 'button', 'click', 'hatenaReader');  
+});
+</script>
+          </div>
+        
+      </div>
+    </div>
+
+    
+      <footer id="footer" data-brand="hatenablog">
+  <div id="footer-inner">
+    <address>
+      
+      <a href="../../../about.html"><img src="http://cdn1.www.st-hatena.com/users/ni/nipe880324/profile.gif" width="16" height="16" alt=""/>
+        <span data-load-nickname="1" data-user-name="nipe880324">nipe880324</span>
+      </a>
+    </address>
+    <p class="services">Powered by <a href="http://hatenablog.com/">Hatena Blog</a></p>
+  </div>
+</footer>
+
+    
+
+    
+  <script type="text/javascript">!function(d,i){if(!d.getElementById(i)){var j=d.createElement("script");j.id=i;j.src="https://widgets.getpocket.com/v1/j/btn.js?v=1";var w=d.getElementById(i);d.body.appendChild(j);}}(document,"pocket-btn-js");</script>
+
+
+    
+
+    <script type="text/javascript" src="https://platform.twitter.com/widgets.js"></script>
+<script type="text/javascript" src="https://apis.google.com/js/plusone.js">
+  {"parsetags": "explicit"}
+</script>
+<script type="text/javascript" src="https://b.st-hatena.com/js/bookmark_button.js" charset="utf-8" async="async"></script>
+
+
+
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.7/react-with-addons.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.7/react-dom.min.js"></script>
+
+
+<script type="text/javascript" src="http://cdn7.www.st-hatena.com/js/jquery-1.9.1.min.js"></script>
+<script type="text/javascript" src="http://cdn7.www.st-hatena.com/js/jquery/jquery-ui.1.10.0.custom.min.js"></script>
+<script type="text/javascript" src="http://cdn7.www.st-hatena.com/js/jquery/jquery.flot.0.8.3.js"></script>
+<script type="text/javascript" src="http://cdn7.www.st-hatena.com/js/jquery/jquery.flot.time.0.8.3.js"></script>
+
+
+
+<script id="hatenablog-js" data-env="production"
+  type="text/javascript" src="https://blog.st-hatena.com/js/hatenablog.js?version=228df9a6e5a3ae04fdb53d33befa3556" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://blog.st-hatena.com/js/texts-ja.js?version=228df9a6e5a3ae04fdb53d33befa3556"></script>
+
+
+  <script type="text/javascript">Hatena.Diary.GlobalHeader.init()</script>
+
+
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
+
+
+
+    
+
+
+    
+       
+
+  <script id="hatena-counter-script" type="text/javascript"><!--
+      hatena_counter_name = "nipe880324";
+      hatena_counter_id = "102";
+      hatena_counter_ref = document.referrer+"";
+      hatena_counter_screen = screen.width + "x" + screen.height+","+screen.colorDepth;
+  //--></script>
+  <script type="text/javascript" src="http://counter.hatena.ne.jp/js/counter.js"></script>
+  <noscript><img src="http://counter.hatena.ne.jp/nipe880324/102" border="0" alt="counter"></noscript>
+
+
+    
+
+  </body>
+</html>

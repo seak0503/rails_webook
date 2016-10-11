@@ -1,0 +1,1237 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>PDF Generation - Rails Webook</title>
+    <link>http://ruby-rails.hatenadiary.com/category/PDF%20Generation</link>
+    <description>自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</description>
+    <lastBuildDate>Fri, 18 Dec 2015 02:44:31 +0900</lastBuildDate>
+    <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+    <generator>Hatena::Blog</generator>
+    
+      
+      
+        <item>
+          <title>Railsで帳票作成ツールのThinReportsを使ってPDFを作成</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20140909/1410241835</link>
+          <description>&lt;p&gt;ThinReportsとは、株式会社マツケイが開発する日本製のRubyで書かれたOSSの帳票作成ツールです。&lt;br /&gt;
+GPLやMITライセンスのため商用利用が可能です。&lt;/p&gt;&lt;p&gt;ThinReportsEditorという専用のレイアウトエディターでPDFのひな形を作成し、RubyやRailsでそのひな形を読み込み、動的な値を設定し、表示するという流れになっています。&lt;/p&gt;&lt;p&gt;今回は、&lt;b&gt;Railsで ThinReport を使って注文票のPDFを作成する&lt;/b&gt;手順を説明します。&lt;/p&gt;&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140907/20140907233932.png&quot; alt=&quot;f:id:nipe880324:20140907233932p:plain:w480&quot; title=&quot;f:id:nipe880324:20140907233932p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;i&gt;&lt;br /&gt;
+他にもPDFを作成するGemがあり、「&lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20140906/1409995011&quot; target=&quot;_blank&quot;&gt;Ruby/RailsのPDF作成Gemまとめ &lt;/a&gt;」でまとめています。&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Mac OS X    10.9.4&lt;/li&gt;
+&lt;li&gt;Ruby        2.1.2&lt;/li&gt;
+&lt;li&gt;Rails       4.1&lt;/li&gt;
+&lt;li&gt;ThinReports Editor    0.7.7.2&lt;/li&gt;
+&lt;li&gt;ThinReports Generator 0.7.7&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#thinreports-preparation&quot;&gt;準備（注文詳細画面の作成）&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#thinreports-getting-started&quot;&gt;ThinReportsの導入&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#thinreports-view-dynamic-data&quot;&gt;ThinReports で動的データを表示&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#thinreports-view-table&quot;&gt;ThinReports でテーブルを表示&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#thinreports-conclusion&quot;&gt;結論&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;thinreports-preparation&quot;&gt;1. 準備（注文詳細画面の作成）&lt;/h3&gt;まず、注文書のPDFを作成するために簡単な注文詳細画面を作成しましょう。&lt;br /&gt;
+作成する画面は次の画面です。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140906/20140906204302.png&quot; alt=&quot;f:id:nipe880324:20140906204302p:plain:w480&quot; title=&quot;f:id:nipe880324:20140906204302p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;手順は&lt;a href=&quot;http://ruby-rails.hatenadiary.com/#prawn-preparation&quot; target=&quot;_blank&quot;&gt;こちら&lt;/a&gt;を参照してください。&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;thinreports-getting-started&quot;&gt;2. ThinReportsの導入&lt;/h3&gt;&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;ThinReports Editor のインストール&lt;/h4&gt;
+    &lt;p&gt;&lt;a href=&quot;http://www.thinreports.org/download/&quot; target=&quot;_blank&quot;&gt;ダウンロードページ&lt;/a&gt;からお使いのOSに合わせた&lt;b&gt;ThinReports Editor&lt;/b&gt;をダウンロードして、インストールします。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;ThinReports Generator のRailsへの導入&lt;/h4&gt;
+    &lt;p&gt;まず、「1. 準備（注文詳細画面の作成」で作成したRailsプロジェクトの&lt;code&gt;Gemfile&lt;/code&gt;に下記を追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Gemfile&lt;/span&gt;
+...
+&lt;span class=&quot;synComment&quot;&gt;# For PDF Generation&lt;/span&gt;
+gem &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;thinreports&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;ThinReportsをインストールします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ bundle install&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;ThinReports Editor で帳票テンプレートの作成&lt;/h4&gt;
+    &lt;p&gt;作成する帳票のイメージを確認するために、Webの注文詳細画面を確認してみましょう。&lt;br /&gt;
+このような画面をステップバイステップで作っていきます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140906/20140906204302.png&quot; alt=&quot;f:id:nipe880324:20140906204302p:plain:w480&quot; title=&quot;f:id:nipe880324:20140906204302p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;注文番号と注文日の表示、テーブルの表示がありますが、まずは、&quot;Order&quot;という静的な文字のみを表示しましょう。&lt;/p&gt;&lt;p&gt;ThinReports Editor を起動し、ツールバーの[新規作成]から新しいレイアウトを作成します。&lt;br /&gt;
+ページタイトルには[order_pdf]、用紙設定に[A4]を設定します。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140907/20140907233142.png&quot; alt=&quot;f:id:nipe880324:20140907233142p:plain:w480&quot; title=&quot;f:id:nipe880324:20140907233142p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;では、ThinReports Editor で帳票のテンプレートを作成していきます。&lt;br /&gt;
+左側の[A](テキストツール)を選択し、PDFをクリックするとダイアログが表示されます。&lt;br /&gt;
+ダイアログ内に &quot;Order&quot; と入力し、[OK]ボタンを押します。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140907/20140907233204.png&quot; alt=&quot;f:id:nipe880324:20140907233204p:plain:w480&quot; title=&quot;f:id:nipe880324:20140907233204p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;フォントやサイズ、位置などの設定は、右側の[PROPERTY]でできます。&lt;br /&gt;
+フォントのサイズや位置などを次の画像の通りに変更してください。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140907/20140907233214.png&quot; alt=&quot;f:id:nipe880324:20140907233214p:plain:w480&quot; title=&quot;f:id:nipe880324:20140907233214p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;i&gt;左側の矢印マークを選択することで、PDF上に作成したオブジェクトの移動ができます。&lt;/i&gt;&lt;/p&gt;&lt;p&gt;次に、左側の[/]を選択し、線を追加します。[Shift]を押しながら作成するとまっすぐの線が引けます。&lt;br /&gt;
+この横線も[PROPERTY]を次のように変更してください。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140907/20140907233231.png&quot; alt=&quot;f:id:nipe880324:20140907233231p:plain:w480&quot; title=&quot;f:id:nipe880324:20140907233231p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;次に、上のバーから[保存]を押して、&lt;b&gt;&quot;order_pdf&quot;&lt;/b&gt; という名前で保存します。&lt;br /&gt;
+すると、&lt;b&gt;&quot;order_pdf.tif&quot;&lt;/b&gt; といるファイルができます。&lt;/p&gt;&lt;p&gt;これを、&lt;code&gt;app/pdfs/&lt;/code&gt;ディレクトリを作成し、そこに配置します。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;ViewとControllerの修正&lt;/h4&gt;
+    &lt;p&gt;ViewにPDFを表示するためのリンクを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/orders/show.html.erb
+...
+# ファイルの一番下に追加する
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;PDFで表示&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;,&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;              order_path(@order, format: &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;pdf&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;),&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;              :&lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; =&amp;gt;&lt;/span&gt; &#39;btn btn-primary&#39; %&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;Controllerのshowアクションに&lt;code&gt;respond_to&lt;/code&gt;を追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/orders_controller.rb&lt;/span&gt;
+  ...
+  &lt;span class=&quot;synComment&quot;&gt;# GET /orders/1&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# GET /orders/1.json&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;show&lt;/span&gt;
+    respond_to &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;format&lt;/span&gt;|
+      format.html &lt;span class=&quot;synComment&quot;&gt;# show.html.erb&lt;/span&gt;
+      format.pdf &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+
+        &lt;span class=&quot;synComment&quot;&gt;# Thin ReportsでPDFを作成&lt;/span&gt;
+        &lt;span class=&quot;synComment&quot;&gt;# 先ほどEditorで作ったtlfファイルを読み込む&lt;/span&gt;
+        report = &lt;span class=&quot;synType&quot;&gt;ThinReports&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Report&lt;/span&gt;.new(&lt;span class=&quot;synConstant&quot;&gt;layout&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;#{&lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt;.root&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;/app/pdfs/order_pdf.tlf&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;)
+
+        &lt;span class=&quot;synComment&quot;&gt;# 1ページ目を開始&lt;/span&gt;
+        report.start_new_page
+
+        &lt;span class=&quot;synComment&quot;&gt;# ブラウザでPDFを表示する&lt;/span&gt;
+        &lt;span class=&quot;synComment&quot;&gt;# disposition: &amp;quot;inline&amp;quot; によりダウンロードではなく表示させている&lt;/span&gt;
+        send_data
+          report.generate,
+          &lt;span class=&quot;synConstant&quot;&gt;filename&lt;/span&gt;:    &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;#{&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;@order&lt;/span&gt;.id&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;.pdf&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,
+          &lt;span class=&quot;synConstant&quot;&gt;type&lt;/span&gt;:        &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;application/pdf&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,
+          &lt;span class=&quot;synConstant&quot;&gt;disposition&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;inline&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+      &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+  ...
+&lt;/pre&gt;&lt;p&gt;PDFファイルを表示してみましょう。PDFが表示されました。&lt;br /&gt;
+この調子で、Editor で帳票を作成し、Railsのプログラム上でPDFを表示していきます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140907/20140907233252.png&quot; alt=&quot;f:id:nipe880324:20140907233252p:plain:w480&quot; title=&quot;f:id:nipe880324:20140907233252p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;thinreports-view-dynamic-data&quot;&gt;ThinReports で動的データを表示&lt;/h3&gt;まずは、PDFを表示することができましたので、次は動的なデータの「注文番号」と「注文日」を表示できるようにしましょう。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;Editor で動的データの表示領域を追加&lt;/h4&gt;
+    &lt;p&gt;まずは、ThinReports Editor を開き、テキストツール([A]マーク)を使い「注文番号」と「注文日」を追加します。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140907/20140907233315.png&quot; alt=&quot;f:id:nipe880324:20140907233315p:plain:w480&quot; title=&quot;f:id:nipe880324:20140907233315p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140907/20140907233318.png&quot; alt=&quot;f:id:nipe880324:20140907233318p:plain:w480&quot; title=&quot;f:id:nipe880324:20140907233318p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;次に、動的なデータを表示する領域を追加します。&lt;br /&gt;
+&lt;b&gt;左側の点線の[A]&lt;/b&gt;を選択し、て次のように設定します。&lt;br /&gt;
+重要な箇所として、[PROPERTY]の[ID]の値です。これを見て、コードから値を設定することができるようになります。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140907/20140907233337.png&quot; alt=&quot;f:id:nipe880324:20140907233337p:plain:w480&quot; title=&quot;f:id:nipe880324:20140907233337p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140907/20140907233339.png&quot; alt=&quot;f:id:nipe880324:20140907233339p:plain:w480&quot; title=&quot;f:id:nipe880324:20140907233339p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;Controller で値を設定&lt;/h4&gt;
+    &lt;p&gt;Controllerで値を設定しましょう。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/orders_controller.rb&lt;/span&gt;
+  ...
+  &lt;span class=&quot;synComment&quot;&gt;# GET /orders/1&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# GET /orders/1.json&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;show&lt;/span&gt;
+    respond_to &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;format&lt;/span&gt;|
+      format.html &lt;span class=&quot;synComment&quot;&gt;# show.html.erb&lt;/span&gt;
+      format.pdf &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+
+        &lt;span class=&quot;synComment&quot;&gt;# Thin ReportsでPDFを作成&lt;/span&gt;
+        &lt;span class=&quot;synComment&quot;&gt;# 先ほどEditorで作ったtlfファイルを読み込む&lt;/span&gt;
+        report = &lt;span class=&quot;synType&quot;&gt;ThinReports&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Report&lt;/span&gt;.new &lt;span class=&quot;synConstant&quot;&gt;:layout&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;app/pdfs/order_pdf.tlf&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+
+        &lt;span class=&quot;synComment&quot;&gt;# 1ページ目を開始&lt;/span&gt;
+        report.start_new_page
+
+        &lt;span class=&quot;synComment&quot;&gt;### 追加箇所 開始 ###&lt;/span&gt;
+        &lt;span class=&quot;synComment&quot;&gt;# 注文番号と注文日の値を設定&lt;/span&gt;
+        &lt;span class=&quot;synComment&quot;&gt;# itemメソッドでtlfファイルのIDを指定し、&lt;/span&gt;
+        &lt;span class=&quot;synComment&quot;&gt;# valueメソッドで値を設定します&lt;/span&gt;
+        report.page.item(&lt;span class=&quot;synConstant&quot;&gt;:order_id&lt;/span&gt;).value(&lt;span class=&quot;synIdentifier&quot;&gt;@order&lt;/span&gt;.id)
+        report.page.item(&lt;span class=&quot;synConstant&quot;&gt;:purchased_at&lt;/span&gt;).value(&lt;span class=&quot;synIdentifier&quot;&gt;@order&lt;/span&gt;.purchased_at)
+        &lt;span class=&quot;synComment&quot;&gt;### 追加箇所 終了 ###&lt;/span&gt;
+
+        &lt;span class=&quot;synComment&quot;&gt;# ブラウザでPDFを表示する&lt;/span&gt;
+        &lt;span class=&quot;synComment&quot;&gt;# disposition: &amp;quot;inline&amp;quot; によりダウンロードではなく表示させている&lt;/span&gt;
+        send_data report.generate,
+                  &lt;span class=&quot;synConstant&quot;&gt;filename&lt;/span&gt;:    &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;#{&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;@order&lt;/span&gt;.id&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;.pdf&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,
+                  &lt;span class=&quot;synConstant&quot;&gt;type&lt;/span&gt;:        &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;application/pdf&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,
+                  &lt;span class=&quot;synConstant&quot;&gt;disposition&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;inline&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+      &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+  ...
+&lt;/pre&gt;&lt;p&gt;では、画面を再表示させましょう。&lt;br /&gt;
+「注文番号」と「注文日」が表示されています :)&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140907/20140907233359.png&quot; alt=&quot;f:id:nipe880324:20140907233359p:plain:w480&quot; title=&quot;f:id:nipe880324:20140907233359p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;thinreports-view-table&quot;&gt;4. ThinReports でテーブルを表示&lt;/h3&gt;では、表を追加していきましょう。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;Editor で表を追加&lt;/h4&gt;
+    &lt;p&gt;表を追加するには、左側の枠組みのマーク(&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140907/20140907233410.png&quot; alt=&quot;f:id:nipe880324:20140907233410p:plain:h20:w20&quot; title=&quot;f:id:nipe880324:20140907233410p:plain:h20:w20&quot; class=&quot;hatena-fotolife&quot; style=&quot;height:20px;width:20px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;)を使います。&lt;br /&gt;
+設定内容は次の通りです。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140907/20140907233426.png&quot; alt=&quot;f:id:nipe880324:20140907233426p:plain:w480&quot; title=&quot;f:id:nipe880324:20140907233426p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;作成した表の[header]と[detail]をそれぞれ選択し、[高さ]を&quot;20&quot;に設定します。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140907/20140907233428.png&quot; alt=&quot;f:id:nipe880324:20140907233428p:plain:w480&quot; title=&quot;f:id:nipe880324:20140907233428p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;次に[header]部に[A]でテキストを追加します。&lt;br /&gt;
+各設定パラメータは次の通りです。&lt;table&gt;
+  &lt;tr&gt;
+    &lt;th&gt;ラベル&lt;/th&gt;&lt;th&gt;左位置&lt;/th&gt;&lt;th&gt;上位置&lt;/th&gt;&lt;th&gt;幅&lt;/th&gt;&lt;th&gt;高さ&lt;/th&gt;&lt;th&gt;サイズ&lt;/th&gt;&lt;th&gt;横位置&lt;/th&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;#&lt;/td&gt;&lt;td&gt;65&lt;/td&gt;&lt;td&gt;245&lt;/td&gt;&lt;td&gt;50&lt;/td&gt;&lt;td&gt;12&lt;/td&gt;&lt;td&gt;10.5&lt;/td&gt;&lt;td&gt;中央揃え&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;品名&lt;/td&gt;&lt;td&gt;125&lt;/td&gt;&lt;td&gt;245&lt;/td&gt;&lt;td&gt;50&lt;/td&gt;&lt;td&gt;12&lt;/td&gt;&lt;td&gt;10.5&lt;/td&gt;&lt;td&gt;中央揃え&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;単価&lt;/td&gt;&lt;td&gt;295&lt;/td&gt;&lt;td&gt;245&lt;/td&gt;&lt;td&gt;50&lt;/td&gt;&lt;td&gt;12&lt;/td&gt;&lt;td&gt;10.5&lt;/td&gt;&lt;td&gt;中央揃え&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;数量&lt;/td&gt;&lt;td&gt;370&lt;/td&gt;&lt;td&gt;245&lt;/td&gt;&lt;td&gt;50&lt;/td&gt;&lt;td&gt;12&lt;/td&gt;&lt;td&gt;10.5&lt;/td&gt;&lt;td&gt;中央揃え&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;値段&lt;/td&gt;&lt;td&gt;455&lt;/td&gt;&lt;td&gt;245&lt;/td&gt;&lt;td&gt;50&lt;/td&gt;&lt;td&gt;12&lt;/td&gt;&lt;td&gt;10.5&lt;/td&gt;&lt;td&gt;中央揃え&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;&lt;/p&gt;&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140907/20140907233456.png&quot; alt=&quot;f:id:nipe880324:20140907233456p:plain:w480&quot; title=&quot;f:id:nipe880324:20140907233456p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;今度は[detail]部にデータの下線を[/]で追加します。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140907/20140907233456.png&quot; alt=&quot;f:id:nipe880324:20140907233456p:plain:w480&quot; title=&quot;f:id:nipe880324:20140907233456p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;次に[detail]部に点線の[A]で動的なデータ表示領域を追加します。&lt;br /&gt;
+各設定パラメータは次の通りです。&lt;table&gt;
+  &lt;tr&gt;
+    &lt;th&gt;ID&lt;/th&gt;&lt;th&gt;左位置&lt;/th&gt;&lt;th&gt;上位置&lt;/th&gt;&lt;th&gt;幅&lt;/th&gt;&lt;th&gt;サイズ&lt;/th&gt;&lt;th&gt;フォント&lt;/th&gt;&lt;th&gt;横位置&lt;/th&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;id&lt;/td&gt;&lt;td&gt;85&lt;/td&gt;&lt;td&gt;265&lt;/td&gt;&lt;td&gt;50&lt;/td&gt;&lt;td&gt;10.5&lt;/td&gt;&lt;td&gt;IPA ゴシック&lt;/td&gt;&lt;td&gt;左揃え&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;product_name&lt;/td&gt;&lt;td&gt;140&lt;/td&gt;&lt;td&gt;265&lt;/td&gt;&lt;td&gt;130&lt;/td&gt;&lt;td&gt;10.5&lt;/td&gt;&lt;td&gt;IPA ゴシック&lt;/td&gt;&lt;td&gt;左揃え&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;price&lt;/td&gt;&lt;td&gt;275&lt;/td&gt;&lt;td&gt;265&lt;/td&gt;&lt;td&gt;50&lt;/td&gt;&lt;td&gt;60&lt;/td&gt;&lt;td&gt;IPA ゴシック&lt;/td&gt;&lt;td&gt;右揃え&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;quantity&lt;/td&gt;&lt;td&gt;360&lt;/td&gt;&lt;td&gt;265&lt;/td&gt;&lt;td&gt;40&lt;/td&gt;&lt;td&gt;10.5&lt;/td&gt;&lt;td&gt;IPA ゴシック&lt;/td&gt;&lt;td&gt;右揃え&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;total_price&lt;/td&gt;&lt;td&gt;415&lt;/td&gt;&lt;td&gt;265&lt;/td&gt;&lt;td&gt;80&lt;/td&gt;&lt;td&gt;10.5&lt;/td&gt;&lt;td&gt;IPA ゴシック&lt;/td&gt;&lt;td&gt;右揃え&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;&lt;/p&gt;&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140907/20140907233509.png&quot; alt=&quot;f:id:nipe880324:20140907233509p:plain:w480&quot; title=&quot;f:id:nipe880324:20140907233509p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;表にデータを設定する&lt;/h4&gt;
+    &lt;p&gt;Controller にテーブルにデータを設定するコードを書いていきたいですが、今後ソースが増えていくと想定されるので、まずは別クラスに切り分けることにします。&lt;br /&gt;
+&lt;code&gt;app/pdfs/order_pdf.rb&lt;/code&gt;を作成し、OrdersControllerのshowアクションからコードをコピーします。&lt;br /&gt;
+&lt;code&gt;@order&lt;/code&gt;を&lt;code&gt;order&lt;/code&gt;に変えることことを見逃さないように注意してください。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/pdfs/order_pdf.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;OrderPDF&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# Classメソッドを定義&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;self&lt;/span&gt;.&lt;span class=&quot;synIdentifier&quot;&gt;create&lt;/span&gt; order
+    &lt;span class=&quot;synComment&quot;&gt;# Thin ReportsでPDFを作成&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# 先ほどEditorで作ったtlfファイルを読み込む&lt;/span&gt;
+    report = &lt;span class=&quot;synType&quot;&gt;ThinReports&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Report&lt;/span&gt;.new &lt;span class=&quot;synConstant&quot;&gt;:layout&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;app/pdfs/order_pdf.tlf&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+
+    &lt;span class=&quot;synComment&quot;&gt;# 1ページ目を開始&lt;/span&gt;
+    report.start_new_page
+
+    &lt;span class=&quot;synComment&quot;&gt;# 注文番号と注文日の値を設定&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# itemメソッドでtlfファイルのIDを指定し、&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# valueメソッドで値を設定します&lt;/span&gt;
+    report.page.item(&lt;span class=&quot;synConstant&quot;&gt;:order_id&lt;/span&gt;).value(order.id)
+    report.page.item(&lt;span class=&quot;synConstant&quot;&gt;:purchased_at&lt;/span&gt;).value(order.purchased_at)
+
+    &lt;span class=&quot;synComment&quot;&gt;# ThinReports::Reportを返す&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; report
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;そして、Controller側を書き直します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/orders_controller.rb&lt;/span&gt;
+  ...
+  &lt;span class=&quot;synComment&quot;&gt;# GET /orders/1&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# GET /orders/1.json&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;show&lt;/span&gt;
+    respond_to &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;format&lt;/span&gt;|
+      format.html &lt;span class=&quot;synComment&quot;&gt;# show.html.erb&lt;/span&gt;
+      format.pdf &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+
+        &lt;span class=&quot;synComment&quot;&gt;# order情報を設定したThinReportを作成する&lt;/span&gt;
+        report = &lt;span class=&quot;synType&quot;&gt;OrderPDF&lt;/span&gt;.create &lt;span class=&quot;synIdentifier&quot;&gt;@order&lt;/span&gt;
+
+        &lt;span class=&quot;synComment&quot;&gt;# ブラウザでPDFを表示する&lt;/span&gt;
+        &lt;span class=&quot;synComment&quot;&gt;# disposition: &amp;quot;inline&amp;quot; によりダウンロードではなく表示させている&lt;/span&gt;
+        send_data report.generate,
+                  &lt;span class=&quot;synConstant&quot;&gt;filename&lt;/span&gt;:    &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;#{&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;@order&lt;/span&gt;.id&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;.pdf&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,
+                  &lt;span class=&quot;synConstant&quot;&gt;type&lt;/span&gt;:        &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;application/pdf&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,
+                  &lt;span class=&quot;synConstant&quot;&gt;disposition&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;inline&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+      &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+  ...
+&lt;/pre&gt;&lt;p&gt;では、画面を確認してみましょう。何も変わっていないことが確認できると思います。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140907/20140907233359.png&quot; alt=&quot;f:id:nipe880324:20140907233359p:plain:w480&quot; title=&quot;f:id:nipe880324:20140907233359p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;これでテーブルのソースを追加するベースができたので、テーブルに値を設定するソースを追加していきます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/pdfs/order_pdf.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;OrderPDF&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# Classメソッドを定義&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;self&lt;/span&gt;.&lt;span class=&quot;synIdentifier&quot;&gt;create&lt;/span&gt; order
+    &lt;span class=&quot;synComment&quot;&gt;# Thin ReportsでPDFを作成&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# 先ほどEditorで作ったtlfファイルを読み込む&lt;/span&gt;
+    report = &lt;span class=&quot;synType&quot;&gt;ThinReports&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Report&lt;/span&gt;.new &lt;span class=&quot;synConstant&quot;&gt;:layout&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;app/pdfs/order_pdf.tlf&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+
+    &lt;span class=&quot;synComment&quot;&gt;# 1ページ目を開始&lt;/span&gt;
+    report.start_new_page
+
+    &lt;span class=&quot;synComment&quot;&gt;# 注文番号と注文日の値を設定&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# itemメソッドでtlfファイルのIDを指定し、&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# valueメソッドで値を設定します&lt;/span&gt;
+    report.page.item(&lt;span class=&quot;synConstant&quot;&gt;:order_id&lt;/span&gt;).value(order.id)
+    report.page.item(&lt;span class=&quot;synConstant&quot;&gt;:purchased_at&lt;/span&gt;).value(order.purchased_at)
+
+    &lt;span class=&quot;synComment&quot;&gt;### 追加部分 開始 ###&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# テーブルの値を設定&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# list に表のIDを設定する(デフォルトのID値: default)&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# add_row で列を追加できる&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# ブロック内のrow.valuesで値を設定する&lt;/span&gt;
+    order.line_items.each &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;item&lt;/span&gt;|
+      report.list(&lt;span class=&quot;synConstant&quot;&gt;:default&lt;/span&gt;).add_row &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;row&lt;/span&gt;|
+        row.values &lt;span class=&quot;synConstant&quot;&gt;id&lt;/span&gt;:           item.id,
+                   &lt;span class=&quot;synConstant&quot;&gt;product_name&lt;/span&gt;: item.product_name,
+                   &lt;span class=&quot;synConstant&quot;&gt;price&lt;/span&gt;:        item.price,
+                   &lt;span class=&quot;synConstant&quot;&gt;quantity&lt;/span&gt;:     item.quantity,
+                   &lt;span class=&quot;synConstant&quot;&gt;total_price&lt;/span&gt;:  item.total_price
+      &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;### 追加部分 終了 ###&lt;/span&gt;
+
+    &lt;span class=&quot;synComment&quot;&gt;# ThinReports::Reportを返す&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; report
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;では、画面を開き直してみましょう。表が表示されています :)&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140907/20140907233703.png&quot; alt=&quot;f:id:nipe880324:20140907233703p:plain:w480&quot; title=&quot;f:id:nipe880324:20140907233703p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;Editor で合計を追加&lt;/h4&gt;
+    &lt;p&gt;今度は、合計部分を表示させましょう。&lt;br /&gt;
+ThinReports Editor を開き、テーブルを選択し、[フッター]にチェックを入れます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140907/20140907233735.png&quot; alt=&quot;f:id:nipe880324:20140907233735p:plain:w480&quot; title=&quot;f:id:nipe880324:20140907233735p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;その後、テーブル上の[footer]を選択し、[高さ]を&quot;20&quot;にします。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140907/20140907233747.png&quot; alt=&quot;f:id:nipe880324:20140907233747p:plain:w480&quot; title=&quot;f:id:nipe880324:20140907233747p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;そして、[/]で[footer]の上部に横線を追加します。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140907/20140907233810.png&quot; alt=&quot;f:id:nipe880324:20140907233810p:plain:w480&quot; title=&quot;f:id:nipe880324:20140907233810p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;次に、[□]で[footer]の合計部分に色を設定します。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140907/20140907233825.png&quot; alt=&quot;f:id:nipe880324:20140907233825p:plain:w480&quot; title=&quot;f:id:nipe880324:20140907233825p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&quot;合計&quot; というラベルを表示用に追加します。&lt;br /&gt;
+&lt;i&gt;通常の[A]で追加すると、上記で作成した色により見えなくなってしまうため、点線の[A]で追加した。&lt;/i&gt;&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140907/20140907233902.png&quot; alt=&quot;f:id:nipe880324:20140907233902p:plain:w480&quot; title=&quot;f:id:nipe880324:20140907233902p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;注文の合計を表示する領域を追加します。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140907/20140907233904.png&quot; alt=&quot;f:id:nipe880324:20140907233904p:plain:w480&quot; title=&quot;f:id:nipe880324:20140907233904p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;合計にデータを設定する&lt;/h4&gt;
+    &lt;p&gt;では、[footer]に追加した動的なデータの表示領域に値を設定します。&lt;br /&gt;
+&lt;i&gt;あまり直感的でないですが、他の設定方法が分からなかったので、参考文献の見積書サンプルで設定した方法で設定しました。そのため、ソースコードの構成が大きく変わっています。&lt;/i&gt;&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/pdfs/order_pdf.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;OrderPDF&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# Classメソッドを定義&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;self&lt;/span&gt;.&lt;span class=&quot;synIdentifier&quot;&gt;create&lt;/span&gt; order
+
+    &lt;span class=&quot;synComment&quot;&gt;# Thin ReportsでPDFを作成&lt;/span&gt;
+    report = &lt;span class=&quot;synType&quot;&gt;ThinReports&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Report&lt;/span&gt;.create &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;r&lt;/span&gt;|
+
+      &lt;span class=&quot;synComment&quot;&gt;# ThinReports Editorで作成したファイルを読み込む&lt;/span&gt;
+      r.use_layout &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;#{&lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt;.root&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;/app/pdfs/order_pdf.tlf&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;config&lt;/span&gt;|
+        &lt;span class=&quot;synComment&quot;&gt;# テーブルの[footer]部分の値を設定&lt;/span&gt;
+        &lt;span class=&quot;synComment&quot;&gt;# イベントで設定する方法以外の方法が分からなかった&lt;/span&gt;
+        config.list(&lt;span class=&quot;synConstant&quot;&gt;:default&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+          events.on &lt;span class=&quot;synConstant&quot;&gt;:footer_insert&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;e&lt;/span&gt;|
+            e.section.item(&lt;span class=&quot;synConstant&quot;&gt;:label&lt;/span&gt;).value(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;合計&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;)
+            e.section.item(&lt;span class=&quot;synConstant&quot;&gt;:total_price&lt;/span&gt;).value(order.total_price)
+          &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+        &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+      &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+      &lt;span class=&quot;synComment&quot;&gt;# 1ページ目を開始&lt;/span&gt;
+      r.start_new_page
+
+      &lt;span class=&quot;synComment&quot;&gt;# 注文番号と注文日の値を設定&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;# itemメソッドでtlfファイルのIDを指定し、&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;# valueメソッドで値を設定します&lt;/span&gt;
+      r.page.item(&lt;span class=&quot;synConstant&quot;&gt;:order_id&lt;/span&gt;).value(order.id)
+      r.page.item(&lt;span class=&quot;synConstant&quot;&gt;:purchased_at&lt;/span&gt;).value(order.purchased_at)
+
+      &lt;span class=&quot;synComment&quot;&gt;# テーブルの値を設定&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;# list に表のIDを設定する(デフォルトのID値: default)&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;# add_row で列を追加できる&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;# ブロック内のrow.valuesで値を設定する&lt;/span&gt;
+      order.line_items.each &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;item&lt;/span&gt;|
+        r.list(&lt;span class=&quot;synConstant&quot;&gt;:default&lt;/span&gt;).add_row &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;row&lt;/span&gt;|
+          row.values &lt;span class=&quot;synConstant&quot;&gt;id&lt;/span&gt;:           item.id,
+                     &lt;span class=&quot;synConstant&quot;&gt;product_name&lt;/span&gt;: item.product_name,
+                     &lt;span class=&quot;synConstant&quot;&gt;price&lt;/span&gt;:        item.price,
+                     &lt;span class=&quot;synConstant&quot;&gt;quantity&lt;/span&gt;:     item.quantity,
+                     &lt;span class=&quot;synConstant&quot;&gt;total_price&lt;/span&gt;:  item.total_price
+        &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+      &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+    &lt;span class=&quot;synComment&quot;&gt;# ThinReports::Reportを返す&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; report
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;では、画面を確認しましょう。値が表示されてます。 :D&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140907/20140907233932.png&quot; alt=&quot;f:id:nipe880324:20140907233932p:plain:w480&quot; title=&quot;f:id:nipe880324:20140907233932p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;thinreports-conclusion&quot;&gt;5. 結論&lt;/h3&gt;なかなかソースコードは癖がありますが、ThinReports Editor で帳票を作成できるというところは大きなメリットだと思います。&lt;br /&gt;
+帳票の品質にこだわりたいときは、使ってみる価値があると思います。&lt;/p&gt;&lt;p&gt;もっと細かいことを知りたい場合は、「&lt;a href=&quot;http://osc.matsukei.net/projects/thinreports/wiki/Examples&quot; target=&quot;_blank&quot;&gt;ThinReports 公式サイト - サンプル集&lt;/a&gt;」で勉強してください。&lt;/p&gt;&lt;p&gt;よくわからない箇所や間違いがありましたらコメントをください。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://osc.matsukei.net/projects/thinreports/wiki/Getting_Started&quot; target=&quot;_blank&quot;&gt;ThinReports 作成方法&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://www.thinreports.org/&quot; target=&quot;_blank&quot;&gt;ThinReports 公式サイト&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://osc.matsukei.net/projects/thinreports/wiki/Example_Estimate&quot; target=&quot;_blank&quot;&gt;ThinReports - 見積書サンプル&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Tue, 09 Sep 2014 14:50:35 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/12921228815732273832</guid>
+          
+            <category>Rails gem</category>
+          
+            <category>PDF Generation</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>RailsでPDFKit + wkhtmltopdfを使ってPDFを作成する</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20140908/1410176894</link>
+          <description>&lt;p&gt;PDFKit + wkhtmltopdf は、RubyもしくはRailsでHTMLをPDFに変換するGemとツールです。&lt;br /&gt;
+これらを使うことで、HTMLをPDFに変換する形でPDFファイルを作成できます。&lt;br /&gt;
+wkhtmltopdfが、HTMLをPDFに変換し、PDFKitはそのラッパーという構成になっています。&lt;/p&gt;&lt;p&gt;メリットとして、HTMLを作成するようにPDFファイルを作成することができるので比較的簡単にPDFファイルを作成できます。&lt;br /&gt;
+デメリットとして、wkhtmltopdf の問題で現在は忠実にHTMLをPDFに変換できないことが問題であります。&lt;/p&gt;&lt;p&gt;今回は、&lt;b&gt;RailsでPDFKit + wkhtmltopdfを使って注文票のPDFを作成する&lt;/b&gt;手順を説明します。&lt;/p&gt;&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140907/20140907190213.png&quot; alt=&quot;f:id:nipe880324:20140907190213p:plain:w480&quot; title=&quot;f:id:nipe880324:20140907190213p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;i&gt;&lt;br /&gt;
+他にもPDFを作成するGemがあり、「&lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20140906/1409995011&quot; target=&quot;_blank&quot;&gt;Ruby/RailsのPDF作成Gemまとめ &lt;/a&gt;」でまとめています。&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;対象読者&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails + PDFKit + wkhtmltopdfを使ったPDFの作成方法を知りたい&lt;/li&gt;
+&lt;li&gt;一通りRailsの基礎について分かっている&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Mac OS X    10.9.4&lt;/li&gt;
+&lt;li&gt;Ruby        2.1.2&lt;/li&gt;
+&lt;li&gt;Rails       4.1&lt;/li&gt;
+&lt;li&gt;PDFKit      0.6.2&lt;/li&gt;
+&lt;li&gt;wkhtmltopdf 0.1.2 (Gemfile.lock)&lt;/li&gt;
+&lt;li&gt;wkhtmltopdf 0.8.3 ($ wkhtmltopdf -V)&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#pdfkit-preparation&quot;&gt;準備（注文詳細画面の作成）&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#pdfkit-getting-started&quot;&gt;PDFKitの導入&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#pdfkit-conclusion&quot;&gt;結論&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;h3 id=&quot;pdfkit-preparation&quot;&gt;1. 準備（注文詳細画面の作成）&lt;/h3&gt;まず、注文書のPDFを作成するために簡単な注文詳細画面を作成しましょう。&lt;br /&gt;
+作成する画面は次の画面です。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140906/20140906204302.png&quot; alt=&quot;f:id:nipe880324:20140906204302p:plain:w480&quot; title=&quot;f:id:nipe880324:20140906204302p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;手順は&lt;a href=&quot;http://ruby-rails.hatenadiary.com/#prawn-preparation&quot; target=&quot;_blank&quot;&gt;こちら&lt;/a&gt;を参照してください。&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;pdfkit-getting-started&quot;&gt;2. PDFKitの導入&lt;/h3&gt;&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;インストール&lt;/h4&gt;
+    &lt;p&gt;毎度ながら&lt;code&gt;Gemfile&lt;/code&gt;に以下を追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Gemfile&lt;/span&gt;
+...
+&lt;span class=&quot;synComment&quot;&gt;# For PDF generation&lt;/span&gt;
+gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;pdfkit&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;       &lt;span class=&quot;synComment&quot;&gt;# wkhtmtopdfのラッパー&lt;/span&gt;
+gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;wkhtmltopdf&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;  &lt;span class=&quot;synComment&quot;&gt;# HTMLをPDFに変換するツール&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;Gemをインストールします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ bundle install&lt;/pre&gt;&lt;p&gt;ターミナルからwkhtmltopdfが使えるようになっていると思います。&lt;br /&gt;
+PDFKitでは、このツールでHTMLからPDFへ変換することでPDFを作成します。&lt;br /&gt;
+このツールは、HTMLだけでなく、URLを指定してもPDFファイルを作成できます。次のコマンドを実行してください。&lt;br /&gt;
+PDFファイルが作成されます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ wkhtmltopdf http://yahoo.co.jp yahoo.pdf&lt;/pre&gt;&lt;p&gt;wkhtmltopdfにより作成されたPDFです。とっても簡単にPDFファイルを作成できますね。&lt;/p&gt;&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140907/20140907190251.png&quot; alt=&quot;f:id:nipe880324:20140907190251p:plain:w480&quot; title=&quot;f:id:nipe880324:20140907190251p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;このように、PDFKitを使ってwkhtmltopdfを使うことによりPDFを作成していきます。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;PDF文書の作成&lt;/h4&gt;
+    &lt;p&gt;URLのフォーマットが&lt;code&gt;.pdf&lt;/code&gt;のときにPDF出力処理を呼びます。&lt;br /&gt;
+まずは、PDF表示用のリンクをViewに追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/orders/show.html.erb
+...
+# 一番下の行に追加
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;PDFで表示&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;,&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;              order_path(@order, format: &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;pdf&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;),&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;              :&lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; =&amp;gt;&lt;/span&gt; &#39;btn btn-primary&#39; %&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;そして、Controllerのshowアクションに&lt;code&gt;respond_to&lt;/code&gt;でPDF文書を作成するロジックを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/orders_controller.rb&lt;/span&gt;
+  ...
+  &lt;span class=&quot;synComment&quot;&gt;# GET /orders/1&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# GET /orders/1.json&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;show&lt;/span&gt;
+    respond_to &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;format&lt;/span&gt;|
+      format.html &lt;span class=&quot;synComment&quot;&gt;# show.html.erb&lt;/span&gt;
+      format.pdf &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+        &lt;span class=&quot;synComment&quot;&gt;# 詳細画面のHTMLを取得&lt;/span&gt;
+        html = render_to_string &lt;span class=&quot;synConstant&quot;&gt;template&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;orders/show&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+
+        &lt;span class=&quot;synComment&quot;&gt;# PDFKitを作成&lt;/span&gt;
+        pdf = &lt;span class=&quot;synType&quot;&gt;PDFKit&lt;/span&gt;.new(html, &lt;span class=&quot;synConstant&quot;&gt;encoding&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;UTF-8&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;)
+
+        &lt;span class=&quot;synComment&quot;&gt;# 画面にPDFを表示する&lt;/span&gt;
+        &lt;span class=&quot;synComment&quot;&gt;# to_pdfメソッドでPDFファイルに変換する&lt;/span&gt;
+        &lt;span class=&quot;synComment&quot;&gt;# 他には、to_fileメソッドでPDFファイルを作成できる&lt;/span&gt;
+        &lt;span class=&quot;synComment&quot;&gt;# disposition: &amp;quot;inline&amp;quot; によりPDFはダウンロードではなく画面に表示される&lt;/span&gt;
+        send_data pdf.to_pdf,
+          &lt;span class=&quot;synConstant&quot;&gt;filename&lt;/span&gt;:    &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;#{&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;@order&lt;/span&gt;.id&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;.pdf&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,
+          &lt;span class=&quot;synConstant&quot;&gt;type&lt;/span&gt;:        &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;application/pdf&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,
+          &lt;span class=&quot;synConstant&quot;&gt;disposition&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;inline&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+      &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+  ...
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;PDFKitの設定&lt;/h4&gt;
+    &lt;p&gt;PDFKitの設定をします。&lt;br /&gt;
+&lt;code&gt;config/initializers/pdfkit.rb&lt;/code&gt;を新たに作成し、設定を記載します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# config/initializers/pdfkit.rb&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;PDFKit&lt;/span&gt;.configure &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;config&lt;/span&gt;|
+  config.wkhtmltopdf = &lt;span class=&quot;synSpecial&quot;&gt;`&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;which wkhtmltopdf&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;`&lt;/span&gt;.to_s.strip
+  config.default_options = {
+    &lt;span class=&quot;synConstant&quot;&gt;encoding&lt;/span&gt;:                &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;UTF-8&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,  &lt;span class=&quot;synComment&quot;&gt;# エンコーディング&lt;/span&gt;
+    &lt;span class=&quot;synConstant&quot;&gt;page_size&lt;/span&gt;:               &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;A4&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,     &lt;span class=&quot;synComment&quot;&gt;# ページのサイズ&lt;/span&gt;
+    &lt;span class=&quot;synConstant&quot;&gt;margin_top&lt;/span&gt;:              &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;0.25in&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synComment&quot;&gt;# 余白の設定&lt;/span&gt;
+    &lt;span class=&quot;synConstant&quot;&gt;margin_right&lt;/span&gt;:            &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;1in&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;synConstant&quot;&gt;margin_bottom&lt;/span&gt;:           &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;0.25in&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;synConstant&quot;&gt;margin_left&lt;/span&gt;:             &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;1in&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;synConstant&quot;&gt;disable_smart_shrinking&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;
+  }
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;では、サーバーを再行動して、注文詳細画面の &lt;b&gt;&quot;PDFで表示&quot;ボタン&lt;/b&gt; を押してみましょう。&lt;br /&gt;
+&lt;code&gt;Template is missing&lt;/code&gt;というエラーが発生します。&lt;br /&gt;
+エラー内容をよく見ると、&lt;code&gt;:formats=&gt;[:pdf]&lt;/code&gt;と記載されており、&lt;code&gt;app/views/orders/show.pdf.xxx&lt;/code&gt;というファイルが存在しないからエラーが発生しているという意味です。&lt;/p&gt;&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140907/20140907190331.png&quot; alt=&quot;f:id:nipe880324:20140907190331p:plain:w480&quot; title=&quot;f:id:nipe880324:20140907190331p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;そのため、&lt;code&gt;app/views/orders/show.pdf.erb&lt;/code&gt;を作成しましょう。&lt;br /&gt;
+内容は、&lt;code&gt;show.html.erb&lt;/code&gt;と一番したの４つのリンクを削除しただけで、後は全て同じです。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/orders/show.pdf.erb
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%- model_class =&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; Order&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; -%&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;page-header&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;t&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;.title&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, :default =&amp;gt;&lt;/span&gt; model_class.model_name.human.titleize %&amp;gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dl&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;dl-horizontal&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dt&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;注文番号:&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dt&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dd&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; @order.id&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dd&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dt&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;注文日:&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dt&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dd&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; @order.purchased_at&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dd&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dl&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;table&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;table table-striped&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;thead&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tr&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;#&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;品名&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;単価&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;数量&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;値段&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tr&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;thead&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tbody&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% @order.line_items.each_with_index do |line_item, idx| %&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tr&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; idx&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; + 1 %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; line_item.product_name&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; number_to_currency&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; line_item.price %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; line_item.quantity&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; number_to_currency&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; line_item.total_price %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tr&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% end %&amp;gt;&lt;/span&gt;
+
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tr&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;warning&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;colspan&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;3&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; /&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;合計&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; number_to_currency&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; @order.total_price %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tr&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tbody&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;table&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;再度、PDFを表示してみましょう。今度は上手く表示されました。&lt;/p&gt;&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140907/20140907190349.png&quot; alt=&quot;f:id:nipe880324:20140907190349p:plain:w480&quot; title=&quot;f:id:nipe880324:20140907190349p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;しかし、上手くスタイルが適用されていません。&lt;br /&gt;
+これは、Controllerの&lt;code&gt;render_to_string&lt;/code&gt;でHTMLコードしか取得しなかったため、CSSが適用されていないためです。&lt;br /&gt;
+そのため、ControllerでCSSを適用しましょう。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;CSSの適用&lt;/h4&gt;
+    &lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/orders_controller.rb&lt;/span&gt;
+  ...
+  &lt;span class=&quot;synComment&quot;&gt;# GET /orders/1&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# GET /orders/1.json&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;show&lt;/span&gt;
+    respond_to &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;format&lt;/span&gt;|
+      format.html &lt;span class=&quot;synComment&quot;&gt;# show.html.erb&lt;/span&gt;
+      format.pdf &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+        &lt;span class=&quot;synComment&quot;&gt;# 詳細画面のHTMLを取得&lt;/span&gt;
+        html = render_to_string &lt;span class=&quot;synConstant&quot;&gt;template&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;orders/show&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+
+        &lt;span class=&quot;synComment&quot;&gt;# PDFKitを作成&lt;/span&gt;
+        pdf = &lt;span class=&quot;synType&quot;&gt;PDFKit&lt;/span&gt;.new(html, &lt;span class=&quot;synConstant&quot;&gt;encoding&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;UTF-8&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;)
+
+        &lt;span class=&quot;synComment&quot;&gt;### 追加箇所 開始 ###&lt;/span&gt;
+        &lt;span class=&quot;synComment&quot;&gt;# スタイルシートの設定&lt;/span&gt;
+        pdf.stylesheets &amp;lt;&amp;lt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;#{&lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt;.root&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;/app/assets/stylesheets/scaffolds.css.scss&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+        pdf.stylesheets &amp;lt;&amp;lt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;#{&lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt;.root&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;/app/assets/stylesheets/bootstrap.min.css&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+        &lt;span class=&quot;synComment&quot;&gt;### 追加箇所 終了 ###&lt;/span&gt;
+
+        &lt;span class=&quot;synComment&quot;&gt;# 画面にPDFを表示する&lt;/span&gt;
+        &lt;span class=&quot;synComment&quot;&gt;# to_pdfメソッドでPDFファイルに変換する&lt;/span&gt;
+        &lt;span class=&quot;synComment&quot;&gt;# 他には、to_fileメソッドでPDFファイルを作成できる&lt;/span&gt;
+        &lt;span class=&quot;synComment&quot;&gt;# disposition: &amp;quot;inline&amp;quot; によりPDFはダウンロードではなく画面に表示される&lt;/span&gt;
+        send_data pdf.to_pdf,
+          &lt;span class=&quot;synConstant&quot;&gt;filename&lt;/span&gt;:    &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;#{&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;@order&lt;/span&gt;.id&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;.pdf&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,
+          &lt;span class=&quot;synConstant&quot;&gt;type&lt;/span&gt;:        &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;application/pdf&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,
+          &lt;span class=&quot;synConstant&quot;&gt;disposition&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;inline&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+      &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+  ...
+&lt;/pre&gt;&lt;p&gt;&lt;code&gt;.less&lt;/code&gt;ファイルは上手く読み込んでくれないようなので、既にGemでBootstrapをインストールしていますが、新たに&lt;code&gt;app/assets/stylesheets/bootstrap.min.css&lt;/code&gt;を作成します。&lt;/p&gt;&lt;p&gt;内容は「&lt;a href=&quot;http://getbootstrap.com/getting-started/#download&quot;&gt;Twitter Bootstrap 公式サイト&lt;/a&gt;」からダウンロードして、&lt;code&gt;bootstrap.min.css&lt;/code&gt;をコピーします。&lt;/p&gt;&lt;p&gt;では、PDFを再度表示しましょう。スタイルが適用されたPDFが表示されました :)&lt;/p&gt;&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140907/20140907190213.png&quot; alt=&quot;f:id:nipe880324:20140907190213p:plain:w480&quot; title=&quot;f:id:nipe880324:20140907190213p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;Bootstrap Gemの削除&lt;/h4&gt;
+    &lt;p&gt;最後にGemと追加したbootstrap.min.cssで重複して不具合が発生するかもしれないので、Gemを削除しましょう。&lt;br /&gt;
+まず、Bootstrapで追加したファイルを削除します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ rails d bootstrap:install&lt;/pre&gt;&lt;p&gt;そして、&lt;code&gt;Gemfile&lt;/code&gt;からもBootstrap部分を削除します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Gemfile&lt;/span&gt;
+...
+&lt;span class=&quot;synComment&quot;&gt;# For Twitter-Bootstrap&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# gem &#39;therubyracer&#39; # javascript runtime。lessをコンパイルするために必要&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# gem &#39;less-rails&#39; # Railsでlessを使えるようにする。Bootstrapがlessで書かれているため&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# gem &#39;twitter-bootstrap-rails&#39; # Bootstrapの本体&lt;/span&gt;
+...
+&lt;/pre&gt;&lt;p&gt;bundleから削除します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ bundle install&lt;/pre&gt;&lt;p&gt;では、PDFを確認し、スタイルが適用されていることを確認しましょう。&lt;/p&gt;&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140907/20140907190213.png&quot; alt=&quot;f:id:nipe880324:20140907190213p:plain:w480&quot; title=&quot;f:id:nipe880324:20140907190213p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;i&gt;RailsプロジェクトでBootstrapのJavascriptやアイコンなどを使いたい場合は、Bootstrapからダウンロードしたファイルの&lt;code&gt;fonts&lt;/code&gt;や&lt;code&gt;js&lt;/code&gt;フォルダの中身をRailsプロジェクトにコピーしてください&lt;/i&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;pdfkit-conclusion&quot;&gt;3. 結論&lt;/h3&gt;PDFKit + wkhtmltopdf を使うことで、HTMLをPDFに変換する形でPDFファイルを作成できます。&lt;br /&gt;
+メリットとして、show.pdf.erb のように、HTMLを作成するようにPDFファイルを作成することができるので比較的簡単にPDFファイルを作成できます。&lt;br /&gt;
+デメリットとして、wkhtmltopdf の問題で現在は忠実にHTMLをPDFに変換できないことが問題であります。&lt;/p&gt;&lt;p&gt;よくわからない箇所や間違いがありましたらコメントをください。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/pdfkit/pdfkit&quot; target=&quot;_blank&quot;&gt;公式GitHubページ&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Mon, 08 Sep 2014 20:48:14 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/12921228815732256878</guid>
+          
+            <category>Rails gem</category>
+          
+            <category>PDF Generation</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>RailsでPrawnを使ってPDFを作成する</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20140907/1410078997</link>
+          <description>&lt;p&gt;Prawn(プローン)は、RubyもしくはRailsでプログラムだけでPDFを作成するGemです。&lt;br /&gt;
+今回は、&lt;b&gt;RailsでPrawnを使って注文票のPDFを作成する&lt;/b&gt;手順を説明します。&lt;/p&gt;&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140906/20140906214909.png&quot; alt=&quot;f:id:nipe880324:20140906214909p:plain:w480&quot; title=&quot;f:id:nipe880324:20140906214909p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;i&gt;&lt;br /&gt;
+他にもPDFを作成するGemがあり、「&lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20140906/1409995011&quot; target=&quot;_blank&quot;&gt;Ruby/RailsのPDF作成Gemまとめ &lt;/a&gt;」でまとめています。&lt;/i&gt;&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;対象読者&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails+Prawnを使ったPDFの作成方法を知りたい&lt;/li&gt;
+&lt;li&gt;一通りRailsの基礎について分かっている&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Ruby 2.1.2&lt;/li&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;li&gt;Prawn 1.2.1&lt;/li&gt;
+&lt;li&gt;Mac OS X 10.9.4&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#prawn-preparation&quot;&gt;準備（注文詳細画面の作成）&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#prawn-getting-started&quot;&gt;Prawnの導入&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#prawn-create-order-pdf&quot;&gt;Prawnで本格的なPDFの作成&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;h3 id=&quot;prawn-preparation&quot;&gt;1. 準備（注文詳細画面の作成）&lt;/h3&gt;まず、注文書のPDFを作成するために簡単な注文詳細画面を作成しましょう。&lt;br /&gt;
+作成する画面は次の画面です。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140906/20140906204302.png&quot; alt=&quot;f:id:nipe880324:20140906204302p:plain:w480&quot; title=&quot;f:id:nipe880324:20140906204302p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;code&gt;Prawn&lt;/code&gt;の使い方のみを知りたい方は、次の項目まで飛ばしてください。&lt;br /&gt;
+また、実際にやりながら読みたい方は、&lt;b&gt;GitHubに準備（注文詳細画面の作成）後&lt;/b&gt;のソースコードを配置してますので下記コマンドでローカルに持ってきてください。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ git clone git@github.com:yanagi0324/rails_samples.git
+$ cd pdf_order_sample  # 準備後のファイル&lt;/pre&gt;&lt;p&gt;&lt;i&gt;この章では、簡略化のために「注文(Order)」と「注文明細(LineItem)」のみで必要最小限しか実装していないので正しい設計ではありませんので注意してください。&lt;/i&gt;&lt;/p&gt;&lt;p&gt;まず、Railsプロジェクトを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ rails new prawn_test
+$ cd prawn_test&lt;/pre&gt;&lt;p&gt;次に、Scaffoldで注文(Order)を作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ rails g scaffold Order purchased_at:datetime&lt;/pre&gt;&lt;p&gt;さらに、注文明細(LineItem)のモデルを作成します。&lt;br /&gt;
+DBから直接データをいれるため、Controller と View は作りません。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ rails g model LineItem order_id:integer product_name:string price:integer quantity:integer&lt;/pre&gt;&lt;p&gt;注文(Order)と注文明細(LineItem)モデルのアソシエーションを追加します。&lt;br /&gt;
+注文は、複数の注文明細を持つので、&lt;code&gt;has_many :line_items&lt;/code&gt;を追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/models/order.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Order&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  has_many &lt;span class=&quot;synConstant&quot;&gt;:line_items&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;注文明細からは、単一の注文に属するので、&lt;code&gt;belongs_to :order&lt;/code&gt;を追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/models/line_item.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;LineItem&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  belongs_to &lt;span class=&quot;synConstant&quot;&gt;:order&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;では、マイグレーションをします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ rake db:migrate&lt;/pre&gt;&lt;p&gt;画面操作部分を必要最低限しか作成しなので、seedでデータを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# db/seeds.rb&lt;/span&gt;
+order1 = &lt;span class=&quot;synType&quot;&gt;Order&lt;/span&gt;.create! &lt;span class=&quot;synConstant&quot;&gt;purchased_at&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;.days.ago
+order2 = &lt;span class=&quot;synType&quot;&gt;Order&lt;/span&gt;.create! &lt;span class=&quot;synConstant&quot;&gt;purchased_at&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;.days.ago
+order3 = &lt;span class=&quot;synType&quot;&gt;Order&lt;/span&gt;.create! &lt;span class=&quot;synConstant&quot;&gt;purchased_at&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;.days.ago
+
+&lt;span class=&quot;synType&quot;&gt;LineItem&lt;/span&gt;.create! &lt;span class=&quot;synConstant&quot;&gt;order_id&lt;/span&gt;: order1.id, &lt;span class=&quot;synConstant&quot;&gt;product_name&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;ノートPC&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;price&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;50000&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;quantity&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;LineItem&lt;/span&gt;.create! &lt;span class=&quot;synConstant&quot;&gt;order_id&lt;/span&gt;: order1.id, &lt;span class=&quot;synConstant&quot;&gt;product_name&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;DVDプレイヤー&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;price&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;5000&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;quantity&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;LineItem&lt;/span&gt;.create! &lt;span class=&quot;synConstant&quot;&gt;order_id&lt;/span&gt;: order1.id, &lt;span class=&quot;synConstant&quot;&gt;product_name&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;電子書籍Reader&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;price&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;10000&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;quantity&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt; 
+&lt;span class=&quot;synType&quot;&gt;LineItem&lt;/span&gt;.create! &lt;span class=&quot;synConstant&quot;&gt;order_id&lt;/span&gt;: order1.id, &lt;span class=&quot;synConstant&quot;&gt;product_name&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;単三電池&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;price&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;100&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;quantity&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt; 
+&lt;/pre&gt;&lt;p&gt;データを投入します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ rake db:seed&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+デフォルトでは画面がシンプルすぎるので、Twitter Bootstrapを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Gemfile&lt;/span&gt;
+...
+gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;therubyracer&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# javascript runtime。lessをコンパイルするために必要&lt;/span&gt;
+gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;less-rails&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# Railsでlessを使えるようにする。Bootstrapがlessで書かれているため&lt;/span&gt;
+gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;twitter-bootstrap-rails&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# Bootstrapの本体&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;では、Gemをインストールします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ bundle install&lt;/pre&gt;&lt;p&gt;実際にBootstrapを適用していきます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ rails g bootstrap:install   # Bootstrap関連のファイルを追加
+$ rails g bootstrap:themed Orders -f   # OrderのViewにBootstrapを強制的に適用&lt;/pre&gt;&lt;p&gt;ひとまず、&lt;code&gt;$ rails s&lt;/code&gt;で現在の画面を確認します。&lt;br /&gt;
+さすが、Bootstrap！なかなかいい感じですね。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140906/20140906203401.png&quot; alt=&quot;f:id:nipe880324:20140906203401p:plain:w480&quot; title=&quot;f:id:nipe880324:20140906203401p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;注文詳細画面を開くと注文の明細が表示されていませんので、表示するように修正しましょう。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140906/20140906203415.png&quot; alt=&quot;f:id:nipe880324:20140906203415p:plain:w480&quot; title=&quot;f:id:nipe880324:20140906203415p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/orders/show.html.erb
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%- model_class =&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; Order&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; -%&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;page-header&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;t&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;.title&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, :default =&amp;gt;&lt;/span&gt; model_class.model_name.human.titleize %&amp;gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- 修正部分 開始 --&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dl&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;dl-horizontal&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dt&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;注文番号:&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dt&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dd&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; @order.id&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dd&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dt&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;注文日:&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dt&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dd&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; @order.purchased_at&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dd&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dl&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;table&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;table table-striped&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;thead&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tr&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;#&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;品名&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;単価&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;数量&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;値段&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tr&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;thead&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tbody&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% @order.line_items.each_with_index do |line_item, idx| %&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tr&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; idx&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; + 1 %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; line_item.product_name&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; number_to_currency&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; line_item.price %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; line_item.quantity&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; number_to_currency&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; line_item.total_price %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tr&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% end %&amp;gt;&lt;/span&gt;  
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tbody&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;table&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- 修正部分 終了 --&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; t(&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;.back&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, :default =&amp;gt;&lt;/span&gt; t(&amp;quot;helpers.links.back&amp;quot;)),
+              orders_path, :class =&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt; &#39;btn btn-default&#39;  %&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; t(&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;.edit&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, :default =&amp;gt;&lt;/span&gt; t(&amp;quot;helpers.links.edit&amp;quot;)),
+              edit_order_path(@order), :class =&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt; &#39;btn btn-default&#39; %&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; t(&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;.destroy&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, :default =&amp;gt;&lt;/span&gt; t(&amp;quot;helpers.links.destroy&amp;quot;)),
+              order_path(@order),
+              :method =&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt; &#39;delete&#39;,
+              :data =&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt; { :confirm =&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt; t(&#39;.confirm&#39;, :default =&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt; t(&amp;quot;helpers.links.confirm&amp;quot;, :default =&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt; &#39;Are you sure?&#39;)) },
+              :class =&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt; &#39;btn btn-danger&#39; %&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;上記のViewで、「注文明細の数量と値段から合計金額を計算する&lt;code&gt;line_item.total_price&lt;/code&gt;」を使っているので実装します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/models/line_item.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;LineItem&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  belongs_to &lt;span class=&quot;synConstant&quot;&gt;:order&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;total_price&lt;/span&gt;
+    price * quantity
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;また、上記のViewで金額表示のフォーマットするために、&lt;code&gt;number_to_currency&lt;/code&gt;メソッドを使っていますが、Railsのデフォルトのロケールは「アメリカ」なのでドルで表示されてしまいます。ロケールを「日本」に変えましょう。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# config/application.rb
+...
+...
+    # config.i18n.default_locale = :de
+    config.i18n.default_locale = :ja
+  end
+end&lt;/pre&gt;&lt;p&gt;では、日本語のロケールファイルを&lt;code&gt;config/locales/ja.yml&lt;/code&gt;で作成し、&lt;br /&gt;
+&lt;a href=&quot;https://github.com/svenfuchs/rails-i18n/blob/master/rails/locale/ja.yml&quot; target=&quot;_blank&quot;&gt;GitHub - ja.yml&lt;/a&gt;から内容を取得し、コピーしましょう。&lt;/p&gt;&lt;p&gt;最後に、ブラウザ上いっぱいに表示されてしまうため、layoutファイルを修正しましょう。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/layouts/application.html.erb
+&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!DOCTYPE html&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;html&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;head&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;title&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;PrawnTest&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;title&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; stylesheet_link_tag&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;    &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;application&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;media&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;all&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;data-turbolinks-track&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; =&amp;gt;&lt;/span&gt;&lt;span class=&quot;synPreProc&quot;&gt; true %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; javascript_include_tag&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;application&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;data-turbolinks-track&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; =&amp;gt;&lt;/span&gt;&lt;span class=&quot;synPreProc&quot;&gt; true %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; csrf_meta_tags&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;head&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- 修正箇所 開始 --&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;container&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; yield&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- 修正箇所 終了 --&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;html&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;code&gt;config/&lt;/code&gt;配下を修正したので、サーバーを再起動して画面を確認しましょう。&lt;br /&gt;
+注文明細も表示されるようになりました。また、画面いっぱいに表が表示されなくなりました。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140906/20140906204042.png&quot; alt=&quot;f:id:nipe880324:20140906204042p:plain:w480&quot; title=&quot;f:id:nipe880324:20140906204042p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;後は、注文詳細画面に注文の合計金額を表示するように修正します。&lt;br /&gt;
+まずは、注文(Order)の合計金額を計算するメソッドを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/models/order.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Order&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  has_many &lt;span class=&quot;synConstant&quot;&gt;:line_items&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;total_price&lt;/span&gt;
+    line_items.to_a.sum { |&lt;span class=&quot;synIdentifier&quot;&gt;line_itme&lt;/span&gt;| line_itme.total_price }
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;それでは、注文詳細画面に合計を表示する列を追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/orders/show.html.erb
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%- model_class =&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; Order&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; -%&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;page-header&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;t&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;.title&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, :default =&amp;gt;&lt;/span&gt; model_class.model_name.human.titleize %&amp;gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dl&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;dl-horizontal&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dt&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;注文番号:&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dt&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dd&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; @order.id&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dd&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dt&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;注文日:&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dt&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dd&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; @order.purchased_at&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dd&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;dl&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;table&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;table table-striped&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;thead&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tr&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;#&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;品名&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;単価&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;数量&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;値段&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tr&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;thead&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tbody&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% @order.line_items.each_with_index do |line_item, idx| %&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tr&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; idx&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; + 1 %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; line_item.product_name&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; number_to_currency&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; line_item.price %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; line_item.quantity&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; number_to_currency&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; line_item.quantity * line_item.price %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tr&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% end %&amp;gt;&lt;/span&gt;
+
+    &lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- 修正部分 開始 --&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tr&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;warning&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;colspan&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;3&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; /&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;合計&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; number_to_currency&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; @order.total_price %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tr&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;    
+    &lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- 修正部分 終了 --&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tbody&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;table&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; t(&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;.back&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, :default =&amp;gt;&lt;/span&gt; t(&amp;quot;helpers.links.back&amp;quot;)),
+              orders_path, :class =&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt; &#39;btn btn-default&#39;  %&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; t(&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;.edit&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, :default =&amp;gt;&lt;/span&gt; t(&amp;quot;helpers.links.edit&amp;quot;)),
+              edit_order_path(@order), :class =&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt; &#39;btn btn-default&#39; %&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; t(&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;.destroy&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, :default =&amp;gt;&lt;/span&gt; t(&amp;quot;helpers.links.destroy&amp;quot;)),
+              order_path(@order),
+              :method =&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt; &#39;delete&#39;,
+              :data =&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt; { :confirm =&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt; t(&#39;.confirm&#39;, :default =&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt; t(&amp;quot;helpers.links.confirm&amp;quot;, :default =&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt; &#39;Are you sure?&#39;)) },
+              :class =&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt; &#39;btn btn-danger&#39; %&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;これで、一通りの準備は終わりました。&lt;br /&gt;
+画面を確認してみましょう。合計が表示されてますね。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140906/20140906204302.png&quot; alt=&quot;f:id:nipe880324:20140906204302p:plain:w480&quot; title=&quot;f:id:nipe880324:20140906204302p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;prawn-getting-started&quot;&gt;2. Prawnの導入&lt;/h3&gt;&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;インストール&lt;/h4&gt;
+    &lt;p&gt;毎度ながら&lt;code&gt;Gemfile&lt;/code&gt;に以下を追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Gemfile&lt;/span&gt;
+...
+&lt;span class=&quot;synComment&quot;&gt;# For PDF generation&lt;/span&gt;
+gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;prawn&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;        &lt;span class=&quot;synComment&quot;&gt;# PDF作成&lt;/span&gt;
+gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;prawn-table&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;  &lt;span class=&quot;synComment&quot;&gt;# PDFでテーブルを作成&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;Gemをインストールします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ bundle install&lt;/pre&gt;&lt;p&gt;&lt;i&gt;Prawn 1.2で大幅にPrawnが変わったようなのでWarningが表示されますがエラーではないのであまり気にしすぎないでください。&lt;/i&gt;&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;PDF文書の作成&lt;/h4&gt;
+    &lt;p&gt;URLのフォーマットが&lt;code&gt;.pdf&lt;/code&gt;のときにPDF出力処理を呼びます。&lt;br /&gt;
+まずは、PDF表示用のリンクをViewに追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/orders/show.html.erb
+...
+# 一番したの行に追加
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;PDFで表示&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;,&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;              order_path(@order, format: &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;pdf&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;),&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;              :&lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; =&amp;gt;&lt;/span&gt; &#39;btn btn-primary&#39; %&lt;span class=&quot;synError&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;そして、Controllerに&lt;code&gt;respond_to&lt;/code&gt;でPDF文書を作成するロジックを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/orders_controller.rb&lt;/span&gt;
+  ...
+  &lt;span class=&quot;synComment&quot;&gt;# GET /orders/1&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# GET /orders/1.json&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;show&lt;/span&gt;
+    respond_to &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;format&lt;/span&gt;|
+      format.html &lt;span class=&quot;synComment&quot;&gt;# show.html.erb&lt;/span&gt;
+      format.pdf &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+        &lt;span class=&quot;synComment&quot;&gt;# PDF文書を作成&lt;/span&gt;
+        pdf = &lt;span class=&quot;synType&quot;&gt;Prawn&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Document&lt;/span&gt;.new
+        &lt;span class=&quot;synComment&quot;&gt;# PDFに &amp;quot;Hello, Prawn!!&amp;quot; と表示する&lt;/span&gt;
+        pdf.text &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Hello, Prawn!!&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+
+        &lt;span class=&quot;synComment&quot;&gt;# 画面にPDFを表示する&lt;/span&gt;
+        &lt;span class=&quot;synComment&quot;&gt;# disposition: &amp;quot;inline&amp;quot; によりPDFはダウンロードではなく画面に表示される&lt;/span&gt;
+        send_data pdf.render,
+          &lt;span class=&quot;synConstant&quot;&gt;filename&lt;/span&gt;:    &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;#{&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;@order&lt;/span&gt;.id&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;.pdf&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,
+          &lt;span class=&quot;synConstant&quot;&gt;type&lt;/span&gt;:        &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;application/pdf&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,
+          &lt;span class=&quot;synConstant&quot;&gt;disposition&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;inline&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+      &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+  ...
+&lt;/pre&gt;&lt;p&gt;では、サーバーを再行動して、注文詳細画面の &lt;b&gt;&quot;PDFで表示&quot;ボタン&lt;/b&gt; を押してみましょう。&lt;br /&gt;
+&quot;Hello, Prawn!!&quot; とPDFに表示されています。成功です :)&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140906/20140906210304.png&quot; alt=&quot;f:id:nipe880324:20140906210304p:plain:w480&quot; title=&quot;f:id:nipe880324:20140906210304p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Controllerで、&quot;Hello, Prawn&quot; を &quot;こんにちは、プローン&quot; に変えてみます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/orders_controller.rb&lt;/span&gt;
+  ...
+  &lt;span class=&quot;synComment&quot;&gt;# GET /orders/1&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# GET /orders/1.json&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;show&lt;/span&gt;
+        ... 
+        &lt;span class=&quot;synComment&quot;&gt;# PDFに &amp;quot;こんにちは、プローン&amp;quot; と表示する&lt;/span&gt;
+        pdf.text &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;こんにちは、プローン&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+
+        ...
+      &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+    end
+  end
+  ...
+&lt;/pre&gt;&lt;p&gt;では、画面を確認してみます。しかし、アンダーバーでうまく表示されていません。&lt;br /&gt;
+これは、日本語のフォントを持っていないためPDFに表示されないのが原因です。&lt;br /&gt;
+そのため、Railsプロジェクトに日本語のフォントを追加します。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140906/20140906210612.png&quot; alt=&quot;f:id:nipe880324:20140906210612p:plain:w480&quot; title=&quot;f:id:nipe880324:20140906210612p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;日本語フォントの追加&lt;/h4&gt;
+    &lt;p&gt;&lt;a href=&quot;http://ipafont.ipa.go.jp/ipaexfont/download.html&quot; target=&quot;_blank&quot;&gt;IPAフォント&lt;/a&gt;にアクセスし、&lt;br /&gt;
+&lt;b&gt;「2書体パック(IPAex明朝(Ver.002.01)、IPAexゴシック(Ver.002.01))　IPAexfont00201.zip(9.31 MB)」&lt;/b&gt;をダウンロードします。&lt;/p&gt;&lt;p&gt;その後、&lt;code&gt;vender/fonts&lt;/code&gt;を作成し、その配下に&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;ipaexg.ttf (明朝)&lt;/li&gt;
+&lt;li&gt;ipaexm.ttf (ゴシック)&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;を配置します。&lt;/p&gt;&lt;p&gt;では、追加したフォントをPrawnから使うために、&lt;code&gt;font&lt;/code&gt;メソッドを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/orders_controller.rb&lt;/span&gt;
+  ...
+  &lt;span class=&quot;synComment&quot;&gt;# GET /orders/1&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# GET /orders/1.json&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;show&lt;/span&gt;
+    respond_to &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;format&lt;/span&gt;|
+      format.html &lt;span class=&quot;synComment&quot;&gt;# show.html.erb&lt;/span&gt;
+      format.pdf &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+        &lt;span class=&quot;synComment&quot;&gt;# PDF文書を作成&lt;/span&gt;
+        pdf = &lt;span class=&quot;synType&quot;&gt;Prawn&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Document&lt;/span&gt;.new
+
+        &lt;span class=&quot;synComment&quot;&gt;# フォントを設定(明朝体)&lt;/span&gt;
+        pdf.font &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;vendor/fonts/ipaexm.ttf&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; 
+
+        &lt;span class=&quot;synComment&quot;&gt;# PDFに &amp;quot;こんにちは、プローン&amp;quot; と表示する&lt;/span&gt;
+        pdf.text &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;こんにちは、プローン&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+        ...
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  ...
+&lt;/pre&gt;&lt;p&gt;画面を開き直しましょう。日本語が表示されているはずです。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140906/20140906211729.png&quot; alt=&quot;f:id:nipe880324:20140906211729p:plain:w480&quot; title=&quot;f:id:nipe880324:20140906211729p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;prawn-create-order-pdf&quot;&gt;3. Prawnで本格的なPDFの作成&lt;/h3&gt;Prawnを使ってPDFを出力することができました。さて、注文詳細画面をPDFで作成していきましょう。&lt;br /&gt;
+まずは、作成するPDFのイメージを確認するために、注文詳細画面を確認します。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140906/20140906204302.png&quot; alt=&quot;f:id:nipe880324:20140906204302p:plain:w480&quot; title=&quot;f:id:nipe880324:20140906204302p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;PDF作成クラスの作成&lt;/h4&gt;
+    &lt;p&gt;PrawnはプログラムでごりごりとPDFを作成していくので、Controller内でそれを記載すると可読性や保守性が下がるので、PDF作成用のクラスを作成します。&lt;/p&gt;&lt;p&gt;格納するフォルダとファイルを作ります。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ mkdir app/pdfs
+$ touch app/pdfs/order_pdf.rb&lt;/pre&gt;&lt;p&gt;PDF作成クラスを作成します。&lt;code&gt;Prawn::Document&lt;/code&gt;を継承していることが重要です。&lt;br /&gt;
+後の中身はControllerから移動しただけです。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/pdfs/order_pdf.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;OrderPDF&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;Prawn&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Document&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;initialize&lt;/span&gt;(order)
+    &lt;span class=&quot;synStatement&quot;&gt;super&lt;/span&gt;()
+
+    font &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;vendor/fonts/ipaexm.ttf&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+    text &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;こんにちは, Prawn!! on order_pdf.rb&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;では、Controllerからこのクラスを呼び出すように修正しましょう。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/orders_controller.rb&lt;/span&gt;
+  ...
+  &lt;span class=&quot;synComment&quot;&gt;# GET /orders/1&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# GET /orders/1.json&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;show&lt;/span&gt;
+      format.html &lt;span class=&quot;synComment&quot;&gt;# show.html.erb&lt;/span&gt;
+      format.pdf &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+        &lt;span class=&quot;synComment&quot;&gt;# PDF文書を作成&lt;/span&gt;
+        pdf = &lt;span class=&quot;synType&quot;&gt;OrderPDF&lt;/span&gt;.new(&lt;span class=&quot;synIdentifier&quot;&gt;@order&lt;/span&gt;)
+        ...
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+  ...
+&lt;/pre&gt;&lt;p&gt;とりあえず、ここまで上手くいっているか確認するために、サーバーを再起動して画面を確認します。&lt;br /&gt;
+しっかりと表示されていますね。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140906/20140906212815.png&quot; alt=&quot;f:id:nipe880324:20140906212815p:plain:w480&quot; title=&quot;f:id:nipe880324:20140906212815p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;本格的にPDFを記載&lt;/h4&gt;
+    &lt;p&gt;では、作成した&lt;code&gt;app/pdfs/order_pdf.rb&lt;/code&gt;にゴリゴリPDF出力を記載します。&lt;br /&gt;
+ソースとコメント、参考文献のPrawn manual、画面をそれぞれ見ながら書き方を理解してください。&lt;/p&gt;&lt;p&gt;&lt;i&gt;ソースを上から書きながら、逐次画面表示を確認すると理解しやすいのでオススメです。&lt;/i&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;OrderPDF&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;Prawn&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Document&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;initialize&lt;/span&gt;(order)
+    &lt;span class=&quot;synStatement&quot;&gt;super&lt;/span&gt;()
+
+    &lt;span class=&quot;synComment&quot;&gt;# 複数メソッドで利用できるようにするため&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# インスタンス変数に代入&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@order&lt;/span&gt; = order
+
+    &lt;span class=&quot;synComment&quot;&gt;# 全体のフォントを設定&lt;/span&gt;
+    font &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;vendor/fonts/ipaexg.ttf&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+    
+    &lt;span class=&quot;synComment&quot;&gt;# ヘッダー部分の表示&lt;/span&gt;
+    header
+    &lt;span class=&quot;synComment&quot;&gt;# ヘッダーリード部分の表示&lt;/span&gt;
+    header_lead
+    &lt;span class=&quot;synComment&quot;&gt;# テーブル部分の表示&lt;/span&gt;
+    table_content
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;header&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# size 28 で &amp;quot;Order&amp;quot;という文字を表示&lt;/span&gt;
+    text &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Order&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;size&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;28&lt;/span&gt;
+
+    &lt;span class=&quot;synComment&quot;&gt;# stroke(線)の色を設定し、線を引く&lt;/span&gt;
+    stroke_color &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;eeeeee&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+    stroke_line [&lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;680&lt;/span&gt;], [&lt;span class=&quot;synConstant&quot;&gt;530&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;680&lt;/span&gt;]
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;header_lead&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# カーソルを指定&lt;/span&gt;
+    y_position = cursor - &lt;span class=&quot;synConstant&quot;&gt;30&lt;/span&gt;
+
+    &lt;span class=&quot;synComment&quot;&gt;# bounding_boxで記載箇所を指定して、textメソッドでテキストを記載&lt;/span&gt;
+    bounding_box([&lt;span class=&quot;synConstant&quot;&gt;100&lt;/span&gt;, y_position], &lt;span class=&quot;synConstant&quot;&gt;:width&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;270&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:height&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;50&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      font_size &lt;span class=&quot;synConstant&quot;&gt;10.5&lt;/span&gt;
+      text &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;注文番号:  &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;@order&lt;/span&gt;.id&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt;
+      move_down &lt;span class=&quot;synConstant&quot;&gt;3&lt;/span&gt;
+      text &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;　注文日:  &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;@order&lt;/span&gt;.purchased_at&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;table_content&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# tableメソッドは2次元配列を引数(line_item_rows)にとり、それをテーブルとして表示する&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# ブロック(do...end)内でテーブルの書式の設定をしている&lt;/span&gt;
+    table line_item_rows &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;# 全体設定&lt;/span&gt;
+      cells.padding = &lt;span class=&quot;synConstant&quot;&gt;8&lt;/span&gt;          &lt;span class=&quot;synComment&quot;&gt;# セルのpadding幅&lt;/span&gt;
+      cells.borders = [&lt;span class=&quot;synConstant&quot;&gt;:bottom&lt;/span&gt;,] &lt;span class=&quot;synComment&quot;&gt;# 表示するボーダーの向き(top, bottom, right, leftがある)&lt;/span&gt;
+      cells.border_width = &lt;span class=&quot;synConstant&quot;&gt;0.5&lt;/span&gt;   &lt;span class=&quot;synComment&quot;&gt;# ボーダーの太さ&lt;/span&gt;
+
+      &lt;span class=&quot;synComment&quot;&gt;# 個別設定&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;# row(0) は0行目、row(-1) は最後の行を表す&lt;/span&gt;
+      row(&lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;).border_width = &lt;span class=&quot;synConstant&quot;&gt;1.5&lt;/span&gt;
+      row(&lt;span class=&quot;synConstant&quot;&gt;-2&lt;/span&gt;).border_width = &lt;span class=&quot;synConstant&quot;&gt;1.5&lt;/span&gt;
+      row(&lt;span class=&quot;synConstant&quot;&gt;-1&lt;/span&gt;).background_color = &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;f0ad4e&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+      row(&lt;span class=&quot;synConstant&quot;&gt;-1&lt;/span&gt;).borders = []
+
+      &lt;span class=&quot;synConstant&quot;&gt;self&lt;/span&gt;.header     = &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;  &lt;span class=&quot;synComment&quot;&gt;# 1行目をヘッダーとするか否か&lt;/span&gt;
+      &lt;span class=&quot;synConstant&quot;&gt;self&lt;/span&gt;.row_colors = [&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;dddddd&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;ffffff&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;] &lt;span class=&quot;synComment&quot;&gt;# 列の色&lt;/span&gt;
+      &lt;span class=&quot;synConstant&quot;&gt;self&lt;/span&gt;.column_widths = [&lt;span class=&quot;synConstant&quot;&gt;50&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;200&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;100&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;70&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;100&lt;/span&gt;] &lt;span class=&quot;synComment&quot;&gt;# 列の幅&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# テーブルに表示するデータを作成(2次元配列)&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;line_item_rows&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# テーブルのヘッダ部&lt;/span&gt;
+    arr = [[&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;#&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;品名&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;単価&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;数量&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;値段&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;]]
+
+    &lt;span class=&quot;synComment&quot;&gt;# テーブルのデータ部&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@order&lt;/span&gt;.line_items.map.with_index &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;item&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;i&lt;/span&gt;|
+      arr &amp;lt;&amp;lt; [i+&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;, item.product_name, item.price, item.quantity, item.total_price]
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+    &lt;span class=&quot;synComment&quot;&gt;# テーブルの合計部&lt;/span&gt;
+    arr &amp;lt;&amp;lt; [&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;合計&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;@order&lt;/span&gt;.total_price]
+    &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; arr
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;では、画面を確認してみましょう。&lt;br /&gt;
+このように、PrawnではコードだけでPDFを作成していきます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140906/20140906214909.png&quot; alt=&quot;f:id:nipe880324:20140906214909p:plain:w480&quot; title=&quot;f:id:nipe880324:20140906214909p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://prawnpdf.org/manual.pdf&quot; target=&quot;_blank&quot;&gt;Prawn manual&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://prawnpdf.org/prawn-table-manual.pdf&quot; target=&quot;_blank&quot;&gt;Prawn table manual&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://qiita.com/sawamur@github/items/865ed68323b07061e4f5&quot; target=&quot;_blank&quot;&gt;日本語フォントあたり&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Sun, 07 Sep 2014 17:36:37 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/12921228815732206153</guid>
+          
+            <category>Rails gem</category>
+          
+            <category>PDF Generation</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>Ruby/RailsでPDF作成Gemのまとめ</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20140906/1409995011</link>
+          <description>&lt;p&gt;Rubyもしくは、RailsでPDFを作成するGemとして&lt;a href=&quot;https://www.ruby-toolbox.com/categories/pdf_generation&quot; target=&quot;blank&quot;&gt;The Ruby Toolbox - PDF Generation&lt;/a&gt;で確認すると、有名どころとしては、&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Prawn（プローン）&lt;/li&gt;
+&lt;li&gt;PDFKit (+ wkhtmltopdf)&lt;/li&gt;
+&lt;li&gt;Wicked PDF (+ wkhtmltopdf)&lt;/li&gt;
+&lt;li&gt;ThinReports（Ruty Toolboxにないけど）&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;です。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;まとめ&lt;/h3&gt;
+    &lt;p&gt;それぞれRails上で使ってみて、比較してみました。&lt;table class=&quot;table table-striped&quot;&gt;
+  &lt;tr&gt;
+    &lt;th&gt;Gem名&lt;/th&gt;&lt;th&gt;特徴&lt;/th&gt;&lt;th&gt;所感&lt;/th&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;Prawn(プローン)&lt;/td&gt;
+    &lt;td&gt;コードのみでPDFを作成する。&lt;/td&gt;
+    &lt;td&gt;二重線などは少し作り込みが必要。コードでガリガリPDFを作成するので自由度は高いが時間がかかる。&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;PDFKit (+ wkhtmltopdf)&lt;/td&gt;
+    &lt;td&gt;HTMLをPDFに変換する。HTMLからPDFへの変換はwkhtmltopdfが行い、&lt;code&gt;PDFKit&lt;/code&gt;はwkhtmltopdfのラッパー。&lt;/td&gt;
+    &lt;td&gt;wkhtmltopdfがバグなどがあり角丸がつかないなど現状では完全にHTMLをPDFにできない。しかし、Railsで使う場合HTMLは既にあるはずなので簡単に使える。&lt;/td&gt;
+  &lt;/tr&gt;
+    &lt;td&gt;Wicked PDF (+ wkhtmltopdf)&lt;/td&gt;
+    &lt;td&gt;PDFKitと同様。HTMLをPDFに変換する。HTMLからPDFへの変換はwkhtmltopdfが行い、&lt;code&gt;Wicked PDF&lt;/code&gt;はwkhtmltopdfのラッパー。&lt;/td&gt;
+    &lt;td&gt;PDFKitと同様&lt;/td&gt;
+  &lt;tr&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;ThinReports&lt;/td&gt;
+    &lt;td&gt;日本製で&lt;code&gt;ThinReportsEditor&lt;/code&gt;という専用ツールを使って画面操作でPDFを作成し、PDF上の動的データをプログラムしていく。内部的に&lt;code&gt;Prawn&lt;/code&gt;を使っている。&lt;/td&gt;
+    &lt;td&gt;画面でPDFを作るので親しみやすい。しかし、操作感があまりよくなく時間がかかることと、ドキュメントやサンプル不足でPDF上の動的データをプログラムしていくことが難しい。&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;結論&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;PDFの品質をあまり気にしない場合は、&lt;code&gt;PDFKit&lt;/code&gt; か &lt;code&gt;Wicked PDF&lt;/code&gt; で手軽に作成&lt;/li&gt;
+&lt;li&gt;PDFの品質を気にするならば、&lt;code&gt;Prawn&lt;/code&gt; か &lt;code&gt;ThinReports&lt;/code&gt; で時間がかかりながらも作成&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;使い方&lt;/h3&gt;
+    &lt;p&gt;次のような注文表をPDFで作成してみました。興味がある方は確認してみてください。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140906/20140906214909.png&quot; alt=&quot;f:id:nipe880324:20140906214909p:plain:w480&quot; title=&quot;f:id:nipe880324:20140906214909p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20140907/1410078997&quot; target=&quot;_blank&quot;&gt;Rails + Prawn&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20140908/1410176894&quot; target=&quot;_blank&quot;&gt;Rails + PDFKit + wkhtmltopdf&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20140909/1410241835&quot; target=&quot;_blank&quot;&gt;Rails + ThinReports&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;以上、分からない箇所や間違いがあればコメントを下さい。&lt;/p&gt;
+
+&lt;/div&gt;</description>
+          <pubDate>Sat, 06 Sep 2014 18:16:51 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/12921228815732154794</guid>
+          
+            <category>まとめ</category>
+          
+            <category>Rails gem</category>
+          
+            <category>PDF Generation</category>
+          
+        </item>
+      
+    
+  </channel>
+</rss>

@@ -1,0 +1,451 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>CSV/Excel - Rails Webook</title>
+    <link>http://ruby-rails.hatenadiary.com/category/CSV%2FExcel</link>
+    <description>自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</description>
+    <lastBuildDate>Fri, 18 Dec 2015 02:44:31 +0900</lastBuildDate>
+    <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+    <generator>Hatena::Blog</generator>
+    
+      
+      
+        <item>
+          <title>RailsでCSV/Excel/OpenOfficeのアップロード機能の実装方法</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20141120/1416483136</link>
+          <description>&lt;p&gt;RailsでCSV/Excel/OpenOfficeのアップロード機能の実装方法について説明します。&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Ruby 2.1&lt;/li&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;li&gt;Roo 1.13.2&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#csv_import_create_project&quot;&gt;Railsプロジェクトの作成&lt;/h3&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#csv_import_import_csv&quot;&gt;CSVのインポート機能の実装&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#csv_import_import_excel&quot;&gt;Excelのインポート機能の実装&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;csv_import_create_project&quot;&gt;1. Railsプロジェクトの作成&lt;/h3&gt;まず、Raislのプロジェクトを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rails new csv_import_test
+cd csv_import_test&lt;/pre&gt;&lt;p&gt;そして、必要なコントローラー、ビュー、モデルを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rails g controller Products index
+rails g model Product name:string price:integer released_on:date
+rake db:migrate&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+CSV出力するためのデータを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# db/seeds.rb&lt;/span&gt;
+
+names = &lt;span class=&quot;synSpecial&quot;&gt;%w(&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;レコーダー イヤホン マイク Webカメラ 洗濯機 冷蔵庫 エアコン ノートPC 40型TV デジタルカメラ&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;)&lt;/span&gt;
+
+names.each &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;name&lt;/span&gt;|
+  random = [*&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;..&lt;span class=&quot;synConstant&quot;&gt;10&lt;/span&gt;].sample  &lt;span class=&quot;synComment&quot;&gt;# 1から10のランダム値を取得&lt;/span&gt;
+  &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.create! &lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;: name, &lt;span class=&quot;synConstant&quot;&gt;price&lt;/span&gt;: random * &lt;span class=&quot;synConstant&quot;&gt;1000&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;released_on&lt;/span&gt;: random.day.ago
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;DBにデータを投入します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rake db:seed&lt;/pre&gt;&lt;p&gt;そして、コントローラーのindexアクションを実装します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/contollers/products_contoller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ProductsController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;index&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@products&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.all
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+そして、ビューを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/products/index.html.erb
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;商品一覧&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;table&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;thead&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tr&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;ID&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;名前&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;値段&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;発売日&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tr&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;thead&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tbody&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% @products.each do |product| %&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tr&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; product.id&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; product.name&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; product.price&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; product.released_on&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tr&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% end %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tbody&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;table&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;そして、最後にルートを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt;.application.routes.draw &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  root &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;products#index&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+  resources &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;products&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;only&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:index&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;code&gt;rails s&lt;/code&gt;でサーバーを起動して画面を確認しましょう。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141115/20141115151914.png&quot; alt=&quot;f:id:nipe880324:20141115151914p:plain:w380&quot; title=&quot;f:id:nipe880324:20141115151914p:plain:w380&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:380px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;csv_import_import_csv&quot;&gt;2. CSVのアップロード機能の実装/&lt;/h3&gt;では、アップロード機能を実装します。&lt;/p&gt;&lt;p&gt;CSVを処理できるようにするために、Ruby標準ライブラリの&lt;code&gt;csv&lt;/code&gt;を追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# config/application.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;File&lt;/span&gt;.expand_path(&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;../boot&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;__FILE__&lt;/span&gt;)
+
+&lt;span class=&quot;synPreProc&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;rails/all&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;csv&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;ビューにファイルをアップロードする入力フィールドを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/products/index.html.erb
+
+&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- ページの一番下に追加 --&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; form_tag&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; import_products_path, multipart: true do %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; file_field_tag&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :file %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; submit_tag&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;インポート&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% end %&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;ルートを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# config/routes.rb&lt;/span&gt;
+
+resources &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;products&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;only&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:index&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  collection { post &lt;span class=&quot;synConstant&quot;&gt;:import&lt;/span&gt; }
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;コントローラーでファイルを受け取り、リダイレクトします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/products_controller.rb&lt;/span&gt;
+
+&lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;import&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# fileはtmpに自動で一時保存される&lt;/span&gt;
+  &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.import(params[&lt;span class=&quot;synConstant&quot;&gt;:file&lt;/span&gt;])
+  redirect_to root_url, &lt;span class=&quot;synConstant&quot;&gt;notice&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;商品を追加しました。&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;CSVを読み込んで、DBに登録するインポート処理を実装します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/models/product.rb&lt;/span&gt;
+
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;self&lt;/span&gt;.&lt;span class=&quot;synIdentifier&quot;&gt;import&lt;/span&gt;(file)
+    &lt;span class=&quot;synType&quot;&gt;CSV&lt;/span&gt;.foreach(file.path, &lt;span class=&quot;synConstant&quot;&gt;headers&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;row&lt;/span&gt;|
+      &lt;span class=&quot;synComment&quot;&gt;# IDが見つかれば、レコードを呼び出し、見つかれなければ、新しく作成&lt;/span&gt;
+      product = find_by(&lt;span class=&quot;synConstant&quot;&gt;id&lt;/span&gt;: row[&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;]) || new
+      &lt;span class=&quot;synComment&quot;&gt;# CSVからデータを取得し、設定する&lt;/span&gt;
+      product.attributes = row.to_hash.slice(*updatable_attributes)
+      &lt;span class=&quot;synComment&quot;&gt;# 保存する&lt;/span&gt;
+      product.save!
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# 更新を許可するカラムを定義&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;self&lt;/span&gt;.&lt;span class=&quot;synIdentifier&quot;&gt;updatable_attributes&lt;/span&gt;
+    [&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;price&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;released_on&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;]
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;サーバーを再起動して、ファイルをアップロードします。&lt;/p&gt;&lt;p&gt;アップロードするファイルの内容は次の通りです。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;id,name,price,released_on
+10,一眼デジタルカメラ,300,2014-11-13
+11,Bar,100,2014-12-01&lt;/pre&gt;&lt;p&gt;では、アップロードしてみます。&lt;br /&gt;
+アップロードすると、ID10の商品が更新され、ID11の商品が追加されています。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141115/20141115152012.png&quot; alt=&quot;f:id:nipe880324:20141115152012p:plain:w380&quot; title=&quot;f:id:nipe880324:20141115152012p:plain:w380&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:380px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;csv_import_import_excel&quot;&gt;3. Excelのインポート機能の実装/&lt;/h3&gt;次は、Excelのインポート機能の実装です。&lt;/p&gt;&lt;p&gt;&lt;a hfre=&quot;https://github.com/Empact/roo&quot; target=&quot;_blank&quot;&gt;roo&lt;/a&gt;というExcel, CSV, OpenOffice, GoogleSpreadSheetを開くことができるGemを利用します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Gemfile&lt;/span&gt;
+gem &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;roo&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;バンドルインストールします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;bundle install&lt;/pre&gt;&lt;p&gt;ファイル読み込みの箇所を拡張子に合わせて、Rooを使って読み込むようにします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/models/product.rb&lt;/span&gt;
+
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;self&lt;/span&gt;.&lt;span class=&quot;synIdentifier&quot;&gt;import&lt;/span&gt;(file)
+    spreadsheet = open_spreadsheet(file)
+    header = spreadsheet.row(&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;)
+
+    (&lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;..spreadsheet.last_row).each &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;i&lt;/span&gt;|
+      &lt;span class=&quot;synComment&quot;&gt;# {カラム名 =&amp;gt; 値, ...} のハッシュを作成する&lt;/span&gt;
+      row = &lt;span class=&quot;synType&quot;&gt;Hash&lt;/span&gt;[[header, spreadsheet.row(i)].transpose]
+
+      &lt;span class=&quot;synComment&quot;&gt;# IDが見つかれば、レコードを呼び出し、見つかれなければ、新しく作成&lt;/span&gt;
+      product = find_by(&lt;span class=&quot;synConstant&quot;&gt;id&lt;/span&gt;: row[&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;]) || new
+      &lt;span class=&quot;synComment&quot;&gt;# CSVからデータを取得し、設定する&lt;/span&gt;
+      product.attributes = row.to_hash.slice(*updatable_attributes)
+      &lt;span class=&quot;synComment&quot;&gt;# 保存する&lt;/span&gt;
+      product.save!
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;self&lt;/span&gt;.&lt;span class=&quot;synIdentifier&quot;&gt;open_spreadsheet&lt;/span&gt;(file)
+    &lt;span class=&quot;synStatement&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;File&lt;/span&gt;.extname(file.original_filename)
+    &lt;span class=&quot;synStatement&quot;&gt;when&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;.csv&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;  &lt;span class=&quot;synStatement&quot;&gt;then&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Roo&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Csv&lt;/span&gt;.new(file.path,    &lt;span class=&quot;synConstant&quot;&gt;nil&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:ignore&lt;/span&gt;)
+    &lt;span class=&quot;synStatement&quot;&gt;when&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;.xls&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;  &lt;span class=&quot;synStatement&quot;&gt;then&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Roo&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Excel&lt;/span&gt;.new(file.path,  &lt;span class=&quot;synConstant&quot;&gt;nil&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:ignore&lt;/span&gt;)
+    &lt;span class=&quot;synStatement&quot;&gt;when&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;.xlsx&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;then&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Roo&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Excelx&lt;/span&gt;.new(file.path, &lt;span class=&quot;synConstant&quot;&gt;nil&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:ignore&lt;/span&gt;)
+    &lt;span class=&quot;synStatement&quot;&gt;when&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;.ods&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;  &lt;span class=&quot;synStatement&quot;&gt;then&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Roo&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;OpenOffice&lt;/span&gt;.new(file.path, &lt;span class=&quot;synConstant&quot;&gt;nil&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:ignore&lt;/span&gt;)
+    &lt;span class=&quot;synStatement&quot;&gt;else&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;raise&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Unknown file type: &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;file.original_filename&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  ...
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;では、サーバーを再起動して、ファイルをアップロードしましょう。&lt;br /&gt;
+今回は、OpenOfficeで次のようなファイルを作成しました。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141115/20141115152141.png&quot; alt=&quot;f:id:nipe880324:20141115152141p:plain:w320&quot; title=&quot;f:id:nipe880324:20141115152141p:plain:w320&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:320px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;アップロードすると、ID11の商品が更新され、ID12の商品が追加されていることがわかります。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141115/20141115152225.png&quot; alt=&quot;f:id:nipe880324:20141115152225p:plain:w380&quot; title=&quot;f:id:nipe880324:20141115152225p:plain:w380&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:380px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;以上です。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://railscasts.com/episodes/396-importing-csv-and-excel:tilte&quot;&gt;http://railscasts.com/episodes/396-importing-csv-and-excel:tilte&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Thu, 20 Nov 2014 20:32:16 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450073924608</guid>
+          
+            <category>CSV/Excel</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>RailsでCSV/Excelのダウンロード機能の実装方法</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20141119/1416398472</link>
+          <description>&lt;p&gt;RailsでCSVやExcelをダウンロード（エクスポート）する方法を説明します。&lt;br /&gt;
+&lt;a href=&quot;/entry/20141008/1412774436&quot; target=&quot;_blank&quot;&gt;Ransack&lt;/a&gt;などで検索機能をつければ、検索結果に応じたCSV/Excel出力も可能です。&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Ruby 2.1&lt;/li&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#csv_export_create_project&quot;&gt;Railsプロジェクトの作成&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#csv_export_download_csv&quot;&gt;CSVのダウンロード機能の実装&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#csv_export_download_excel&quot;&gt;Excelのダウンロード機能の実装&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;csv_export_create_project&quot;&gt;Railsプロジェクトの作成&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;まず、Raislのプロジェクトを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rails new csv_export_test
+cd csv_export_test&lt;/pre&gt;&lt;p&gt;そして、必要なコントローラー、ビュー、モデルを作成します。&lt;br /&gt;
+製造者(Manufacture)と製品(Product)が1対Nの関係にします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rails g controller Products index
+rails g model Manufacture name:string
+rails g model Product name:string price:integer released_on:date manufacture:references
+rake db:migrate&lt;/pre&gt;&lt;p&gt;モデルにAssociationを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/models/manufacture.rb&lt;/span&gt;
+
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Manufacture&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  has_many &lt;span class=&quot;synConstant&quot;&gt;:products&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+CSV出力するためのデータを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# db/seeds.rb&lt;/span&gt;
+
+a = &lt;span class=&quot;synType&quot;&gt;Manufacture&lt;/span&gt;.create! &lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Aエレクトリック&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;%w(&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;レコーダー イヤホン マイク Webカメラ&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;)&lt;/span&gt;.each &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;name&lt;/span&gt;|
+  random = [*&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;..&lt;span class=&quot;synConstant&quot;&gt;5&lt;/span&gt;].sample  &lt;span class=&quot;synComment&quot;&gt;# 1-5からランダム値を取得&lt;/span&gt;
+  a.products.create! &lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;: name, &lt;span class=&quot;synConstant&quot;&gt;price&lt;/span&gt;: random * &lt;span class=&quot;synConstant&quot;&gt;1000&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;released_on&lt;/span&gt;: random.day.ago
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+b = &lt;span class=&quot;synType&quot;&gt;Manufacture&lt;/span&gt;.create! &lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;B工業&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;%w(&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;洗濯機 冷蔵庫 エアコン&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;)&lt;/span&gt;.each &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;name&lt;/span&gt;|
+  random = [*&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;..&lt;span class=&quot;synConstant&quot;&gt;5&lt;/span&gt;].sample  &lt;span class=&quot;synComment&quot;&gt;# 1-5からランダム値を取得&lt;/span&gt;
+  b.products.create! &lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;: name, &lt;span class=&quot;synConstant&quot;&gt;price&lt;/span&gt;: random * &lt;span class=&quot;synConstant&quot;&gt;10000&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;released_on&lt;/span&gt;: random.day.ago
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+c = &lt;span class=&quot;synType&quot;&gt;Manufacture&lt;/span&gt;.create! &lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;C電器&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;%w(&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;ノートPC 40型TV デジタルカメラ&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;)&lt;/span&gt;.each &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;name&lt;/span&gt;|
+  random = [*&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;..&lt;span class=&quot;synConstant&quot;&gt;5&lt;/span&gt;].sample  &lt;span class=&quot;synComment&quot;&gt;# 1-5からランダム値を取得&lt;/span&gt;
+  c.products.create! &lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;: name, &lt;span class=&quot;synConstant&quot;&gt;price&lt;/span&gt;: random * &lt;span class=&quot;synConstant&quot;&gt;10000&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;released_on&lt;/span&gt;: random.day.ago
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;DBにデータを投入します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rake db:seed&lt;/pre&gt;&lt;p&gt;そして、コントローラーのindexアクションを実装します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/contollers/products_contoller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ProductsController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;index&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# N+1問題のため、allではなくincludes&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@products&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.includes(&lt;span class=&quot;synConstant&quot;&gt;:manufacture&lt;/span&gt;)
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+そして、ビューを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/products/index.html.erb
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;商品一覧&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;table&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;thead&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tr&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;ID&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;名前&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;値段&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;発売日&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;製造元&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;th&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tr&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;thead&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tbody&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% @products.each do |product| %&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tr&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; product.id&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; product.name&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; product.price&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; product.released_on&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; product.manufacture.name&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;td&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tr&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% end %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;tbody&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;table&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;そして、最後にルートを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt;.application.routes.draw &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  root &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;products#index&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+  resources &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;products&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;only&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:index&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;code&gt;rails s&lt;/code&gt;でサーバーを起動して画面を確認しましょう。&lt;/p&gt;&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141115/20141115134717.png&quot; alt=&quot;f:id:nipe880324:20141115134717p:plain:w380&quot; title=&quot;f:id:nipe880324:20141115134717p:plain:w380&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:380px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;csv_export_download_csv&quot;&gt;CSVのダウンロード機能の実装&lt;/h3&gt;では、この画面に表示している内容をCSVで出力するようにしてみましょう。&lt;/p&gt;&lt;p&gt;まず、Ruby標準付属のCSVクラスをRailsで使えるように &lt;code&gt;require&lt;/code&gt;を追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# config/application.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;File&lt;/span&gt;.expand_path(&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;../boot&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;__FILE__&lt;/span&gt;)
+
+&lt;span class=&quot;synPreProc&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;rails/all&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;require&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;csv&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+...
+&lt;/pre&gt;&lt;p&gt;次にCSVのダウンロードボタンを追加します。&lt;br /&gt;
+&lt;code&gt;format: &quot;csv&quot;&lt;/code&gt;をパスの引数に指定することで、&lt;br /&gt;
+「&quot;/products&quot;」が「&quot;/products.csv&quot;」というURLになります。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/products/index.html.erb
+
+&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- 一番下に追加 --&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  Download:
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;CSV&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, products_path(format: &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;) %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;そして、コントローラーに&lt;code&gt;respond_to&lt;/code&gt;を追加し、&lt;br /&gt;
+&lt;code&gt;.csv&lt;/code&gt;でアクセスされた場合の処理を追記します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/contollers/products_contoller.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ProductsController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;index&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@products&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.includes(&lt;span class=&quot;synConstant&quot;&gt;:manufacture&lt;/span&gt;)
+
+    respond_to &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;format&lt;/span&gt;|
+      format.html
+      format.csv { send_data &lt;span class=&quot;synIdentifier&quot;&gt;@products&lt;/span&gt;.to_csv }
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+そして、&lt;code&gt;to_csv&lt;/code&gt;メソッドでCSVを作成する処理を実装します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/models/product.rb&lt;/span&gt;
+
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  belongs_to &lt;span class=&quot;synConstant&quot;&gt;:manufacture&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;self&lt;/span&gt;.&lt;span class=&quot;synIdentifier&quot;&gt;to_csv&lt;/span&gt;
+    &lt;span class=&quot;synType&quot;&gt;CSV&lt;/span&gt;.generate &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;csv&lt;/span&gt;|
+      &lt;span class=&quot;synComment&quot;&gt;# column_namesはカラム名を配列で返す&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;# 例: [&amp;quot;id&amp;quot;, &amp;quot;name&amp;quot;, &amp;quot;price&amp;quot;, &amp;quot;released_on&amp;quot;, ...]&lt;/span&gt;
+      csv &amp;lt;&amp;lt; column_names
+      all.each &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;product&lt;/span&gt;|
+        &lt;span class=&quot;synComment&quot;&gt;# attributes はカラム名と値のハッシュを返す&lt;/span&gt;
+        &lt;span class=&quot;synComment&quot;&gt;# 例: {&amp;quot;id&amp;quot;=&amp;gt;1, &amp;quot;name&amp;quot;=&amp;gt;&amp;quot;レコーダー&amp;quot;, &amp;quot;price&amp;quot;=&amp;gt;3000, ... }&lt;/span&gt;
+        &lt;span class=&quot;synComment&quot;&gt;# valudes_at はハッシュから引数で指定したキーに対応する値を取り出し、配列にして返す&lt;/span&gt;
+        &lt;span class=&quot;synComment&quot;&gt;# 下の行は最終的に column_namesで指定したvalue値の配列を返す&lt;/span&gt;
+        csv &amp;lt;&amp;lt; product.attributes.values_at(*column_names)
+      &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;では、サーバーを再起動し、「CSV」ボタンを押して、CSVファイルをダウンロードしましょう。&lt;/p&gt;&lt;p&gt;中身は次のようになっています。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141115/20141115134746.png&quot; alt=&quot;f:id:nipe880324:20141115134746p:plain:w320&quot; title=&quot;f:id:nipe880324:20141115134746p:plain:w320&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:320px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;code&gt;to_csv&lt;/code&gt;メソッドで&lt;code&gt;column_names&lt;/code&gt;を指定しているため、画面と同じ内容ではありません。&lt;br /&gt;
+画面と同じになるように少し微調整をします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/models/product.rb&lt;/span&gt;
+
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  belongs_to &lt;span class=&quot;synConstant&quot;&gt;:manufacture&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;self&lt;/span&gt;.&lt;span class=&quot;synIdentifier&quot;&gt;to_csv&lt;/span&gt;
+    &lt;span class=&quot;synType&quot;&gt;CSV&lt;/span&gt;.generate &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;csv&lt;/span&gt;|
+      csv &amp;lt;&amp;lt; csv_column_names
+      all.each &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;product&lt;/span&gt;|
+        csv &amp;lt;&amp;lt; product.csv_column_values
+      &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;self&lt;/span&gt;.&lt;span class=&quot;synIdentifier&quot;&gt;csv_column_names&lt;/span&gt;
+    [&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;ID&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;商品名&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;値段&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;発売日&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;製造元&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;]
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;csv_column_values&lt;/span&gt;
+    [id, name, price, released_on, manufacture.name]
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;では、ダウンロードファイルを見てみましょう。画面と同じになりました。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141115/20141115134802.png&quot; alt=&quot;f:id:nipe880324:20141115134802p:plain:w320&quot; title=&quot;f:id:nipe880324:20141115134802p:plain:w320&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:320px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;csv_export_download_excel&quot;&gt;Excelのダウンロード機能の実装&lt;/h3&gt;では、次は、Excelで出力するようにしてみます。&lt;br /&gt;
+こちらもCSVとほぼ同じです。&lt;/p&gt;&lt;p&gt;Excelのダウンロードボタンを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/products/index.html.erb
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  Download:
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;CSV&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, products_path(format: &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;csv&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;) %&amp;gt;&lt;/span&gt;
+  |
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Excel&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, products_path(format: &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;xls&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;) %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;そして、コントローラーに&lt;code&gt;xls&lt;/code&gt;を追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/contollers/products_contoller.rb&lt;/span&gt;
+
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ProductsController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;index&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@products&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.includes(&lt;span class=&quot;synConstant&quot;&gt;:manufacture&lt;/span&gt;)
+
+    respond_to &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;format&lt;/span&gt;|
+      format.html
+      format.csv { send_data &lt;span class=&quot;synIdentifier&quot;&gt;@products&lt;/span&gt;.to_csv }
+      format.xls { send_data &lt;span class=&quot;synIdentifier&quot;&gt;@products&lt;/span&gt;.to_csv(&lt;span class=&quot;synConstant&quot;&gt;col_sep&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;\t&amp;quot;&lt;/span&gt;) }
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;そして、CSV.generateにオプションを指定するようにします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/models/product.rb&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;self&lt;/span&gt;.&lt;span class=&quot;synIdentifier&quot;&gt;to_csv&lt;/span&gt;(options = {})
+    &lt;span class=&quot;synType&quot;&gt;CSV&lt;/span&gt;.generate(options) &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;csv&lt;/span&gt;|
+      csv &amp;lt;&amp;lt; csv_column_names
+      all.each &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;product&lt;/span&gt;|
+        csv &amp;lt;&amp;lt; product.csv_column_values
+      &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;そして、RailsからExcelを返せるようにするためにMIME TYPEを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# config/initializers/mime_types.rb&lt;/span&gt;
+
+&lt;span class=&quot;synType&quot;&gt;Mime&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Type&lt;/span&gt;.register &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;application/xls&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:xls&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;では、サーバーを再起動して、Excelファイルがダウンロードできることを確認しましょう。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141115/20141115134824.png&quot; alt=&quot;f:id:nipe880324:20141115134824p:plain:w380&quot; title=&quot;f:id:nipe880324:20141115134824p:plain:w380&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:380px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    &lt;p&gt;  - &lt;a href=&quot;http://railscasts.com/episodes/362-exporting-csv-and-excel&quot;&gt;RailsCast #362 - Exporting CSV and Excel &lt;/a&gt;&lt;/p&gt;
+
+&lt;/div&gt;</description>
+          <pubDate>Wed, 19 Nov 2014 21:01:12 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450073903806</guid>
+          
+            <category>CSV/Excel</category>
+          
+        </item>
+      
+    
+  </channel>
+</rss>

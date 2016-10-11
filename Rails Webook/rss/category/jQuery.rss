@@ -1,0 +1,454 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>jQuery - Rails Webook</title>
+    <link>http://ruby-rails.hatenadiary.com/category/jQuery</link>
+    <description>自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</description>
+    <lastBuildDate>Fri, 18 Dec 2015 02:44:31 +0900</lastBuildDate>
+    <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+    <generator>Hatena::Blog</generator>
+    
+      
+      
+        <item>
+          <title>jQueryによるDOM操作をまとめてみた</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20150331/1427809820</link>
+          <description>&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150311/20150311124141.jpg&quot; alt=&quot;f:id:nipe880324:20150311124141j:plain&quot; title=&quot;f:id:nipe880324:20150311124141j:plain&quot; class=&quot;hatena-fotolife&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+&lt;i&gt;Photo by &lt;a href=&quot;https://www.flickr.com/photos/alcaide/&quot;&gt;Flickr: J. A. Alcaide&amp;#39;s Photostream&lt;/a&gt;&lt;/i&gt;&lt;/p&gt;&lt;p&gt;jQueryを使うことでブラウザ間の違いを吸収しながらも、簡易にDOM操作のJavaScriptコードを記載することができます。&lt;br /&gt;
+よく使われるjQueryのDOM操作のメソッドをまとめました。&lt;/p&gt;&lt;p&gt;また、jQuery1.x系とjQuery 2.x系の選択基準として、&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;1.x系は IE8 以前をサポートするレガシーブラウザ向けのバージョン&lt;/li&gt;
+&lt;li&gt;2.x系は IE8 以前のサポートは捨てて、高速に安定して動作させることを目指したバージョン&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;ですので、適切なjQueryのバージョンを選んでください。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#jquery-dom-ready&quot;&gt;jQueryの初期化処理の記述場所&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#jquery-dom-append&quot;&gt;子要素の追加(append, appendTo, prepend, prependTo)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#jquery-dom-after&quot;&gt;要素の挿入(after, insertAfter, before, insertBefore)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#jquery-dom-replace&quot;&gt;要素の置換(replaceWith, replaceAll)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#jquery-dom-remove&quot;&gt;要素の削除(remove, empty)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#jquery-dom-attr&quot;&gt;属性の追加/設定/削除(attr, removeAttr)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#jquery-dom-text-html&quot;&gt;要素のコンテンツの取得/設定(text, html)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#jquery-dom-css&quot;&gt;CSSスタイルの操作(css, addClass, removeClass, toggleClass)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#jquery-dom-hide-show&quot;&gt;表示/非表示(hide, show, toggle)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#jquery-dom-form&quot;&gt;フォームの入力項目の値の取得/設定(val)&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;jquery-dom-ready&quot;&gt;1. jQueryの初期化処理の記述場所&lt;/h3&gt;HTMLのロードが完了してからイベントハンドラの登録などの処理を行うようにしたいので、&lt;br /&gt;
+jQueryの&lt;code&gt;ready&lt;/code&gt;メソッド内で処理を記述します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;$(&lt;span class=&quot;synStatement&quot;&gt;document&lt;/span&gt;).ready(&lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;()&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;// イベントハンドラの登録などのコード&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;jquery-dom-append&quot;&gt;2. 子要素の追加(append, appendTo, prepend, prependTo)&lt;/h3&gt;&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;$li = $(&lt;span class=&quot;synConstant&quot;&gt;&#39;&amp;lt;li&amp;gt;&#39;&lt;/span&gt;).text(&lt;span class=&quot;synConstant&quot;&gt;&#39;これは子要素のli要素&#39;&lt;/span&gt;);
+
+&lt;span class=&quot;synComment&quot;&gt;// ulの子要素の末尾にliを追加&lt;/span&gt;
+$(&lt;span class=&quot;synConstant&quot;&gt;&#39;ul&#39;&lt;/span&gt;).append($li);
+$li.appendTo($(&lt;span class=&quot;synConstant&quot;&gt;&#39;ul&#39;&lt;/span&gt;));
+
+&lt;span class=&quot;synComment&quot;&gt;// ulの子要素の先頭にliを追加&lt;/span&gt;
+$(&lt;span class=&quot;synConstant&quot;&gt;&#39;ul&#39;&lt;/span&gt;).prepend($li);
+$li.prependTo($(&lt;span class=&quot;synConstant&quot;&gt;&#39;ul&#39;&lt;/span&gt;));
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;jquery-dom-after&quot;&gt;3. 要素の挿入(after, insertAfter, before, insertBefore)&lt;/h3&gt;&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;$newLi = $(&lt;span class=&quot;synConstant&quot;&gt;&#39;&amp;lt;li&amp;gt;&#39;&lt;/span&gt;).text(&lt;span class=&quot;synConstant&quot;&gt;&#39;これは挿入するli要素&#39;&lt;/span&gt;);
+
+&lt;span class=&quot;synComment&quot;&gt;// li要素の直後に新たなli要素を挿入&lt;/span&gt;
+$(&lt;span class=&quot;synConstant&quot;&gt;&#39;li&#39;&lt;/span&gt;).after($newLi);
+$newLi.insertAfter($(&lt;span class=&quot;synConstant&quot;&gt;&#39;li&#39;&lt;/span&gt;));
+
+&lt;span class=&quot;synComment&quot;&gt;// li要素の直前に新たなli要素を挿入&lt;/span&gt;
+$(&lt;span class=&quot;synConstant&quot;&gt;&#39;li&#39;&lt;/span&gt;).before($newLi);
+$newLi.insertBefore($(&lt;span class=&quot;synConstant&quot;&gt;&#39;li&#39;&lt;/span&gt;));
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;jquery-dom-replace&quot;&gt;4. 要素の置換(replaceWith, replaceAll)&lt;/h3&gt;&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// div要素を置換&lt;/span&gt;
+$(&lt;span class=&quot;synConstant&quot;&gt;&#39;div&#39;&lt;/span&gt;).replaceWith($(&lt;span class=&quot;synConstant&quot;&gt;&#39;div&#39;&lt;/span&gt;).text(&lt;span class=&quot;synConstant&quot;&gt;&#39;要素を置換&#39;&lt;/span&gt;));
+
+&lt;span class=&quot;synComment&quot;&gt;// 上記のコードと同じ&lt;/span&gt;
+$(&lt;span class=&quot;synConstant&quot;&gt;&#39;&amp;lt;div要素を置換&amp;gt;&amp;lt;/div&amp;gt;&#39;&lt;/span&gt;).replaceAll($(&lt;span class=&quot;synConstant&quot;&gt;&#39;div&#39;&lt;/span&gt;));
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;jquery-dom-remove&quot;&gt;5. 要素の削除(remove, empty)&lt;/h3&gt;&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// すべてのdiv要素を削除&lt;/span&gt;
+$(&lt;span class=&quot;synConstant&quot;&gt;&#39;div&#39;&lt;/span&gt;).remove();
+
+&lt;span class=&quot;synComment&quot;&gt;// すべてのli要素のうちclass属性がoddのものを削除&lt;/span&gt;
+$(&lt;span class=&quot;synConstant&quot;&gt;&#39;div&#39;&lt;/span&gt;).remove(&lt;span class=&quot;synConstant&quot;&gt;&#39;.odd&#39;&lt;/span&gt;);
+
+&lt;span class=&quot;synComment&quot;&gt;// div要素の子要素をすべて削除&lt;/span&gt;
+$(&lt;span class=&quot;synConstant&quot;&gt;&#39;div&#39;&lt;/span&gt;).empty();
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;jquery-dom-attr&quot;&gt;6. 属性の追加/設定/削除(attr, removeAttr)&lt;/h3&gt;&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// a要素のhref属性を取得&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; url = $(&lt;span class=&quot;synConstant&quot;&gt;&#39;a&#39;&lt;/span&gt;).attr(&lt;span class=&quot;synConstant&quot;&gt;&#39;href&#39;&lt;/span&gt;);
+
+&lt;span class=&quot;synComment&quot;&gt;// a要素のhref属性を設定&lt;/span&gt;
+$(&lt;span class=&quot;synConstant&quot;&gt;&#39;a&#39;&lt;/span&gt;).attr(&lt;span class=&quot;synConstant&quot;&gt;&#39;href&#39;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;&#39;http://www.new.co.jp&#39;&lt;/span&gt;);
+
+&lt;span class=&quot;synComment&quot;&gt;// 複数の属性をまとめて設定&lt;/span&gt;
+$(&lt;span class=&quot;synConstant&quot;&gt;&#39;a&#39;&lt;/span&gt;).attr(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  title: &lt;span class=&quot;synConstant&quot;&gt;&#39;Google&#39;&lt;/span&gt;,
+  href: &lt;span class=&quot;synConstant&quot;&gt;&#39;http://www.new.co.jp&#39;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+
+&lt;span class=&quot;synComment&quot;&gt;// a要素のhref属性を削除&lt;/span&gt;
+$(&lt;span class=&quot;synConstant&quot;&gt;&#39;a&#39;&lt;/span&gt;).removeAttr(&lt;span class=&quot;synConstant&quot;&gt;&#39;href&#39;&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;jquery-dom-text-html&quot;&gt;7. 要素のコンテンツの取得/設定(text, html)&lt;/h3&gt;&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// h1要素内のテキストの設定と取得&lt;/span&gt;
+$(&lt;span class=&quot;synConstant&quot;&gt;&#39;h1&#39;&lt;/span&gt;).text(&lt;span class=&quot;synConstant&quot;&gt;&#39;Hello, world&#39;&lt;/span&gt;);
+&lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; text = $(&lt;span class=&quot;synConstant&quot;&gt;&#39;h1&#39;&lt;/span&gt;).text(); &lt;span class=&quot;synComment&quot;&gt;// =&amp;gt; &#39;Hello, world&#39;&lt;/span&gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;// h1要素内のHTMLの設定と取得&lt;/span&gt;
+$(&lt;span class=&quot;synConstant&quot;&gt;&#39;h1&#39;&lt;/span&gt;).html(&lt;span class=&quot;synConstant&quot;&gt;&#39;&amp;lt;a href=&amp;quot;http://sample.co.jp&amp;quot;&amp;gt;Hello, world&amp;lt;/a&amp;gt;&#39;&lt;/span&gt;);
+&lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; html = $(&lt;span class=&quot;synConstant&quot;&gt;&#39;h1&#39;&lt;/span&gt;).html(); &lt;span class=&quot;synComment&quot;&gt;// =&amp;gt; &amp;lt;a href=&amp;quot;http://sample.co.jp&amp;quot;&amp;gt;Hello, world&amp;lt;/a&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;jquery-dom-css&quot;&gt;8. CSSスタイルの操作(css, addClass, removeClass, toggleClass)&lt;/h3&gt;&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// スタイルの設定と取得&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;// JSとCSSが密結合してしまうので、下記のaddClass/removeClassを使う方がよい&lt;/span&gt;
+$(&lt;span class=&quot;synConstant&quot;&gt;&#39;h1&#39;&lt;/span&gt;).css(&lt;span class=&quot;synConstant&quot;&gt;&#39;color&#39;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;&#39;red&#39;&lt;/span&gt;);
+&lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; color = $(&lt;span class=&quot;synConstant&quot;&gt;&#39;h1&#39;&lt;/span&gt;).css(&lt;span class=&quot;synConstant&quot;&gt;&#39;color&#39;&lt;/span&gt;); &lt;span class=&quot;synComment&quot;&gt;// =&amp;gt; rgb(255, 0, 0)&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;// class属性にtitleクラスを追加&lt;/span&gt;
+$(&lt;span class=&quot;synConstant&quot;&gt;&#39;h1&#39;&lt;/span&gt;).addClass(&lt;span class=&quot;synConstant&quot;&gt;&#39;title&#39;&lt;/span&gt;);
+
+&lt;span class=&quot;synComment&quot;&gt;// class属性にtitleクラスを削除&lt;/span&gt;
+$(&lt;span class=&quot;synConstant&quot;&gt;&#39;h1&#39;&lt;/span&gt;).removeClass(&lt;span class=&quot;synConstant&quot;&gt;&#39;title&#39;&lt;/span&gt;);
+
+&lt;span class=&quot;synComment&quot;&gt;// class属性にtitleクラスの追加/削除を切り替える&lt;/span&gt;
+$(&lt;span class=&quot;synConstant&quot;&gt;&#39;h1&#39;&lt;/span&gt;).toggleClass(&lt;span class=&quot;synConstant&quot;&gt;&#39;title&#39;&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;jquery-dom-hide-show&quot;&gt;9. 表示/非表示(hide, show, toggle)&lt;/h3&gt;&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// id属性がcontentsの要素を非表示にする&lt;/span&gt;
+$(&lt;span class=&quot;synConstant&quot;&gt;&#39;#contents&#39;&lt;/span&gt;).hide();
+
+&lt;span class=&quot;synComment&quot;&gt;// id属性がcontentsの要素を表示にする&lt;/span&gt;
+$(&lt;span class=&quot;synConstant&quot;&gt;&#39;#contents&#39;&lt;/span&gt;).show();
+
+&lt;span class=&quot;synComment&quot;&gt;// id属性がcontentsの要素を表示/非表示を切り替える&lt;/span&gt;
+$(&lt;span class=&quot;synConstant&quot;&gt;&#39;#contents&#39;&lt;/span&gt;).toggle();
+&lt;/pre&gt;&lt;p&gt;※あまり大きい範囲にhide()やshow()をやるとパフォーマンスが悪くなる場合があるらしい。エッジケースのためにjQueryが特別な処理をやっていてそれがネックになるらしい&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;jquery-dom-form&quot;&gt;10. フォームの入力項目の値の取得/設定(val)&lt;/h3&gt;&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;テキストフィールドの値の取得と設定&lt;/h4&gt;
+    &lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;$(&lt;span class=&quot;synConstant&quot;&gt;&#39;#email&#39;&lt;/span&gt;).val(&lt;span class=&quot;synConstant&quot;&gt;&#39;satoshi@email.com&#39;&lt;/span&gt;); &lt;span class=&quot;synComment&quot;&gt;// 値の設定&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; email = $(&lt;span class=&quot;synConstant&quot;&gt;&#39;#email&#39;&lt;/span&gt;).val();        &lt;span class=&quot;synComment&quot;&gt;// 値の取得(&#39;satoshi@email.com&#39;)&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;チェックされているラジオボタンの取得&lt;/h4&gt;
+    &lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&amp;lt;input type=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;radio&amp;quot;&lt;/span&gt; name=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;gender&amp;quot;&lt;/span&gt; id=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;man&amp;quot;&lt;/span&gt; value=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;1&amp;quot;&lt;/span&gt;&amp;gt;
+&amp;lt;label &lt;span class=&quot;synStatement&quot;&gt;for&lt;/span&gt;=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;man&amp;quot;&lt;/span&gt;&amp;gt;男性&amp;lt;/label&amp;gt;
+&amp;lt;input type=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;radio&amp;quot;&lt;/span&gt; name=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;gender&amp;quot;&lt;/span&gt; id=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;woman&amp;quot;&lt;/span&gt; value=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;2&amp;quot;&lt;/span&gt;&amp;gt;
+&amp;lt;label &lt;span class=&quot;synStatement&quot;&gt;for&lt;/span&gt;=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;woman&amp;quot;&lt;/span&gt;&amp;gt;女性&amp;lt;/label&amp;gt;
+&amp;lt;input type=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;radio&amp;quot;&lt;/span&gt; name=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;gender&amp;quot;&lt;/span&gt; id=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;other&amp;quot;&lt;/span&gt; value=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;3&amp;quot;&lt;/span&gt;&amp;gt;
+&amp;lt;label &lt;span class=&quot;synStatement&quot;&gt;for&lt;/span&gt;=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;other&amp;quot;&lt;/span&gt;&amp;gt;その他&amp;lt;/label&amp;gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;// チェックされていないラジオボタンの取得&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; checkedValue = $(&lt;span class=&quot;synConstant&quot;&gt;&#39;input[name=gender]:checked&#39;&lt;/span&gt;).val();
+&lt;span class=&quot;synComment&quot;&gt;// =&amp;gt; undefine (チェックされていない場合)&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;// =&amp;gt; &amp;quot;1&amp;quot;      (男性がチェックされている場合)&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;チェックされているチェックボックスの取得&lt;/h4&gt;
+    &lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&amp;lt;input type=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;checkbox&amp;quot;&lt;/span&gt; name=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;hobby&amp;quot;&lt;/span&gt; id=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;sport&amp;quot;&lt;/span&gt; value=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;1&amp;quot;&lt;/span&gt;&amp;gt;
+&amp;lt;label &lt;span class=&quot;synStatement&quot;&gt;for&lt;/span&gt;=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;sport&amp;quot;&lt;/span&gt;&amp;gt;スポーツ&amp;lt;/label&amp;gt;
+&amp;lt;input type=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;checkbox&amp;quot;&lt;/span&gt; name=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;hobby&amp;quot;&lt;/span&gt; id=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;travel&amp;quot;&lt;/span&gt; value=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;2&amp;quot;&lt;/span&gt;&amp;gt;
+&amp;lt;label &lt;span class=&quot;synStatement&quot;&gt;for&lt;/span&gt;=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;travel&amp;quot;&lt;/span&gt;&amp;gt;旅行&amp;lt;/label&amp;gt;
+&amp;lt;input type=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;checkbox&amp;quot;&lt;/span&gt; name=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;hobby&amp;quot;&lt;/span&gt; id=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;reading&amp;quot;&lt;/span&gt; value=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;3&amp;quot;&lt;/span&gt;&amp;gt;
+&amp;lt;label &lt;span class=&quot;synStatement&quot;&gt;for&lt;/span&gt;=&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;reading&amp;quot;&lt;/span&gt;&amp;gt;読書&amp;lt;/label&amp;gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;// チェックされているチェックボックスの取得&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; checkedValues = $(&lt;span class=&quot;synConstant&quot;&gt;&#39;input[name=hobby]:checked&#39;&lt;/span&gt;).map(&lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;(_, element) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; element.value; &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;span class=&quot;synComment&quot;&gt;// =&amp;gt; []         (チェックされていない場合)&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;// =&amp;gt; [&amp;quot;1&amp;quot;, &amp;quot;2&amp;quot;] (スポーツと旅行が選択されている場合)&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;独習JavaScript 第2版&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Tue, 31 Mar 2015 22:50:20 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450087766426</guid>
+          
+            <category>Javascript</category>
+          
+            <category>jQuery</category>
+          
+            <category>まとめ</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>jQueryの疎結合なイベント処理</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20150326/1427379215</link>
+          <description>&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150311/20150311131822.jpg&quot; alt=&quot;f:id:nipe880324:20150311131822j:plain&quot; title=&quot;f:id:nipe880324:20150311131822j:plain&quot; class=&quot;hatena-fotolife&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+&lt;i&gt;Photo by &lt;a href=&quot;https://www.flickr.com/photos/mandj98/&quot;&gt;Flickr: James Marvin Phelps&amp;#39; Photostream&lt;/a&gt;&lt;/i&gt;&lt;/p&gt;&lt;p&gt;jQueryを使ってイベント処理の登録と削除方法、登録できるイベントの一覧を説明します。&lt;br /&gt;
+また、JavaScriptはイベントを通してHTMLと結びついているので、イベントハンドラのコーディングと修正に多くの時間を使います。&lt;br /&gt;
+そのため、イベントハンドラとアプリケーションロジックを分離することで、疎結合にする考え方も説明します。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#jquery-event-on&quot;&gt;イベントハンドラの登録(on)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#jquery-event-off&quot;&gt;イベントハンドラの削除(off)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#jquery-event-list&quot;&gt;イベント一覧&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#jquery-event-good-design&quot;&gt;イベントハンドラとアプリケーションロジックを分離する&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;jquery-event-on&quot;&gt;1. イベントハンドラの登録(on)&lt;/h3&gt;&lt;code&gt;on&lt;/code&gt;メソッドを使うことでイベントハンドラを登録することができます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// クリックのイベントハンドラを登録&lt;/span&gt;
+$(&lt;span class=&quot;synConstant&quot;&gt;&#39;#confirm&#39;&lt;/span&gt;).on(&lt;span class=&quot;synConstant&quot;&gt;&#39;click&#39;&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;confirm&lt;/span&gt;(&lt;span class=&quot;synConstant&quot;&gt;&#39;送信しますか？&#39;&lt;/span&gt;);
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+
+&lt;span class=&quot;synComment&quot;&gt;// 第二引数にセレクタを指定することで、現在の要素だけでなく、今後動的に追加された要素にもイベントハンドラを登録する&lt;/span&gt;
+$(&lt;span class=&quot;synConstant&quot;&gt;&#39;#confirm&#39;&lt;/span&gt;).on(&lt;span class=&quot;synConstant&quot;&gt;&#39;click&#39;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;&#39;input[type=submit]&#39;&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;// ...&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;jquery-event-off&quot;&gt;2. イベントハンドラの削除(off)&lt;/h3&gt;逆に&lt;code&gt;off&lt;/code&gt;メソッドを使うことで、登録してあるイベントハンドラを削除できます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// すべてのイベントハンドラを削除&lt;/span&gt;
+$(&lt;span class=&quot;synConstant&quot;&gt;&#39;#confirm&#39;&lt;/span&gt;).off();
+
+&lt;span class=&quot;synComment&quot;&gt;// clickのイベントハンドラを削除&lt;/span&gt;
+$(&lt;span class=&quot;synConstant&quot;&gt;&#39;#confirm&#39;&lt;/span&gt;).off(&lt;span class=&quot;synConstant&quot;&gt;&#39;click&#39;&lt;/span&gt;);
+
+&lt;span class=&quot;synComment&quot;&gt;// body要素ないのすべての送信ボタン(input[type=submit])からclickのイベントハンドラを削除&lt;/span&gt;
+$(&lt;span class=&quot;synConstant&quot;&gt;&#39;body&#39;&lt;/span&gt;).off(&lt;span class=&quot;synConstant&quot;&gt;&#39;click&#39;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;&#39;input[type=submit]&#39;&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;jquery-event-list&quot;&gt;3. イベント一覧&lt;/h3&gt;利用可能なイベントをまとめました。&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;&lt;th&gt;名前 &lt;/th&gt; &lt;th&gt;発生タイミング&lt;/th&gt;&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;&lt;td&gt;blur &lt;/td&gt; &lt;td&gt;要素からフォーカスが外れた&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;change &lt;/td&gt; &lt;td&gt;要素の値が変化した&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;click&lt;/td&gt; &lt;td&gt;要素がクリックされた&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;dblclick &lt;/td&gt; &lt;td&gt;要素がダブルクリックされた&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;error&lt;/td&gt; &lt;td&gt;画像の読み込みに失敗した&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;focus&lt;/td&gt; &lt;td&gt;要素にフォーカスが移動した&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;focusin&lt;/td&gt; &lt;td&gt;要素にフォーカスが移動した&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;focusout&lt;/td&gt; &lt;td&gt;要素からフォーカスが外れた&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;keydown&lt;/td&gt; &lt;td&gt;キーが押された&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;keypress &lt;/td&gt; &lt;td&gt;キーが押されている&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;keyup&lt;/td&gt; &lt;td&gt;キーを離した&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;load &lt;/td&gt; &lt;td&gt;ページ（要素）がロードされた&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;mousedown&lt;/td&gt; &lt;td&gt;マウスのボタンが押された&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;mouseenter &lt;/td&gt; &lt;td&gt;マウス・ポインタが要素に乗った&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;mouseleave &lt;/td&gt; &lt;td&gt;マウス・ポインタが要素から離れた&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;mousemove&lt;/td&gt; &lt;td&gt;マウス・ポインタが要素の中で移動&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;mouseout &lt;/td&gt; &lt;td&gt;マウス・ポインタが要素から離れた&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;mouseover&lt;/td&gt; &lt;td&gt;マウス・ポインタが要素に乗った&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;mouseup&lt;/td&gt; &lt;td&gt;マウスのボタンを離した&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;resize &lt;/td&gt; &lt;td&gt;ウィンドウをリサイズ&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;scroll &lt;/td&gt; &lt;td&gt;スクロールした&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;select &lt;/td&gt; &lt;td&gt;テキストボックス／テキストエリアのテキストを選択した&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;submit &lt;/td&gt; &lt;td&gt;フォームをサブミットした&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;unload &lt;/td&gt; &lt;td&gt;ページをアンロード&lt;/td&gt;&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;jquery-event-good-design&quot;&gt;4. イベントハンドラとアプリケーションロジックを分離する&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;イベントハンドラとアプリケーションロジックが結合している悪いコードです。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// Bad&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt; handleClick(&lt;span class=&quot;synStatement&quot;&gt;event&lt;/span&gt;) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; popup = &lt;span class=&quot;synStatement&quot;&gt;document&lt;/span&gt;.getElementById(&lt;span class=&quot;synConstant&quot;&gt;&#39;popup&#39;&lt;/span&gt;);
+  popup.style.left = &lt;span class=&quot;synStatement&quot;&gt;event&lt;/span&gt;.clientX + &lt;span class=&quot;synConstant&quot;&gt;&#39;px&#39;&lt;/span&gt;;
+  popup.style.&lt;span class=&quot;synStatement&quot;&gt;top&lt;/span&gt;  = &lt;span class=&quot;synStatement&quot;&gt;event&lt;/span&gt;.clientY + &lt;span class=&quot;synConstant&quot;&gt;&#39;px&#39;&lt;/span&gt;;
+  popup.className  = &lt;span class=&quot;synConstant&quot;&gt;&#39;reveal&#39;&lt;/span&gt;;
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+
+$(&lt;span class=&quot;synConstant&quot;&gt;&#39;#element&#39;&lt;/span&gt;).on(&lt;span class=&quot;synConstant&quot;&gt;&#39;click&#39;&lt;/span&gt;, handleClick());
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+まずは、「イベントハンドラとアプリケーションロジックを切り分ける」ことを行います。&lt;br /&gt;
+&lt;code&gt;showPopup&lt;/code&gt;メソッドを新たに作り、イベントハンドラからアプリケーションロジックを切り分けます。&lt;br /&gt;
+こうすることで、アプリケーションロジック(shosPopup)を複数の地点から呼び出すことができるようになる。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; MyApp = &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+
+  handleClick: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;(&lt;span class=&quot;synStatement&quot;&gt;event&lt;/span&gt;) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;// showPopupにアプリケーションロジックを分離する&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.showPopup(&lt;span class=&quot;synStatement&quot;&gt;event&lt;/span&gt;);
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;,
+
+  &lt;span class=&quot;synComment&quot;&gt;// showPopupにアプリケーションロジックを分離する&lt;/span&gt;
+  showPopup: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;(&lt;span class=&quot;synStatement&quot;&gt;event&lt;/span&gt;) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; popup = &lt;span class=&quot;synStatement&quot;&gt;document&lt;/span&gt;.getElementById(&lt;span class=&quot;synConstant&quot;&gt;&#39;popup&#39;&lt;/span&gt;);
+    popup.style.left = &lt;span class=&quot;synStatement&quot;&gt;event&lt;/span&gt;.clientX + &lt;span class=&quot;synConstant&quot;&gt;&#39;px&#39;&lt;/span&gt;;
+    popup.style.&lt;span class=&quot;synStatement&quot;&gt;top&lt;/span&gt;  = &lt;span class=&quot;synStatement&quot;&gt;event&lt;/span&gt;.clientY + &lt;span class=&quot;synConstant&quot;&gt;&#39;px&#39;&lt;/span&gt;;
+    popup.className  = &lt;span class=&quot;synConstant&quot;&gt;&#39;reveal&#39;&lt;/span&gt;;
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;;
+
+$(&lt;span class=&quot;synConstant&quot;&gt;&#39;element&#39;&lt;/span&gt;).on(&lt;span class=&quot;synConstant&quot;&gt;&#39;click&#39;&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;(&lt;span class=&quot;synStatement&quot;&gt;event&lt;/span&gt;) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  MyApp.handleClick(&lt;span class=&quot;synStatement&quot;&gt;event&lt;/span&gt;);
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+次に、「イベントオブジェクト(event)を引き回さない」ようにします。&lt;br /&gt;
+イベントハンドラで引き渡されるイベントオブジェクト(event)は多くの情報を持っています。&lt;br /&gt;
+便利なのですが、eventを関数の引数として引き回すと、関数で必要な情報がわかりづらいのでコードの可読性が下がってしまいます。&lt;br /&gt;
+そのため、必要な値だけを渡すようにします。&lt;/p&gt;&lt;p&gt;&lt;code&gt;showPopup&lt;/code&gt;メソッドは、eventオブジェクトのX, Y座標のみしか使わないので、&lt;code&gt;handleClick&lt;/code&gt;メソッドからは、その2つのみを引数で渡すようにします。&lt;br /&gt;
+こうすることで、&lt;code&gt;showPopup&lt;/code&gt;に必要な値が明確になるので、より他のメソッドから呼びやすくなり、テストもしやすくなります。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; MyApp = &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+
+  handleClick: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;(&lt;span class=&quot;synStatement&quot;&gt;event&lt;/span&gt;) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;// X, Y座標のみを渡す&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.showPopup(&lt;span class=&quot;synStatement&quot;&gt;event&lt;/span&gt;.clientX, &lt;span class=&quot;synStatement&quot;&gt;event&lt;/span&gt;.clientY);
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;,
+
+  showPopup: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;(x, y) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; popup = &lt;span class=&quot;synStatement&quot;&gt;document&lt;/span&gt;.getElementById(&lt;span class=&quot;synConstant&quot;&gt;&#39;popup&#39;&lt;/span&gt;);
+    popup.style.left = x + &lt;span class=&quot;synConstant&quot;&gt;&#39;px&#39;&lt;/span&gt;;
+    popup.style.&lt;span class=&quot;synStatement&quot;&gt;top&lt;/span&gt;  = y + &lt;span class=&quot;synConstant&quot;&gt;&#39;px&#39;&lt;/span&gt;;
+    popup.className  = &lt;span class=&quot;synConstant&quot;&gt;&#39;reveal&#39;&lt;/span&gt;;
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;;
+
+$(&lt;span class=&quot;synConstant&quot;&gt;&#39;element&#39;&lt;/span&gt;).on(&lt;span class=&quot;synConstant&quot;&gt;&#39;click&#39;&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;(&lt;span class=&quot;synStatement&quot;&gt;event&lt;/span&gt;) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  MyApp.handleClick(&lt;span class=&quot;synStatement&quot;&gt;event&lt;/span&gt;);
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+さらに、jQueryのバブリング(伝播)のキャンセル処理を追加する場合は次のようにします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;handleClick: &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;(&lt;span class=&quot;synStatement&quot;&gt;event&lt;/span&gt;) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;// DOM Level 2イベントのサポートが前提&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;event&lt;/span&gt;.preventDefault();  &lt;span class=&quot;synComment&quot;&gt;// その要素のイベントをキャンセル&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;event&lt;/span&gt;.stopPropagation(); &lt;span class=&quot;synComment&quot;&gt;// 親要素への伝播をキャンセル&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;// アプリケーションロジックの実行&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;.showPopup(&lt;span class=&quot;synStatement&quot;&gt;event&lt;/span&gt;.clientX, &lt;span class=&quot;synStatement&quot;&gt;event&lt;/span&gt;.clientY);
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;バブリングの参考URL: &lt;a href=&quot;http://blog.neo.jp/dnblog/index.php?module=Blog&amp;action=Entry&amp;blog=pg&amp;entry=3107&amp;rand=ef81c&quot;&gt;&amp;#x3075;&amp;#x3058;&amp;#x3053;&amp;#x306E;&amp;#x30D7;&amp;#x30ED;&amp;#x30B0;&amp;#x30E9;&amp;#x30DF;&amp;#x30F3;&amp;#x30B0;&amp;#x596E;&amp;#x95D8;&amp;#x8A18;&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;独習JavaScript 第2版&lt;/li&gt;
+&lt;li&gt;メンテナブルJavaScript&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Thu, 26 Mar 2015 23:13:35 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450087768800</guid>
+          
+            <category>Javascript</category>
+          
+            <category>jQuery</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>jQueryによるAjax処理</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20150325/1427291741</link>
+          <description>&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150311/20150311133550.jpg&quot; alt=&quot;f:id:nipe880324:20150311133550j:plain&quot; title=&quot;f:id:nipe880324:20150311133550j:plain&quot; class=&quot;hatena-fotolife&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+&lt;i&gt;Photo by &lt;a href=&quot;https://www.flickr.com/photos/josemanuelerre/&quot;&gt;Flickr: josemanuelerre&amp;#39;s Photostream&lt;/a&gt;&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;$.get&lt;/li&gt;
+&lt;li&gt;$.post&lt;/li&gt;
+&lt;li&gt;$.load&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;1. $.get&lt;/h3&gt;
+    &lt;p&gt;&lt;code&gt;$.get&lt;/code&gt;メソッドで、Ajaxで&#39;/data.json&#39;にGETリクエストを行います。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;$.get(&lt;span class=&quot;synConstant&quot;&gt;&#39;/data.json&#39;&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;(data) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;// 成功時に行われる処理&lt;/span&gt;
+  console.log(&lt;span class=&quot;synConstant&quot;&gt;&#39;callback&#39;&lt;/span&gt; + data);
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;)
+.fail(&lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;(data) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;// 失敗時に行われる処理&lt;/span&gt;
+  console.log(&lt;span class=&quot;synConstant&quot;&gt;&#39;Failed&#39;&lt;/span&gt;);
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;2. $.post&lt;/h3&gt;
+    &lt;p&gt;&lt;code&gt;$.post&lt;/code&gt;メソッドで、Ajaxで&#39;/post.php&#39;にPOSTリクエストを行います。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;$.post(&lt;span class=&quot;synConstant&quot;&gt;&#39;/post.php&#39;&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;// 第二引数は、POSTするパラメータ&lt;/span&gt;
+  title: &lt;span class=&quot;synConstant&quot;&gt;&#39;Post Title&#39;&lt;/span&gt;,
+  body:  &lt;span class=&quot;synConstant&quot;&gt;&#39;Post Content&#39;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;(data) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;// 成功時に行われる処理&lt;/span&gt;
+  console.log(&lt;span class=&quot;synConstant&quot;&gt;&#39;callback&#39;&lt;/span&gt; + data);
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;)
+.fail(&lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;(data) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;// 失敗時に行われる処理&lt;/span&gt;
+  console.log(&lt;span class=&quot;synConstant&quot;&gt;&#39;Failed&#39;&lt;/span&gt;);
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;3. $.load&lt;/h3&gt;
+    &lt;p&gt;&lt;code&gt;$.load&lt;/code&gt;はHTMLを読み込み、DOMに挿入します。&lt;br /&gt;
+なんど&lt;code&gt;load()&lt;/code&gt;を実行しても&lt;code&gt;append()&lt;/code&gt;のように要素は追加されません。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;$(&lt;span class=&quot;synStatement&quot;&gt;document&lt;/span&gt;).ready(&lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;()&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;// イベント処理の登録&lt;/span&gt;
+  $(&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;#todo-list&amp;quot;&lt;/span&gt;).on(&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;click&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    loadTodos( $(&lt;span class=&quot;synIdentifier&quot;&gt;this&lt;/span&gt;) );
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+
+  &lt;span class=&quot;synComment&quot;&gt;// 指定したエレメントにTodoをロードする&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;// 第一引数 : HTMLを読み込むURL&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;// 第二引数 : パラメータ。指定するとPOSTメソッドになる。&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;// 　　　　　GETでパラメータを渡したい場合はURLにクエリストリング(?id=xxx&amp;amp;q=yyy)で指定する(省略化)&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;// 第三引数：通信完了後に実行されるコールバック&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; loadTodos = &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt; (element) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    element.load(&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;/todos/index.html&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+      &lt;span class=&quot;synComment&quot;&gt;// 通信完了時のコールバック関数&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+Ajax時にURLが変わらないので、ブラウザの戻るや進むボタンが使いづらいという問題があります。&lt;br /&gt;
+それを解決する方法として、&lt;a href=&quot;http://falsandtru.github.io/jquery-pjax/&quot;&gt;PJAX&lt;/a&gt;という解決策があります。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;独習JavaScript 第2版&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://api.jquery.com/&quot;&gt;jQuery API Documentation&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Wed, 25 Mar 2015 22:55:41 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450087769920</guid>
+          
+            <category>Javascript</category>
+          
+            <category>jQuery</category>
+          
+        </item>
+      
+    
+  </channel>
+</rss>

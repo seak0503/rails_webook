@@ -1,0 +1,1661 @@
+<!DOCTYPE html>
+<html
+  lang="ja"
+data-avail-langs="ja en"
+
+data-page="entry"
+data-static-domain="https://blog.st-hatena.com"
+data-blog="ruby-rails.hatenadiary.com"
+data-blog-name="Rails Webook"
+data-blogs-uri-base="http://ruby-rails.hatenadiary.com"
+data-globalheader-color="b"
+data-author="nipe880324"
+data-version="228df9a6e5a3ae04fdb53d33befa3556"
+data-blog-comments-top-is-new=""
+data-plus-available=""
+
+
+
+data-admin-domain="http://blog.hatena.ne.jp"
+
+data-brand="hatenablog"
+
+data-has-touch-view="1"
+
+
+itemscope
+itemtype="http://schema.org/Article"
+
+
+  data-device="pc"
+  data-globalheader-type="pc"
+  >
+  <head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# article: http://ogp.me/ns/article#">
+    
+    
+    
+
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=7; IE=9; IE=10; IE=11" />
+    <title>Phoenix入門3 - WebSocketのチャット機能 - Rails Webook</title>
+
+    
+
+    
+      <link rel="canonical" href="1444930756.html"/>
+    
+
+    
+    
+
+<meta itemprop="name" content="Phoenix入門3 - WebSocketのチャット機能 - Rails Webook"/>
+
+  <meta itemprop="image" content="http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151011/20151011193641.png"/>
+
+
+    <meta property="og:title" content="Phoenix入門3 - WebSocketのチャット機能 - Rails Webook"/>
+<meta property="og:type" content="article"/>
+<meta property="og:url" content="http://ruby-rails.hatenadiary.com/entry/20151016/1444930756"/>
+
+  <meta property="og:image" content="http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151011/20151011193641.png"/>
+
+    <meta property="og:description" content="Phoenixでチャット機能を実装します。Phoenixでソケット、チャネル、トークン、API作成、モデルのアソシエーションなどを行っていきます。" />
+<meta property="og:site_name" content="http://ruby-rails.hatenadiary.com/"/>
+
+  <meta property="article:published_time" content="1444930756" />
+
+    <meta property="article:tag" content="phoenix" />
+    <meta property="article:tag" content="elixer" />
+        <meta name="twitter:card"  content="summary_large_image" />
+    <meta name="twitter:image" content="http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151011/20151011193641.png" />
+  <meta name="twitter:title" content="Phoenix入門3 - WebSocketのチャット機能 - Rails Webook" />    <meta name="twitter:description" content="Phoenixでチャット機能を実装します。Phoenixでソケット、チャネル、トークン、API作成、モデルのアソシエーションなどを行っていきます。" />  <meta name="twitter:app:name:iphone" content="はてなブログアプリ" />
+  <meta name="twitter:app:id:iphone" content="583299321" />
+  <meta name="twitter:app:url:iphone" content="hatenablog:///open?uri=http%3A%2F%2Fruby-rails.hatenadiary.com%2Fentry%2F20151016%2F1444930756" />  <meta name="twitter:site" content="@nipe032488" />
+    
+    <meta name="google-site-verification" content="OyOieuLgSrQckqbACTn_Q3G1dPq6LMlTqBRHa6V1XsA">    <meta name="keywords" content="Rails,Ruby on Rails,gem,Webアプリケーション,開発,構築,運用,インフラ">    <meta name="description" content="Phoenixでチャット機能を実装します。Phoenixでソケット、チャネル、トークン、API作成、モデルのアソシエーションなどを行っていきます。" />
+
+    
+<script type="text/javascript">
+// <!--
+
+if (~navigator.userAgent.indexOf('Mac OS X')) {
+  document.write('<style type="text/css">html, body { font-family: \x27Helvetica\x27, \x27Arial\x27, \x27ヒラギノ角ゴ Pro W3\x27, \x27Hiragino Kaku Gothic Pro\x27, sans-serif; } </style>');
+} else {
+  document.write('<style type="text/css">html, body { font-family: \x27Helvetica\x27, \x27Arial\x27, \x27メイリオ\x27, \x27Meiryo\x27, \x27MS PGothic\x27, sans-serif; } </style>');
+}
+
+// -->
+</script>
+
+<!--[if lt IE 9]>
+<script src="https://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+
+
+
+
+    <link rel="shortcut icon" href="https://blog.st-hatena.com/images/favicon.ico">
+<link rel="icon" sizes="192x192" href="https://blog.st-hatena.com/images/common/meta-icon-global.png">
+
+    
+<link rel="alternate" type="application/atom+xml" title="Atom" href="../../feed"/>
+<link rel="alternate" type="application/rss+xml" title="RSS2.0" href="../../rss.rss"/>
+<link rel="alternate" type="application/json+oembed" href="http://hatenablog.com/oembed?url=http%3A%2F%2Fruby-rails.hatenadiary.com%2Fentry%2F20151016%2F1444930756&amp;format=json" title="oEmbed Profile of Phoenix入門3 - WebSocketのチャット機能"/>
+<link rel="alternate" type="text/xml+oembed" href="http://hatenablog.com/oembed?url=http%3A%2F%2Fruby-rails.hatenadiary.com%2Fentry%2F20151016%2F1444930756&amp;format=xml" title="oEmbed Profile of Phoenix入門3 - WebSocketのチャット機能"/>
+
+      <link rel="author" href="http://www.hatena.ne.jp/nipe880324/">
+
+    <link rel="stylesheet" type="text/css" href="https://blog.st-hatena.com/css/blog.css?version=228df9a6e5a3ae04fdb53d33befa3556"/>
+
+    
+  <link rel="stylesheet" type="text/css" href="http://blog.hatena.ne.jp/-/blog_style/12921228815727789780/a052dbbef76fd4380abc811c11814f2d9f990b9a"/>
+
+    <script></script>
+
+    
+<style>div#google_afc_user,
+  div#google_afc_user_container_0,
+  div#google_afc_user_container_1,
+  div#google_afc_user_container_2,
+  div#google_afc_user_container_3,
+  div#google_afc_user_container_4,
+  div#google_afc_user_container_5,
+  div.google_afc_image,
+  div.google_afc_blocklink {
+      display: block !important;
+  }
+</style>
+
+
+    
+  </head>
+
+  <body class="page-entry enable-top-editarea enable-bottom-editarea category-phoenix category-elixer">
+    <!-- Google Universal Analytics -->
+<script id="google-analytics-script">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-29716941-6', 'auto', {'name': 'HatenaBlogTracker', 'sampleRate': 1});
+  ga('HatenaBlogTracker.require', 'displayfeatures');
+  ga('HatenaBlogTracker.send', 'pageview');
+  ga('create', 'UA-29716941-26', 'auto', {'name': 'HatenaBlogSeparatedTracker', 'sampleRate': 10});
+  ga('HatenaBlogSeparatedTracker.require', 'displayfeatures');
+  ga('HatenaBlogSeparatedTracker.send', 'pageview');
+
+    
+      ga('create', 'UA-45988509-6', 'auto', {'name': 'HatenaBlogUserTracker'});
+      ga('HatenaBlogUserTracker.require', 'displayfeatures');
+      ga('HatenaBlogUserTracker.send', 'pageview');
+    
+  
+  ga('create', 'UA-7855606-1', 'auto', {'name': 'HatenaGlobalTracker', 'sampleRate': 1});
+  ga('HatenaGlobalTracker.require', 'displayfeatures');
+  ga('HatenaGlobalTracker.send', 'pageview');
+</script>
+<!-- End Google Universal Analytics -->
+
+    
+    <div id="header-container">
+     <div id="sp-suggest" style="display: none;"><a id="sp-suggest-link" href="1444930756.html#">スマートフォン用の表示で見る</a></div>
+    </div>
+
+    
+
+<div class="quote-box">
+  <div class="tooltip-quote tooltip-quote-star">
+    <i class="blogicon-star" title="引用スターをつける"></i>
+  </div>
+  <div class="tooltip-quote tooltip-quote-stock">
+    <i class="blogicon-quote" title="引用をストック"></i>
+  </div>
+</div>
+
+<div class="message-box" id="quote-star-message-box" style="display: none; position: absolute;">
+  スターをつけました
+</div>
+
+<div class="quote-stock-panel" id="quote-stock-message-box" style="position: absolute; z-index: 3000">
+  <div class="message-box" id="quote-stock-succeeded-message" style="display: none">
+    <p>引用をストックしました</p>
+    <button class="btn btn-primary" id="quote-stock-show-editor-button" data-track-name="curation-quote-edit-button">ストック一覧を見る</button>
+    <button class="btn quote-stock-close-message-button">閉じる</button>
+  </div>
+
+  <div class="message-box" id="quote-login-required-message" style="display: none">
+    <p>引用するにはまずログインしてください</p>
+    <button class="btn btn-primary" id="quote-login-button">ログイン</button>
+    <button class="btn quote-stock-close-message-button">閉じる</button>
+  </div>
+
+  <div class="error-box" id="quote-stock-failed-message" style="display: none">
+    <p>引用をストックできませんでした。再度お試しください</p>
+    <button class="btn quote-stock-close-message-button">閉じる</button>
+  </div>
+
+  <div class="error-box" id="unstockable-quote-message-box" style="display: none; position: absolute; z-index: 3000;">
+    <p>限定公開記事のため引用できません。</p>
+  </div>
+</div>
+
+<script type="x-underscore-template" id="js-requote-button-template">
+  <div class="requote-button js-requote-button">
+    <button class="requote-button-btn tipsy-top" title="引用する"><i class="blogicon-quote"></i></button>
+  </div>
+</script>
+
+
+    <div id="globalheader-container" >
+  <iframe id="globalheader" height="37" frameborder="0" allowTransparency="true"></iframe>
+</div>
+
+
+    
+    <div id="hidden-subscribe-button">
+      <div class="hatena-follow-button-box btn-subscribe js-hatena-follow-button-box"
+  
+  >
+
+  <a href="1444930756.html#" class="hatena-follow-button js-hatena-follow-button">
+    <span class="subscribing">
+      <span class="foreground">読者です</span>
+      <span class="background">読者をやめる</span>
+    </span>
+    <span class="unsubscribing" data-track-name="profile-widget-subscribe-button" data-track-once>
+      <span class="foreground">読者になる</span>
+      <span class="background">読者になる</span>
+    </span>
+  </a>
+  <div class="subscription-count-box js-subscription-count-box">
+    <i></i>
+    <u></u>
+    <span class="subscription-count js-subscription-count">
+    </span>
+  </div>
+</div>
+
+    </div>
+
+    <div id="container">
+      <div id="container-inner">
+        <header id="blog-title" data-brand="hatenablog">
+  <div id="blog-title-inner" >
+    <div id="blog-title-content">
+      <h1 id="title"><a href="../../index.html">Rails Webook</a></h1>
+      
+        <h2 id="blog-description">自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</h2>
+      
+    </div>
+  </div>
+</header>
+
+        
+          <div id="top-editarea">
+            <!-- start Mixpanel --><script type="text/javascript">(function(e,b){if(!b.__SV){var a,f,i,g;window.mixpanel=b;b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable time_event track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.union people.track_charge people.clear_charges people.delete_user".split(" ");
+for(g=0;g<i.length;g++)f(c,i[g]);b._i.push([a,e,d])};b.__SV=1.2;a=e.createElement("script");a.type="text/javascript";a.async=!0;a.src="undefined"!==typeof MIXPANEL_CUSTOM_LIB_URL?MIXPANEL_CUSTOM_LIB_URL:"file:"===e.location.protocol&&"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js".match(/^\/\//)?"https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js":"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js";f=e.getElementsByTagName("script")[0];f.parentNode.insertBefore(a,f)}})(document,window.mixpanel||[]);
+mixpanel.init("16db652100dca0a23c6a55a9205f0824");</script><!-- end Mixpanel -->
+<script async src="http://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- rails top bar 728 x 90 -->
+<ins class="adsbygoogle"
+     style="display:inline-block;width:728px;height:90px"
+     data-ad-client="ca-pub-2736751992834286"
+     data-ad-slot="6687328050"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+          </div>
+        
+        
+        
+
+
+
+<div id="content" class="hfeed"
+  
+  >
+  <div id="content-inner">
+    <div id="wrapper">
+      <div id="main">
+        <div id="main-inner">
+          
+            
+            <!-- google_ad_section_start -->
+            <!-- rakuten_ad_target_begin -->
+            
+              
+                <article class="entry hentry js-entry-article date-first autopagerize_page_element chars-200 words-100 mode-hatena entry-odd" id="entry-6653458415124742795" data-keyword-campaign="" data-uuid="6653458415124742795">
+  <div class="entry-inner">
+    <header class="entry-header">
+      <div class="entry-date date first">
+        <a href="../../entries/2015/10/16.html" rel="nofollow">
+          <time pubdate datetime="2015-10-15T17:39:16Z" title="2015-10-15T17:39:16Z">
+            <span class="date-year">2015</span><span class="hyphen">-</span><span class="date-month">10</span><span class="hyphen">-</span><span class="date-day">16</span>
+          </time>
+        </a>
+      </div>
+      <h1 class="entry-title">
+        <a href="1444930756.html" class="entry-title-link bookmark">Phoenix入門3 - WebSocketのチャット機能</a>
+      </h1>
+      
+      
+        <div class="entry-categories categories">
+          
+          <a href="../../archive/category/phoenix.html">phoenix</a>
+          
+          <a href="../../archive/category/elixer.html">elixer</a>
+          
+        </div>
+      
+      
+
+      
+    </header>
+        
+    <div class="entry-content">
+
+      
+        <p><span itemscope itemtype="http://schema.org/Photograph"><img src="http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151011/20151011193641.png" alt="f:id:nipe880324:20151011193641p:plain:w420" title="f:id:nipe880324:20151011193641p:plain:w420" class="hatena-fotolife" style="width:420px" itemprop="image"></span></p><p>前々回の記事は「<a href="../20151011/1444560106.html">Phoenix環境のセットアップから、静的ページを作成し、表示</a>」させました。<br />
+前回の記事では、「<a href="../20151013/1444662887.html">Phoenixで認証機能を実装</a>」しました。<br />
+今回の記事では、入門最後として「<b><a class="keyword" href="http://d.hatena.ne.jp/keyword/Phoenix">Phoenix</a>でチャット機能を実装</b>」します。<br />
+<a class="keyword" href="http://d.hatena.ne.jp/keyword/Phoenix">Phoenix</a>でソケット、チャネル、トークン、<a class="keyword" href="http://d.hatena.ne.jp/keyword/API">API</a>作成、モデルのアソシエーションなどを行っていきます。</p><br />
+<p>サンプル</p>
+
+<ul>
+<li><a href="https://tranquil-mesa-7338.herokuapp.com/login" target="_blank">ChatPhoenix - Heroku</a></li>
+<li><a href="https://github.com/nipe0324/chat_phoenix" target="_blank">ChatPhoenix - GitHub</a></li>
+</ul>
+<div class="section">
+    <h3>目次</h3>
+    
+<ol>
+<li><a href="1444930756.html#phoenix-tutorial-3-terms">ソケットの基礎用語</a></li>
+<li><a href="1444930756.html#phoenix-tutorial-3-chat">チャット機能の追加</a></li>
+<li><a href="1444930756.html#phoenix-tutorial-3-integration">チャット機能をログイン機能と統合</a></li>
+<li><a href="1444930756.html#phoenix-tutorial-3-persist">チャットメッセージの永続化</a></li>
+</ol>
+</div>
+<div class="section">
+    <h3>動作確認</h3>
+    
+<ul>
+<li><a class="keyword" href="http://d.hatena.ne.jp/keyword/Erlang">Erlang</a> 7.1</li>
+<li>Elixir 1.1.1</li>
+<li><a class="keyword" href="http://d.hatena.ne.jp/keyword/Phoenix">Phoenix</a> 10.0.3</li>
+<li>Hex 0.9.0</li>
+<li>node.js 0.12.7</li>
+<li>npm 2.14.2</li>
+<li><a class="keyword" href="http://d.hatena.ne.jp/keyword/PostgreSQL">PostgreSQL</a> 9.4.4</li>
+</ul><p><br />
+<h3 id="phoenix-tutorial-3-terms">1. ソケットの基礎用語</h3>ソケットの基本的な用語について簡単に記載します。</p><p><h4>ソケットハンドラ(Socket Handlers)</h4>ソケットハンドラは、ソケット接続の認証や識別を行うモジュールです。<br />
+そして、すべてのチャネルで使用されるデフォルトのソケットを設定します。<br />
+デフォルトで<code>web/channels/user_socket.ex</code>というソケットハンドラが用意されています。</p><p><h4>チャネルルート(Channel Routes)</h4>ソケットハンドラ内で定義され、トピック文字列にマッチしたリクエストを、特定のチャネルモジュールにルートさせます。<br />
+また、<code>*</code>は<a class="keyword" href="http://d.hatena.ne.jp/keyword/%A5%EF%A5%A4%A5%EB%A5%C9%A5%AB%A1%BC%A5%C9">ワイルドカード</a>を示します。<br />
+例えば次のようにチャネルルートを定義した場合、<code>rooms:music</code>や<code>rooms:sports</code>は<code>RoomChannel</code>にディスパッチされます。</p>
+<pre class="code" data-lang="" data-unlink>channel &#34;rooms:*&#34;, HelloPhoenix.RoomChannel</pre><p><h4>チャネル(Channels)</h4>チャネルはクライアントからのイベントを扱います。Webの<a class="keyword" href="http://d.hatena.ne.jp/keyword/MVC">MVC</a>でいうコントローラのようなものです。</p><p><h4>パブサブ(PubSub)</h4>出版-購読型モデル(Publish/Subscribe)で、あるチャネルに誰かがイベントを発行(Publish)すると、そのチャネルを購読(Subscribe)している人すべてにそのイベントが通知されるというモデルです。</p><p><h4>メッセージ</h4>チャネルでやりとりされるデータ。<br />
+<a href="http://hexdocs.pm/phoenix/Phoenix.Socket.Message.html" target="_blank">Phoenix.Socket.Message</a>モジュールで定義されていて、下記のデータを保持しています。</p>
+
+<ul>
+<li>topic - <code><トピック名></code> か <code><トピック名>:<サブトピック名></code>の文字列で保持。例："rooms"、"rooms:sport"</li>
+<li>event - イベント名の文字列で保持。。例: "new:message"</li>
+<li>payload - メッセージ本体を<a class="keyword" href="http://d.hatena.ne.jp/keyword/JSON">JSON</a>形式の文字列で保持。</li>
+<li>ref - incoming evnetに返信するためのユニーク文字列で保持。</li>
+</ul><p><h4>クライアントライブラリ</h4><a class="keyword" href="http://d.hatena.ne.jp/keyword/Phoenix">Phoenix</a>は<a class="keyword" href="http://d.hatena.ne.jp/keyword/Javascript">Javascript</a>クライアントを提供しています。また、<a class="keyword" href="http://d.hatena.ne.jp/keyword/iOS">iOS</a>、<a class="keyword" href="http://d.hatena.ne.jp/keyword/Android">Android</a>、<a class="keyword" href="http://d.hatena.ne.jp/keyword/C%23">C#</a>クライアントもVer. 1.0から提供しています。</p><br />
+<p><h3 id="phoenix-tutorial-3-chat">2. チャット機能の追加</h3>基礎用語をさくっと記載しましたので、チャット機能を実装します。</p><p><h4>ソケットルートを定義</h4><a class="keyword" href="http://d.hatena.ne.jp/keyword/Phoenix">Phoenix</a>アプリを新規作成すると次のように<code>endpoint.ex</code>に<code>UserSocket</code>というソケットハンドラを使うように定義されています。</p>
+<pre class="code" data-lang="" data-unlink># lib/chat_phoenix/endpoint.ex
+defmodule HelloPhoenix.Endpoint do
+  use Phoenix.Endpoint, otp_app: :chat_phoenix
+
+  # ソケットハンドラ
+  # &#34;/socket&#34; につなぐと、ソケットハンドラ UserSocket に接続されます
+  socket &#34;/socket&#34;, ChatPhoenix.UserSocket
+  ...
+end</pre><p>ソケットハンドラのUserSocketでは、チャネルルートを定義します。<br />
+<code>channel "rooms:*", ChatPhoenix.RoomChannel</code>が<a class="keyword" href="http://d.hatena.ne.jp/keyword/%A5%B3%A5%E1%A5%F3%A5%C8%A5%A2%A5%A6%A5%C8">コメントアウト</a>されているのでコメントを外します。</p>
+<pre class="code" data-lang="" data-unlink># web/channels/user_socket.ex
+defmodule HelloPhoenix.UserSocket do
+  use Phoenix.Socket
+
+  ## Channels
+  # クライアントが&#34;rooms:&#34;で始まるトピックにメッセージを送るとRoomChannelモジュールにルートされる
+  channel &#34;rooms:*&#34;, ChatPhoenix.RoomChannel
+  ...
+end</pre><p><br />
+<h4>チャット画面を追加</h4>次にチャット画面を追加します。<code>page/index.html.eex</code>を下記に置き換えます。</p>
+<pre class="code lang-html" data-lang="html" data-unlink><span class="synComment">&lt;!-- web/templates/page/index.html.eex --&gt;</span>
+<span class="synIdentifier">&lt;</span><span class="synStatement">div</span><span class="synIdentifier"> </span><span class="synType">id</span><span class="synIdentifier">=</span><span class="synConstant">&quot;messages&quot;</span><span class="synIdentifier">&gt;&lt;/</span><span class="synStatement">div</span><span class="synIdentifier">&gt;</span>
+<span class="synIdentifier">&lt;</span><span class="synStatement">br</span><span class="synIdentifier">/&gt;</span>
+
+<span class="synIdentifier">&lt;</span><span class="synStatement">div</span><span class="synIdentifier"> </span><span class="synType">class</span><span class="synIdentifier">=</span><span class="synConstant">&quot;col-xs-3 form-group&quot;</span><span class="synIdentifier">&gt;</span>
+  <span class="synIdentifier">&lt;</span><span class="synStatement">label</span><span class="synIdentifier">&gt;</span>Username<span class="synIdentifier">&lt;/</span><span class="synStatement">label</span><span class="synIdentifier">&gt;</span>
+  <span class="synIdentifier">&lt;</span><span class="synStatement">input</span><span class="synIdentifier"> </span><span class="synType">id</span><span class="synIdentifier">=</span><span class="synConstant">&quot;username&quot;</span><span class="synIdentifier"> </span><span class="synType">type</span><span class="synIdentifier">=</span><span class="synConstant">&quot;text&quot;</span><span class="synIdentifier"> </span><span class="synType">class</span><span class="synIdentifier">=</span><span class="synConstant">&quot;form-control&quot;</span><span class="synIdentifier"> /&gt;</span>
+<span class="synIdentifier">&lt;/</span><span class="synStatement">div</span><span class="synIdentifier">&gt;</span>
+
+<span class="synIdentifier">&lt;</span><span class="synStatement">div</span><span class="synIdentifier"> </span><span class="synType">class</span><span class="synIdentifier">=</span><span class="synConstant">&quot;col-xs-9 form-group&quot;</span><span class="synIdentifier">&gt;</span>
+  <span class="synIdentifier">&lt;</span><span class="synStatement">label</span><span class="synIdentifier">&gt;</span>Messenger<span class="synIdentifier">&lt;/</span><span class="synStatement">label</span><span class="synIdentifier">&gt;</span>
+  <span class="synIdentifier">&lt;</span><span class="synStatement">input</span><span class="synIdentifier"> </span><span class="synType">id</span><span class="synIdentifier">=</span><span class="synConstant">&quot;message&quot;</span><span class="synIdentifier"> </span><span class="synType">type</span><span class="synIdentifier">=</span><span class="synConstant">&quot;text&quot;</span><span class="synIdentifier"> </span><span class="synType">class</span><span class="synIdentifier">=</span><span class="synConstant">&quot;form-control&quot;</span><span class="synIdentifier"> /&gt;</span>
+<span class="synIdentifier">&lt;/</span><span class="synStatement">div</span><span class="synIdentifier">&gt;</span>
+</pre><p>次に、<code>app.html.eex</code>で<a class="keyword" href="http://d.hatena.ne.jp/keyword/jQuery">jQuery</a>を読み込むようにします。</p>
+<pre class="code lang-html" data-lang="html" data-unlink><span class="synComment">&lt;!-- web/templates/layout/app.html.eex --&gt;</span>
+    ...
+    <span class="synIdentifier">&lt;/</span><span class="synStatement">div</span><span class="synIdentifier">&gt;</span> <span class="synComment">&lt;!-- /container --&gt;</span>
+    <span class="synIdentifier">&lt;</span><span class="synStatement">script</span><span class="synIdentifier"> </span><span class="synType">src</span><span class="synIdentifier">=</span><span class="synConstant">&quot;//code.jquery.com/jquery-2.1.4.min.js&quot;</span><span class="synIdentifier">&gt;&lt;/</span><span class="synStatement">script</span><span class="synIdentifier">&gt;</span>
+    <span class="synIdentifier">&lt;</span><span class="synStatement">script</span><span class="synIdentifier"> </span><span class="synType">src</span><span class="synIdentifier">=</span><span class="synConstant">&quot;&lt;%= static_path(@conn, &quot;</span><span class="synIdentifier">/js/app.js</span><span class="synConstant">&quot;) %&gt;&quot;</span><span class="synIdentifier">&gt;&lt;/</span><span class="synStatement">script</span><span class="synIdentifier">&gt;</span>
+  <span class="synIdentifier">&lt;/</span><span class="synStatement">body</span><span class="synIdentifier">&gt;</span>
+<span class="synIdentifier">&lt;/</span><span class="synStatement">html</span><span class="synIdentifier">&gt;</span>
+</pre><p><code>web/static/js/app.js</code>で<code>my_socket.js</code>を読み込むようにします。<br />
+<a class="keyword" href="http://d.hatena.ne.jp/keyword/Phoenix">Phoenix</a>では、デフォルトでは、ES6の文法ででJSを記載し、branch.ioでビルドしています。</p>
+<pre class="code" data-lang="" data-unlink>// web/static/js/app.js
+
+// ローカルファイルをインポート
+//
+// ローカルファイルを相対パス(&#34;./socket&#34;)か絶対パス(&#34;web/static/js/socket&#34;)で
+// 指定してインポートできます。
+
+// web/static/js/my_socket.js をインポート
+import &#34;./my_socket&#34;</pre><p>そして、<code>my_socket.js</code>を作成します。</p>
+<pre class="code" data-lang="" data-unlink>// web/static/js/app.js
+
+// Phoenisではデフォルトで&#34;deps/phoenix/web/static/js/phoenix&#34;に
+// JSのSocketクラスが実装されています。そのSocketクラスをimportします。
+import {Socket} from &#34;deps/phoenix/web/static/js/phoenix&#34;
+
+// チャットを行うクラス
+class MySocket {
+
+  // newのときに呼ばれるコンストラクタ
+  constructor() {
+    console.log(&#34;Initialized&#34;)
+
+    // 入力フィールド
+    this.$username = $(&#34;#username&#34;)
+    this.$message  = $(&#34;#message&#34;)
+
+    // 表示領域
+    this.$messagesContainer = $(&#34;#messages&#34;)
+
+    // キー入力イベントの登録
+    this.$message.off(&#34;keypress&#34;).on(&#34;keypress&#34;, e =&gt; {
+      if (e.keyCode === 13) { // 13: Enterキー
+        // `${変数}` は式展開
+        console.log(`[${this.$username.val()}]${this.$message.val()}`)
+        // メッセージの入力フィールドをクリア(空)にする
+        this.$message.val(&#34;&#34;)
+      }
+    })
+  }
+}
+
+$(
+  () =&gt; {
+    new MySocket()
+  }
+)
+
+export default MySocket</pre><p><code>my_socket.js</code>を保存すると自動的に<a class="keyword" href="http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%D1%A5%A4%A5%EB">コンパイル</a>されます。<br />
+画面をリロードし、UsernameとMessengerに値をいれて、Enterキーを押すと、JSコンソールに内容が表示されると思います。<br />
+<span itemscope itemtype="http://schema.org/Photograph"><img src="http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151016/20151016022228.png" alt="f:id:nipe880324:20151016022228p:plain:w420" title="f:id:nipe880324:20151016022228p:plain:w420" class="hatena-fotolife" style="width:420px" itemprop="image"></span></p><br />
+<br />
+<p><h4>JSでソケットに接続</h4><code>my_socket.js</code>でソケットに接続します。<br />
+<code>Socket</code>クラスを作成し、<code>connect()</code><a class="keyword" href="http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9">メソッド</a>で接続できます。<br />
+ソケット接続を<code>connectSocket()</code><a class="keyword" href="http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9">メソッド</a>として切り出しておきます。</p>
+<pre class="code lang-javascript" data-lang="javascript" data-unlink><span class="synComment">// web/static/app.js</span>
+
+<span class="synComment">// チャットを行うクラス</span>
+<span class="synStatement">class</span> MySocket <span class="synIdentifier">{</span>
+  constructor() <span class="synIdentifier">{</span> ... <span class="synIdentifier">}</span>
+
+  <span class="synComment">// ソケットに接続</span>
+  connectSocket(socket_path) <span class="synIdentifier">{</span>
+    <span class="synComment">// &quot;lib/chat_phoenix/endpoint.ex&quot;　に定義してあるソケットパス(&quot;/socket&quot;)で</span>
+    <span class="synComment">// ソケットに接続すると、UserSocketに接続されます</span>
+    <span class="synIdentifier">this</span>.socket = <span class="synStatement">new</span> Socket(socket_path)
+    <span class="synIdentifier">this</span>.socket.connect()
+    <span class="synIdentifier">this</span>.socket.onClose( e =&gt; console.log(<span class="synConstant">&quot;Closed connection&quot;</span>) )
+  <span class="synIdentifier">}</span>
+<span class="synIdentifier">}</span>
+
+$(
+  () =&gt; <span class="synIdentifier">{</span>
+    <span class="synIdentifier">let</span> my_socket = <span class="synStatement">new</span> MySocket()
+    my_socket.connectSocket(<span class="synConstant">&quot;/socket&quot;</span>)
+  <span class="synIdentifier">}</span>
+)
+</pre><p><br />
+<h4>サーバーでチャネルモジュールを定義</h4>ソケットに接続できましたので、チャネルのRoomChannelを定義します。<br />
+クライアントがチャネルに入るためにはサーバーのチャネルモジュールで<code>join</code>関数を実装する必要があり、<code>{:ok, socket}</code>を返ことでチャネルに入ることができます。<br />
+また、<code>join</code>関数の第一引数ではトピック名を指定し、トピックごとに<code>join</code>関数を定義します。</p>
+<pre class="code" data-lang="" data-unlink># web/channels/room_channel.ex
+defmodule ChatPhoenix.RoomChannel do
+  use Phoenix.Channel
+
+  # &#34;rooms:lobby&#34;トピックのjoin関数
+  # {:ok, socket} を返すだけなのですべてのクライアントが接続可能
+  def join(&#34;rooms:lobby&#34;, message, socket) do
+    {:ok, socket}
+  end
+end</pre><p>許可するには、<code>{:ok, socket}</code> か <code>{:ok, reply, socket}</code> を返します。<br />
+拒否するには、<code>{:error, reply}</code> を返します。</p><br />
+<p><h4>JSでチャネルに接続</h4>いま作成したRoomChannelモジュールに接続します。接続するトピックは<code>"rooms:lobby"</code>です。<br />
+<code>socket.channel("<トピック名>", {})</code>でチャネルを作成し、<code>channel.join()</code>でチャネルにジョインします。</p>
+<pre class="code" data-lang="" data-unlink>// web/static/app.js
+
+class MySocket {
+  ...
+  // チャネルに接続
+  connectChannel(chanel_name) {
+    this.channel = this.socket.channel(chanel_name, {})
+    this.channel.join()
+      .receive(&#34;ok&#34;, resp =&gt; { // チャネルに入れたときの処理
+        console.log(&#34;Joined successfully&#34;, resp)
+      })
+      .receive(&#34;error&#34;, resp =&gt; { // チャネルに入れなかった時の処理
+        console.log(&#34;Unable to join&#34;, resp)
+      })
+  }
+}
+
+$(
+  () =&gt; {
+    // ソケット/チャネルに接続
+    let my_socket = new MySocket()
+    my_socket.connectSocket(&#34;/socket&#34;)
+    my_socket.connectChannel(&#34;rooms:lobby&#34;)
+  }
+)</pre><p>画面をリロードすると、うまくいけばJSコンソールに次のように表示されると思います。</p>
+<pre class="code" data-lang="" data-unlink>Initialized
+Joined successfully Object {}</pre><p><br />
+<h4>JSでチャネルにメッセージを送る</h4><code>channel.push(event名, メッセージ)</code>でチャネルにメッセージを送ります。</p>
+<pre class="code lang-javascript" data-lang="javascript" data-unlink><span class="synComment">// web/static/app.js</span>
+
+<span class="synComment">// キー入力イベントの登録</span>
+message.off(<span class="synConstant">&quot;keypress&quot;</span>).on(<span class="synConstant">&quot;keypress&quot;</span>, e =&gt; <span class="synIdentifier">{</span>
+  <span class="synStatement">if</span> (e.keyCode === 13) <span class="synIdentifier">{</span> <span class="synComment">// 13: Enterキー</span>
+    <span class="synComment">// `${変数}` は式展開</span>
+    console.log(`<span class="synIdentifier">[</span>$<span class="synIdentifier">{this</span>.$username.val()<span class="synIdentifier">}]</span>$<span class="synIdentifier">{this</span>.$message.val()<span class="synIdentifier">}</span>`)
+    <span class="synComment">// サーバーに&quot;new:messege&quot;というイベント名で、ユーザ名とメッセージを送る</span>
+    <span class="synIdentifier">this</span>.channel.push(<span class="synConstant">&quot;new:message&quot;</span>, <span class="synIdentifier">{</span> user: <span class="synIdentifier">this</span>.$username.val(), body: <span class="synIdentifier">this</span>.$message.val() <span class="synIdentifier">}</span>)
+    <span class="synComment">// メッセージの入力フィールドをクリア(空)にする</span>
+    <span class="synIdentifier">this</span>.$message.val(<span class="synConstant">&quot;&quot;</span>)
+  <span class="synIdentifier">}</span>
+<span class="synIdentifier">}</span>)
+</pre><p><br />
+<h4>サーバーでIncoming eventsを処理する</h4>クライアントからサーバーへ入ってくるイベントをIncoming eventsと呼びます。<br />
+Incoming eventsは、チャネルに<code>handle_in</code>関数を定義することで処理をすることができます。<br />
+<code>handle_in</code>関数の第一引数にイベント名を記載し、送られてきたイベント名に対応した<code>handle_in</code>関数が呼ばれます。</p>
+<pre class="code" data-lang="" data-unlink># web/channels/room_channel.ex
+
+# イベント名&#34;new:message&#34;のIncoming eventsを処理する
+def handle_in(&#34;new:message&#34;, message, socket) do
+  # broadcat!は同じチャネルのすべてのサブスクライバーにメッセージを送る
+  broadcast! socket, &#34;new:message&#34;, %{user: message[&#34;user&#34;], body: message[&#34;body&#34;]}
+  {:noreply, socket}
+end</pre><p><br />
+<h4>JSでメッセージをサーバーから受け取る</h4></p>
+<pre class="code lang-javascript" data-lang="javascript" data-unlink><span class="synComment">// web/static/js/my_socket.js</span>
+
+<span class="synStatement">class</span> MySocket <span class="synIdentifier">{</span>
+  ...
+
+  <span class="synComment">// チャネルに接続</span>
+  connectChannel(chanel_name) <span class="synIdentifier">{</span>
+    ...
+    <span class="synComment">// チャネルの&quot;new:message&quot;イベントを受け取った時のイベント処理</span>
+    <span class="synIdentifier">this</span>.channel.on(<span class="synConstant">&quot;new:message&quot;</span>, message =&gt; <span class="synIdentifier">this</span>._renderMessage(message) )
+  <span class="synIdentifier">}</span>
+
+  <span class="synComment">// メッセージを画面に表示</span>
+  _renderMessage(message) <span class="synIdentifier">{</span>
+    <span class="synIdentifier">let</span> user = <span class="synIdentifier">this</span>._sanitize(message.user || <span class="synConstant">&quot;New User&quot;</span>)
+    <span class="synIdentifier">let</span> body = <span class="synIdentifier">this</span>._sanitize(message.body)
+
+    <span class="synIdentifier">this</span>.$messagesContainer.append(`&lt;p&gt;&lt;b&gt;<span class="synIdentifier">[</span>$<span class="synIdentifier">{</span>user<span class="synIdentifier">}]</span>&lt;/b&gt;: $<span class="synIdentifier">{</span>body<span class="synIdentifier">}</span>&lt;/p&gt;`)
+  <span class="synIdentifier">}</span>
+
+  <span class="synComment">// メッセージをサニタイズする</span>
+  _sanitize(str) <span class="synIdentifier">{</span>
+    <span class="synStatement">return</span> $(<span class="synConstant">&quot;&lt;div/&gt;&quot;</span>).text(str).html()
+  <span class="synIdentifier">}</span>
+<span class="synIdentifier">}</span>
+</pre><p><br />
+<h4>チャネルの動作確認</h4>2つブラウザを開き、<a href="http://localhost:4000/" target="_blank">http://localhost:4000/</a>にアクセスします。<br />
+UsernameとMessengerを入力してEnterキーを押すとリアルタイムでメッセージが表示されます。<br />
+<span itemscope itemtype="http://schema.org/Photograph"><img src="http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151016/20151016022846.png" alt="f:id:nipe880324:20151016022846p:plain:w420" title="f:id:nipe880324:20151016022846p:plain:w420" class="hatena-fotolife" style="width:420px" itemprop="image"></span></p><br />
+<br />
+<p><h3 id="phoenix-tutorial-3-integration">3. チャット機能をログイン機能と統合</h3>チャット機能ができましたので、前回の記事で作成したログイン機能と統合します。<br />
+具体的には、ログインしないとチャット機能を使えないようにします。<br />
+また、そのときに、UsernameにUserのemailを設定するようにしてみます。</p><br />
+<p><h4>チャット画面でログインを必須にする</h4>チャット画面を開く前にログインをしているかチェックする<code>authenticate_user!</code>関数を作成し、アクション前に呼びだすようにします。</p>
+<pre class="code" data-lang="" data-unlink># web/controllers/page_controller.ex
+defmodule ChatPhoenix.PageController do
+  use ChatPhoenix.Web, :controller
+
+  # アクションの前に実行される
+  plug :authenticate_user!
+
+  @doc &#34;&#34;&#34;
+  チャット画面を表示
+  &#34;&#34;&#34;
+  def index(conn, _params) do
+    render conn, &#34;index.html&#34;
+  end
+
+  # ログインしていない場合は、ログインページにリダイレクトさせる
+  defp authenticate_user!(conn, _params) do
+    unless logged_in?(conn) do
+      conn
+        |&gt; put_flash(:info, &#34;チャット機能を行うにはログインが必要です&#34;)
+        |&gt; redirect(to: session_path(conn, :new))
+    end
+    conn  # plug は connを返す必要がある
+  end
+end</pre><p><br />
+PageContorollerで<code>current_user</code>と<code>logged_in?</code>関数を使えるようにするために、<code>web/web.ex</code>のcontrollerの箇所にimportを追加します。</p>
+<pre class="code" data-lang="" data-unlink># web/web.ex
+def controller do
+  quote do
+    ...
+
+    import ChatPhoenix.Router.Helpers
+    # Sessionモジュールのcurrent_userとlogged_in?をWebのcontrollerに追加
+    import ChatPhoenix.Session, only: [current_user: 1, logged_in?: 1]
+  end
+end</pre><p><br />
+ログインしていない状態で<a href="http://localhost:4000" target="_blank">チャット画面(http://localhost:4000)</a>にアクセスすると次のようにログイン画面にリダイレクトされるようになります。<br />
+<span itemscope itemtype="http://schema.org/Photograph"><img src="http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151016/20151016023042.png" alt="f:id:nipe880324:20151016023042p:plain:w420" title="f:id:nipe880324:20151016023042p:plain:w420" class="hatena-fotolife" style="width:420px" itemprop="image"></span></p><br />
+<p><h4>ソケットとチャネルの認証</h4>画面としては、ログインしていない場合チャット画面を開けないようにしました。<br />
+しかし、まだJSでソケットにつなぎ、チャネルに入ることができます。<br />
+そのため、ソケットとチャネルもログインしていないと繋げないようにします。</p><p>まずは、<code>Phoenix.Token</code>モジュールを利用し、トークンを作成し、チャット画面に埋め込みます。</p>
+<pre class="code" data-lang="" data-unlink># web/router.ex
+
+pipeline :browser do
+  ...
+  // ブラウザの場合、ユーザーのトークンを設定
+  plug :put_user_token
+end
+
+...
+
+// ログインしている場合、user_tokenキーにユーザーのトークンを設定します
+defp put_user_token(conn, _) do
+  if logged_in?(conn) do
+    token = Phoenix.Token.sign(conn, &#34;user&#34;, current_user(conn).id)
+    assign(conn, :user_token, token)
+  else
+    conn
+  end
+end</pre><p>Routerモジュールで<code>logged_in?</code>と<code>current_user</code>関数を利用できるようにするために、<code>web/web.ex</code>のrouterにimoprtを追加します。</p>
+<pre class="code" data-lang="" data-unlink># web/web.ex
+def router do
+  quote do
+    use Phoenix.Router
+
+    # Sessionモジュールのcurrent_userとlogged_in?をWebのviewに追加
+    import ChatPhoenix.Session, only: [current_user: 1, logged_in?: 1]
+  end
+end</pre><p>そして、レイアウトの箇所で<code>userToken</code>にトークン値を設定します。</p>
+<pre class="code lang-html" data-lang="html" data-unlink><span class="synComment">&lt;!-- web/templates/layout/app.html.eex --&gt;</span>
+
+    <span class="synIdentifier">&lt;/</span><span class="synStatement">div</span><span class="synIdentifier">&gt;</span> <span class="synComment">&lt;!-- /container --&gt;</span>
+    <span class="synIdentifier">&lt;</span><span class="synStatement">script</span><span class="synIdentifier">&gt;</span><span class="synStatement">window</span><span class="synSpecial">.userToken = </span><span class="synConstant">&quot;&lt;%= assigns[:user_token] %&gt;&quot;</span><span class="synSpecial">;</span><span class="synIdentifier">&lt;/</span><span class="synStatement">script</span><span class="synIdentifier">&gt;</span>
+    <span class="synIdentifier">&lt;</span><span class="synStatement">script</span><span class="synIdentifier"> </span><span class="synType">src</span><span class="synIdentifier">=</span><span class="synConstant">&quot;//code.jquery.com/jquery-2.1.4.min.js&quot;</span><span class="synIdentifier">&gt;&lt;/</span><span class="synStatement">script</span><span class="synIdentifier">&gt;</span>
+    <span class="synIdentifier">&lt;</span><span class="synStatement">script</span><span class="synIdentifier"> </span><span class="synType">src</span><span class="synIdentifier">=</span><span class="synConstant">&quot;&lt;%= static_path(@conn, &quot;</span><span class="synIdentifier">/js/app.js</span><span class="synConstant">&quot;) %&gt;&quot;</span><span class="synIdentifier">&gt;&lt;/</span><span class="synStatement">script</span><span class="synIdentifier">&gt;</span>
+  <span class="synIdentifier">&lt;/</span><span class="synStatement">body</span><span class="synIdentifier">&gt;</span>
+<span class="synIdentifier">&lt;/</span><span class="synStatement">html</span><span class="synIdentifier">&gt;</span>
+</pre><p><br />
+UserSocketの<code>connect</code>関数を実装し、チャネルへの接続可否を制御します。<br />
+<code>Phoenix.Token.verify</code>でトークン値を検証し、成功した場合は:ok(ソケットに接続)を返し、:<a class="keyword" href="http://d.hatena.ne.jp/keyword/error">error</a>(ソケットに接続拒否)を返します。</p>
+<pre class="code" data-lang="" data-unlink># web/channels/user_socket.ex
+
+def connect(%{&#34;token&#34; =&gt; token}, socket) do
+  # Max age of 2 weeks (1209600 seconds)
+  case Phoenix.Token.verify(socket, &#34;user&#34;, token, max_age: 1209600) do
+    {:ok, user_id} -&gt;
+      {:ok, assign(socket, :user_id, user_id)}
+    {:error, _} -&gt;
+      :error
+  end
+end</pre><p>RoomChannelの<code>join</code>関数でソケット接続の接続可否を制御します。<br />
+userがある場合は :ok(接続許可)、userがない場合は :<a class="keyword" href="http://d.hatena.ne.jp/keyword/error">error</a>(接続拒否) を返します。</p>
+<pre class="code" data-lang="" data-unlink># web/channels/room_channel.ex
+
+defmodule ChatPhoenix.RoomChannel do
+  use Phoenix.Channel
+  alias ChatPhoenix.Repo
+  alias ChatPhoenix.User
+
+  # &#34;rooms:lobby&#34;トピックのjoin関数
+  def join(&#34;rooms:lobby&#34;, message, socket) do
+    user = Repo.get(User, socket.assigns[:user_id])
+    if user do
+      {:ok, %{email: user.email}, socket}
+    else
+      {:error, %{reason: &#34;unauthorized&#34;}}
+    end
+  end
+
+end</pre><p><br />
+サーバー側の認証処理を実装したので、JS側の処理を追加します。<br />
+<code>my_socket.js</code>のソケット接続時に画面から受け取ったトークンを送るようにします。</p>
+<pre class="code lang-javascript" data-lang="javascript" data-unlink><span class="synComment">// web/static/js/my_socket.js</span>
+
+<span class="synStatement">class</span> MySocket <span class="synIdentifier">{</span>
+
+  <span class="synComment">// ソケットに接続</span>
+  <span class="synComment">// トークンを受け取り、トークンがない場合はアラートを表示</span>
+  <span class="synComment">// new Socketで接続するときにトークンをサーバー側に送る</span>
+  connectSocket(socket_path, token) <span class="synIdentifier">{</span>
+    <span class="synStatement">if</span> (!token) <span class="synIdentifier">{</span>
+      <span class="synStatement">alert</span>(<span class="synConstant">&quot;ソケットにつなぐにはトークンが必要です&quot;</span>)
+      <span class="synStatement">return</span> <span class="synConstant">false</span>
+    <span class="synIdentifier">}</span>
+
+    <span class="synComment">// &quot;lib/chat_phoenix/endpoint.ex&quot;　に定義してあるソケットパス(&quot;/socket&quot;)で</span>
+    <span class="synComment">// ソケットに接続すると、UserSocketに接続されます</span>
+    <span class="synIdentifier">this</span>.socket = <span class="synStatement">new</span> Socket(socket_path, <span class="synIdentifier">{</span> params: <span class="synIdentifier">{</span> token: token <span class="synIdentifier">}</span> <span class="synIdentifier">}</span>)
+    <span class="synIdentifier">this</span>.socket.connect()
+    <span class="synIdentifier">this</span>.socket.onClose( e =&gt; console.log(<span class="synConstant">&quot;Closed connection&quot;</span>) )
+  <span class="synIdentifier">}</span>
+
+  <span class="synComment">// チャネルに接続</span>
+  connectChannel(chanel_name) <span class="synIdentifier">{</span>
+    <span class="synIdentifier">this</span>.channel = <span class="synIdentifier">this</span>.socket.channel(chanel_name, <span class="synIdentifier">{}</span>)
+    <span class="synIdentifier">this</span>.channel.join()
+      .receive(<span class="synConstant">&quot;ok&quot;</span>, resp =&gt; <span class="synIdentifier">{</span>
+        console.log(<span class="synConstant">&quot;Joined successfully&quot;</span>, resp)
+        <span class="synComment">// Username入力フィールドにユーザのemailを自動的にセットするようにする</span>
+        <span class="synIdentifier">this</span>.$username.val(resp.email)
+      <span class="synIdentifier">}</span>)
+      .receive(<span class="synConstant">&quot;error&quot;</span>, resp =&gt; <span class="synIdentifier">{</span>
+        console.log(<span class="synConstant">&quot;Unable to join&quot;</span>, resp)
+      <span class="synIdentifier">}</span>)
+  <span class="synIdentifier">}</span>
+
+
+$(
+  () =&gt; <span class="synIdentifier">{</span>
+    <span class="synComment">// userTokenがある場合のみソケットにつなぐ</span>
+    <span class="synComment">// 本来は、app.html.eexでこのJSを読み込まなくするほうがよさそう</span>
+    <span class="synComment">// そのためにはJSを分割し、PageControllerのindexアクションで読みこむように</span>
+    <span class="synComment">// render_existingを行う必要がある</span>
+    <span class="synStatement">if</span> (<span class="synStatement">window</span>.userToken) <span class="synIdentifier">{</span>
+      <span class="synIdentifier">let</span> my_socket = <span class="synStatement">new</span> MySocket()
+      <span class="synComment">// app.html.eexでセットしたトークンを使ってソケットに接続</span>
+      my_socket.connectSocket(<span class="synConstant">&quot;/socket&quot;</span>, <span class="synStatement">window</span>.userToken)
+      my_socket.connectChannel(<span class="synConstant">&quot;rooms:lobby&quot;</span>)
+    <span class="synIdentifier">}</span>
+  <span class="synIdentifier">}</span>
+)
+
+<span class="synStatement">export</span> <span class="synStatement">default</span> MySocket
+</pre><p><br />
+画面をリロードすると、ログインしているユーザのemailが入力フィールドに設定された状態で表示されます。<br />
+<span itemscope itemtype="http://schema.org/Photograph"><img src="http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151016/20151016023423.png" alt="f:id:nipe880324:20151016023423p:plain:w420" title="f:id:nipe880324:20151016023423p:plain:w420" class="hatena-fotolife" style="width:420px" itemprop="image"></span></p><br />
+<br />
+<p><h3 id="phoenix-tutorial-3-persist">4. チャットメッセージの永続化</h3>チャットで送信したメッセージ文を保持するMessageモデルを作成し、メッセージを永続化できるようにします。<br />
+こうすることで画面をリロードしても、投稿したメッセージが表示された状態になります。</p><p><h4>Messageモデルを作成</h4><code>mix phoenix.gen.model</code>コマンドでMessageモデルを作成します。<br />
+UserモデルとMessageモデルは1対n関係を作成します。そのとき、<code>user_id:references:users</code>と記載します。</p>
+<pre class="code" data-lang="" data-unlink>$ mix phoenix.gen.model Message messages content:string user_id:references:users
+* creating priv/repo/migrations/20151015152654_create_message.exs
+* creating web/models/message.ex
+* creating test/models/message_test.exs</pre><p><code>mix ecto.migrate</code>で<a class="keyword" href="http://d.hatena.ne.jp/keyword/%A5%DE%A5%A4%A5%B0%A5%EC%A1%BC%A5%B7%A5%E7%A5%F3">マイグレーション</a>を実行し、<code>messages</code>テーブルを作成します。</p>
+<pre class="code" data-lang="" data-unlink>$ mix ecto.migrate
+00:30:08.602 [info]  == Running ChatPhoenix.Repo.Migrations.CreateMessage.change/0 forward
+00:30:08.602 [info]  create table messages
+00:30:08.637 [info]  create index messages_user_id_index
+00:30:08.644 [info]  == Migrated in 0.3s</pre><p><h4>UserモデルとMessageモデルのアソシエーション</h4>UserモデルとMessageモデルは、1対N関連です。<br />
+Userモデルの<code>schema</code>で<code>has_many</code>を追加します。</p>
+<pre class="code" data-lang="" data-unlink># web/models/user.ex
+defmodule ChatPhoenix.User do
+
+  schema &#34;users&#34; do
+    field :email, :string
+    field :crypted_password, :string
+    # passwordフィールドを追加。virtual: trueとすることでデータベースには保存されない
+    field :password, :string, virtual: true
+
+    has_many :messages, ChatPhoenix.Message
+    timestamps
+  end
+  ...</pre><p><br />
+Messageモデルの<code>schema</code>には<code>belongs_to</code>があります。<br />
+これは、<code>mix phoenix.gen.model</code>コマンドのときに<code>references</code>を指定していたためです。</p>
+<pre class="code" data-lang="" data-unlink># web/models/message.ex
+defmodule ChatPhoenix.Message do
+  use ChatPhoenix.Web, :model
+
+  schema &#34;messages&#34; do
+    field :content, :string
+    belongs_to :user, ChatPhoenix.User
+
+    timestamps
+  end
+  ...</pre><p><br />
+モデルに1対Nのアソシエーションが定義できたので、軽くアソシエーションの使い方を説明します。<br />
+<a class="keyword" href="http://d.hatena.ne.jp/keyword/%A5%A4%A5%F3%A5%BF%A5%E9%A5%AF%A5%C6%A5%A3%A5%D6">インタラクティブ</a>コンソールを開きます。</p>
+<pre class="code" data-lang="" data-unlink>$ iex -S mix phoenix.server
+
+# aliasでChatPhoneixを省略可能にしておきます
+&gt; alias ChatPhoenix.Repo
+&gt; alias ChatPhoenix.User
+&gt; alias ChatPhoenix.Message
+
+# 登録されているユーザを取得(自分の登録したユーザのemailを入力してください)
+&gt; user = Repo.get_by(User, email: &#34;test@example.com&#34;)
+# 関連するメッセージを作成
+&gt; message = Ecto.Model.build(user, :messages, content: &#34;How are you?&#34;)
+# メッセージをDBにインサートする
+&gt; Repo.insert!(message)
+
+# ユーザと関連するメッセージを取得
+&gt; user = Repo.get_by(User, email: &#34;test@example.com&#34;) |&gt; Repo.preload(:messages)
+&gt; user.messages #=&gt; メッセージが表示される</pre><p><br />
+その他、モデルの<a class="keyword" href="http://d.hatena.ne.jp/keyword/CRUD">CRUD</a>の<a class="keyword" href="http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9">メソッド</a>を確認したい場合、<a href="http://qiita.com/yoavlt/items/2faa2107eedd8c82ff8f" target="_blank">Elixir Phoenixのデータベース操作モジュールEcto入門2</a>を参考にしてください。</p><br />
+<p><h4>Message <a class="keyword" href="http://d.hatena.ne.jp/keyword/API">API</a>コントローラを作成</h4>Messageモデルを作成したので、Messageの一覧を取得する<a class="keyword" href="http://d.hatena.ne.jp/keyword/API">API</a>コントローラを作成します。<br />
+まず、ルートを作成しておきます。<br />
+<code>scope "/api"内にルートを追加します。また、上の方に、<code>pipeline :api</code>が記載されており、jsonと記載されています。これは、このAPIはJSON形式でやりとりすることを意味しています。</p>
+<pre class="code" data-lang="" data-unlink># web/router.ex
+pipeline :api do
+  plug :accepts, [&#34;json&#34;]
+end
+
+# Other scopes may use custom stacks.
+scope &#34;/api&#34;, ChatPhoenix do
+  pipe_through :api
+
+  # メッセージ一覧取得(:index)
+  get  &#34;/messages&#34;, MessageController, :index
+end</pre><p><br />
+MessageControllerを作成します。いまはアクションは未定義でおいておきます。</p>
+<pre class="code" data-lang="" data-unlink># web/controllers/message_controller.ex
+defmodule ChatPhoenix.MessageController do
+  use ChatPhoenix.Web, :controller
+  alias ChatPhoenix.Repo
+  alias ChatPhoenix.Message
+
+  @doc &#34;&#34;&#34;
+  メッセージ一覧取得API
+  &#34;&#34;&#34;
+  def index(conn, _params) do
+    # TODO: 実装する
+  end
+
+  # TODO: authentication（本記事で実施しない）
+end</pre><p><br />
+空のMessageViewも作成しておきます。</p>
+<pre class="code" data-lang="" data-unlink># web/views/message_view.ex
+defmodule ChatPhoenix.MessageView do
+  use ChatPhoenix.Web, :view
+end</pre><p><br />
+<h4>Message 一覧取得API</h4><code>Repo.all(Message)</code>関数ですべてのメッセージをDBから取得して、<code>render</code>関数でViewに渡します。</p>
+<pre class="code" data-lang="" data-unlink># web/controllers/message_controller.ex
+@doc &#34;&#34;&#34;
+メッセージ一覧取得API
+&#34;&#34;&#34;
+def index(conn, _params) do
+  # すべてのメッセージを取得。userも一緒にロードしておく
+  messages = Repo.all(Message) |&gt; Repo.preload(:user)
+  render conn, :index, messages: messages
+end</pre><p><br />
+MessageViewでは、JSONに変換します。</p>
+<pre class="code" data-lang="" data-unlink># web/views/message_view.ex
+defmodule ChatPhoenix.MessageView do
+  use ChatPhoenix.Web, :view
+
+  def render(&#34;index.json&#34;, %{messages: messages}) do
+    # messagesの各messageを下記のmessage.jsonで表示する
+    %{messages: render_many(messages, ChatPhoenix.MessageView, &#34;message.json&#34;)}
+  end
+
+  def render(&#34;message.json&#34;, %{message: message}) do
+    # messageのid, content, messageのuserのemail をJSON形式で表示する
+    %{id: message.id, body: message.content, user: message.user.email}
+  end
+end</pre><p>今のままだとログインしていなくてもメッセージ一覧取得APIにアクセスできてしまいますが、認証機能はここでは割愛します。<br />
+Plugを作成し、router.exのpipelineに追加する流れです。<br />
+参考: <a href="http://www.jonathanbirkholz.com/authenticating-users-using-a-token-with-phoenix/" target="_blank">Authenticating Users using a Token with Phoenix</a></p><br />
+<p><h4>JSでメッセージ一覧を取得/表示</h4>若干雑ですが、MySocketクラスにメッセージの一覧を取得する<code>all()</code>メソッドを定義し、呼び出します。</p>
+<pre class="code" data-lang="" data-unlink>// web/static/js/my_socket.js
+
+class mySocket {
+  // メッセージを取得
+  all() {
+    $.ajax({
+      url: &#34;/api/messages&#34;
+    }).done((data) =&gt; {
+      console.log(data)
+      // 取得したデータをレンダーする
+      data.messages.forEach((message) =&gt; this._renderMessage(message))
+    }).fail((data) =&gt; {
+      alert(&#34;エラーが発生しました&#34;)
+      console.log(data)
+    })
+  }
+}
+
+$(
+  () =&gt; {
+    if (window.userToken) {
+      ...
+      // メッセージを取得
+      my_socket.all()
+    }
+  }
+)</pre><p>これで画面をリロードすると、次のように画面上部にDBのメッセージが表示されます<br />
+（DBのメッセージをJSで取得して、JSがappendしている）<br />
+<span itemscope itemtype="http://schema.org/Photograph"><img src="http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151016/20151016023622.png" alt="f:id:nipe880324:20151016023622p:plain:w420" title="f:id:nipe880324:20151016023622p:plain:w420" class="hatena-fotolife" style="width:420px" itemprop="image"></span></p><br />
+<p><h4>Message 作成API</h4>メッセージの作成は、RoomChannelの<code>new:message</code>イベント側でメッセージを作成します。</p>
+<pre class="code" data-lang="" data-unlink># web/channel/room_channel.ex
+
+# イベント名&#34;new:message&#34;のIncoming eventsを処理する
+def handle_in(&#34;new:message&#34;, message, socket) do
+# メッセージを作成
+user = Repo.get(User, socket.assigns[:user_id]) |&gt; Repo.preload(:messages)
+message = Ecto.Model.build(user, :messages, content: message[&#34;body&#34;])
+Repo.insert!(message)
+
+# broadcastする値も、作成した値を使用するようにする
+broadcast! socket, &#34;new:message&#34;, %{user: user.email, body: message.content}
+{:noreply, socket}
+end</pre><p>これで画面からメッセージを投稿するとDBにメッセージが書き込まれ、画面をリロードしてもメッセージが表示されるようになります。もちろん、WebSocketにより他の人の投稿がリアルタイムにメッセージが表示されます。<br />
+<span itemscope itemtype="http://schema.org/Photograph"><img src="http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151016/20151016023811.png" alt="f:id:nipe880324:20151016023811p:plain:w420" title="f:id:nipe880324:20151016023811p:plain:w420" class="hatena-fotolife" style="width:420px" itemprop="image"></span></p><br />
+<p>以上です。これで終わりです。</p><br />
+<p>参考文献</p>
+
+<ul>
+<li><a href="http://qiita.com/FL4TLiN3/items/41ca80cdbfca1956ed78">Elixir - Phoenix&#x3067;JSON&#x3092;&#x8FD4;&#x3059;Web API&#x3092;&#x4F5C;&#x308B; - Qiita</a></li>
+<li><a href="http://hexdocs.pm/ecto/Ecto.html">Ecto &ndash; Ecto v1.0.4</a></li>
+</ul>
+</div>
+      
+    </div>
+    <footer class="entry-footer">
+      <p class="entry-footer-section">
+        <span class="author vcard"><span class="fn" data-load-nickname="1" data-user-name="nipe880324">nipe880324</span></span>
+        <span class="entry-footer-time"><a href="1444930756.html"><time data-relative datetime="2015-10-15T17:39:16Z" title="2015-10-15T17:39:16Z" pubdate class="updated">2015-10-16 02:39</time></a></span>
+      </p>
+
+      
+
+      
+<div class="social-buttons">
+  
+  
+    <div class="social-button-item">
+      <a href="http://b.hatena.ne.jp/entry/http://ruby-rails.hatenadiary.com/entry/20151016/1444930756" class="hatena-bookmark-button" data-hatena-bookmark-layout="vertical-balloon" data-hatena-bookmark-lang="ja" title="この記事をはてなブックマークに追加"><img src="https://b.st-hatena.com/images/entry-button/button-only.gif" alt="この記事をはてなブックマークに追加" width="20" height="20" style="border: none;" /></a>
+    </div>
+  
+  
+  
+    <div class="social-button-item">
+      <a href="https://twitter.com/search?q=http%3A%2F%2Fruby-rails.hatenadiary.com%2Fentry%2F20151016%2F1444930756" class="social-button-twitter-balloon" target="_blank">
+        <span class="social-button-twitter-balloon-list">list</span>
+        <i class="social-button-twitter-balloon-arrow-border"></i>
+        <u class="social-button-twitter-balloon-arrow"></u>
+      </a>
+      <a href="https://twitter.com/share" class="twitter-share-button" data-url="http://ruby-rails.hatenadiary.com/entry/20151016/1444930756" data-count="vertical" data-text="Phoenix入門3 - WebSocketのチャット機能 - Rails Webook" data-lang="ja">Tweet</a>
+    </div>
+  
+  
+  
+  
+  
+    <div class="social-button-item">
+      <a data-pocket-label="pocket" data-save-url="http://ruby-rails.hatenadiary.com/entry/20151016/1444930756" data-pocket-count="vertical" class="pocket-btn" data-lang="en"></a>
+    </div>
+  
+</div>
+
+
+      
+        
+          
+            
+            <div class="google-afc-image test-google-rectangle-ads ">
+              
+              
+                <script>
+  var hatenadfp = hatenadfp || {};
+  hatenadfp.adUnits = hatenadfp.adUnits || [];
+  hatenadfp.adUnits.push(
+    
+      { unitName: 'blog_user', size: [[300, 250], [336, 280]], divId: 'google_afc_user_container_0', allowContentMatch: true }
+    
+  );
+  hatenadfp.isNGContent = false;
+  
+</script>
+
+                <div id="google_afc_user_container_0" class="google_afc_blocklink2_5 google_afc_boder"></div>
+                
+                  <a href="http://blog.hatena.ne.jp/guide/pro" class="open-pro-modal" data-guide-pro-modal-ad-url="http://hatenablog.com/guide/pro/modal/ad">広告を非表示にする</a>
+                
+                
+              
+            </div>
+          
+        
+      
+
+      <div class="customized-footer">
+
+        
+
+          
+
+          
+
+          
+        
+      </div>
+
+      <div class="comment-box">
+        
+        <ul class="comment">
+          
+        </ul>
+        
+          <a class="leave-comment-title">コメントを書く</a>
+        
+      </div>
+      <!-- enjapan ad -->
+      
+    </footer>
+  </div>
+</article>
+
+                
+
+                
+                  
+                  
+                  <div class="permalink pager">
+                    
+                      
+                      <span class="pager-prev">
+                        <a href="../20151018/1445142266.html" rel="prev">
+                          <span class="pager-arrow">« </span>
+                          RailsでElasticsearch: 全文検索を実装
+                        </a>
+                      </span>
+                    
+                    
+                      
+                      <span class="pager-next">
+                        <a href="../20151013/1444662887.html" rel="next">
+                          Phoenix入門2 - Phonixで認証機能
+                          <span class="pager-arrow"> »</span>
+                        </a>
+                      </span>
+                    
+                  </div>
+                
+
+              
+            
+            <!-- rakuten_ad_target_end -->
+            <!-- google_ad_section_end -->
+
+            
+          
+        </div>
+      </div>
+
+      
+      <aside id="box1">
+        <div id="box1-inner">
+        </div>
+      </aside>
+
+    </div><!-- #wrapper -->
+
+    <aside id="box2">
+  
+  <div id="box2-inner">
+    
+      
+<div class="hatena-module hatena-module-html">
+  <div class="hatena-module-body">
+    <script async src="http://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- -->
+<ins class="adsbygoogle"
+     style="display:inline-block;width:160px;height:600px"
+     data-ad-client="ca-pub-2736751992834286"
+     data-ad-slot="8116686456"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+  </div>
+</div>
+
+      
+      
+    
+      
+
+<div class="hatena-module hatena-module-profile">
+  <div class="hatena-module-title">
+    プロフィール
+  </div>
+  <div class="hatena-module-body">
+    
+    <a href="../../about.html" class="profile-icon-link">
+      <img src="http://cdn1.www.st-hatena.com/users/ni/nipe880324/profile.gif?1406435422"
+      alt="id:nipe880324" class="profile-icon" />
+    </a>
+    
+
+    
+    <span class="id">
+      <a href="../../about.html" class="hatena-id-link"><span data-load-nickname="1" data-user-name="nipe880324">id:nipe880324</span></a>
+      
+  
+    
+    
+  
+
+
+    </span>
+    
+
+    
+
+    
+      <div class="hatena-follow-button-box btn-subscribe js-hatena-follow-button-box"
+  
+  >
+
+  <a href="1444930756.html#" class="hatena-follow-button js-hatena-follow-button">
+    <span class="subscribing">
+      <span class="foreground">読者です</span>
+      <span class="background">読者をやめる</span>
+    </span>
+    <span class="unsubscribing" data-track-name="profile-widget-subscribe-button" data-track-once>
+      <span class="foreground">読者になる</span>
+      <span class="background">読者になる</span>
+    </span>
+  </a>
+  <div class="subscription-count-box js-subscription-count-box">
+    <i></i>
+    <u></u>
+    <span class="subscription-count js-subscription-count">
+    </span>
+  </div>
+</div>
+
+    
+
+    
+
+    
+
+    
+  </div>
+</div>
+
+      
+      
+    
+      
+<div class="hatena-module hatena-module-entries-access-ranking"
+     data-count="4"
+     data-display_entry_category="1"
+     data-display_entry_image="0"
+     data-display_entry_image_size_width="100"
+     data-display_entry_image_size_height="100"
+     data-display_entry_body_length="0"
+     data-display_entry_date="1"
+     data-display_bookmark_count="0"
+     data-source="access"
+>
+  <div class="hatena-module-title">
+    
+      最近のアクセス
+    
+  </div>
+  <div class="hatena-module-body">
+    
+  </div>
+</div>
+
+      
+      
+    
+      
+<div class="hatena-module hatena-module-html">
+    <div class="hatena-module-title">    </div>
+  <div class="hatena-module-body">
+    <nav>
+  <div class="side-category">
+    <span class="side-category-title">Rails 入門</span>
+    <ul class="side-category-list">
+      <li><a href="../20140713/1405251091.html">RailsのためのRuby基礎</a></li>
+      <li><a href="../20140813/1407915718.html">Rails入門者向け ブログ開発</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Railsコマンド</span>
+    <ul class="side-category-list">
+      <li><a href="../20140713/1405251709.html">rails new / server / console</a></li>
+      <li><a href="../20150204/1423055537.html">rails new時の有用な6つの設定</a></li>
+      <li><a href="../20150208/1423391199.html">rails new時のテンプレート</a></li>
+      <li><a href="../20140802/1406948695.html">rails generate</a></li>
+      <li><a href="../20141116/1416115266.html">rakeコマンド一覧</a></li>
+      <li><a href="../20141117/1416225563.html">自前rakeコマンド</a></li>
+      <li><a href="../20141110/1415623670.html">productionモードで起動</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Route / Controller</span>
+    <ul class="side-category-list">
+      <li><a href="../20140716/1405451238.html">Routing</a></li>
+      <li><a href="../20140810/1407603600.html">レイアウトファイルを指定</a></li>
+      <li><a href="../20141125/1416918957.html">ビューを返す(render)</a></li>
+      <li><a href="../20140808/1407427457.html">リダイレクトする(redirect_to)</a></li>
+      <li><a href="../20141126/1417012848.html">Strong Parameters</a></li>
+      <li><a href="../20141129/1417223453.html">フィルタ(before_action, after_action)</a></li>
+      <li><a href="../20141127/1417086075.html">簡易なメッセージ表示(Flash)</a></li>
+      <li><a href="../20141130/1417334030.html">セッション(session)</a></li>
+      <li><a href="../20141201/1417432408.html">リクエストヘッダ、レスポンスヘッダ(request, response)</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Model, Migration</span>
+    <ul class="side-category-list">
+      <li><a href="../20140724/1406142120.html">CRUD</a></li>
+      <li><a href="../20141203/1417601540.html">1対多関連</a></li>
+      <li><a href="../20141204/1417688260.html">多対多関連</a></li>
+      <li><a href="../20141205/1417779929.html">1対1関連</a></li>
+      <li><a href="../20141206/1417839458.html">STI(単一継承テーブル)</a></li>
+      <li><a href="../20141207/1417926599.html">ポリモフィック関連</a></li>
+      <li><a href="../20141208/1418018874.html">複数の子レコードを作成/更新</a></li>
+      <li><a href="../20140724/1406145303.html">バリデーション(validation)</a></li>
+      <li><a href="../20140810/1407623400.html">バリデーションエラー(validation errors)</a></li>
+      <li><a href="../20140814/1407994568.html">スコープ(scope)</a></li>
+      <li><a href="../20141211/1418301640.html">コールバック(callback)</a></li>
+      <li><a href="../20150428/1430154446.html">複雑なSELECT文のまとめ</a></li>
+      <li><a href="../20150710/1436461745.html">enum (Rails 4.1以上)</a></li>
+      <li><a href="../20141209/1418123425.html">楽観的ロック</a></li>
+      <li><a href="../20141210/1418207618.html">悲観的ロック</a></li>
+      <li><a href="../20140810/1407634200.html">Migration(マイグレーション)</a></li>
+      <li><a href="../20150607/1433606267.html">Postgresとマイグレーション</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">API</span>
+    <ul class="side-category-list">
+      <li><a href="../20150708/1436284476.html">Roar</a></li>
+      <li>ActiveSerializer</li>
+      <li>Versioning</li>
+      <li>CORS</li>
+    </ul>
+  </div>
+
+  <div class="side-category">
+    <span class="side-category-title">View, Helper, Presenter</span>
+    <ul class="side-category-list">
+      <li><a href="../20140810/1407603600.html">レイアウトファイルを指定</a></li>
+      <li><a href="../20140807/1407419013.html">部分テンプレート</a></li>
+      <li><a href="../20140727/1406448610.html">フォーム周りのMVC連携フロー</a></li>
+      <li><a href="../20150113/1421149061.html">ビューヘルパーまとめ(View Helper)</a></li>
+      <li><a href="../20140802/1406969793.html">フォーマットヘルパー</a></li>
+      <li><a href="../20140803/1407049200.html">独自ヘルパー作成</a></li>
+      <li><a href="../20141208/1418018874.html">複数の子レコード(has_many)を作成/更新するフォーム</a></li>
+      <li><a href="../20141225/1419515057.html">1フォームに複数のSubmitボタンを配置</a></li>
+      <li><a href="../20140730/1406700205.html">simple_form</a></li>
+      <li><a href="../20150415/1429031791.html">Draper</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">テンプレートエンジン</span>
+    <ul class="side-category-list">
+      <li><a href="../20140929/1411997071.html">HTMLテンプレートエンジンまとめ</a></li>
+      <li><a href="../20140929/1411997071.html">Slim</a></li>
+      <li><a href="../20141001/1412097051.html">Haml</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">ActionSupport / ActionMailer / ActiveJob / i18n</span>
+    <ul class="side-category-list">
+      <li><a href="../20141217/1418817120.html">タイムゾーン、時刻処理</a></li>
+      <li><a href="../20141218/1418901424.html">Timecop 時刻処理のテスト</a></li>
+      <li><a href="../20141216/1418729961.html">クラス名,DB名,ファイル名の変換</a></li>
+      <li><a href="../20141230/1419936984.html">JSON, XML, YAMLの読み書き</a></li>
+      <li><a href="../20141030/1414599853.html">文字コード/エンコード</a></li>
+      <li><a href="../20140828/1409236436.html">メール送信</a></li>
+      <li><a href="../20150304/1425396671.html">DelayedJob バックグラウンド処理</a></li>
+      <li><a href="../20150110/1420863998.html">ログ・ログレベル・ログフォーマット(log, logger)</a></li>
+      <li><a href="../20150226/1424937175.html">i18nまとめ</a></li>
+      <li><a href="../20141111/1415707101.html">エラーハンドリング</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">テスト</span>
+    <ul class="side-category-list">
+      <li><a href="../20150101/1420093487.html">RSpec/Capybaraの導入方法</a></li>
+      <li><a href="../20150103/1420280252.html">RSpec/Capybaraのレシピ集</a></li>
+      <li><a href="../20150101/1420093487.html">FactoryGirlのレシピ集</a></li>
+      <li><a href="../20150105/1420465062.html">Jasmine(Javascriptの単体テスト)</a></li>
+      <li><a href="../20150108/1420675366.html">APIの作成とテスト</a></li>
+      <li><a href="../20150106/1420545920.html">RSpecテストを速くする</a></li>
+      <li><a href="../20150108/1420721205.html">デバッグ(debug)</a></li>
+      <li><a href="../20150420/1429462755.html">Seleniumでスタンドアローンなテスト</a></li>
+      <li><a href="../20140719/1405708234.html">Cucumber+RSpec+Capybara インストール</a></li>
+      <li><a href="../20140719/1405777918.html">Cucumber+RSpec+Capybara BDD/TDD開発例</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Security</span>
+    <ul class="side-category-list">
+      <li><a href="../20141215/1418641291.html">ログ上での秘密情報のフィルタリング</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">パフォーマンス</span>
+    <ul class="side-category-list">
+      <li><a href="../20141109/1415522242.html">Bullet</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">設定</span>
+    <ul class="side-category-list">
+      <li><a href="../20141224/1419414316.html">新しいEnvironmentを追加</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">UI/UX</span>
+    <ul class="side-category-list">
+      <li><a href="../20140801/1406818800.html">Twitter Bootstrap 3</a></li>
+      <li><a href="../20141112/1415804076.html">select2</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Gemの基礎</span>
+    <ul class="side-category-list">
+      <li><a href="../20140715/1405361727.html">RubyGemsの選び方</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">ログイン/認証機能</span>
+    <ul class="side-category-list">
+      <li><a href="../20140801/1406907000.html">devise1 インストール</a></li>
+      <li><a href="../20140804/1407168000.html">devise2 カスタマイズ</a></li>
+      <li><a href="../20140805/1407200400.html">devise3 Twitterでログイン(OAuth連携)</a></li>
+      <li><a href="../20141212/1418380288.html">devise4 ゲストユーザー(Guest)作成</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">ファイルアップロード機能</span>
+    <ul class="side-category-list">
+      <li><a href="../20140716/1405443484.html">PaperClip</a></li>
+      <li><a href="../20141015/1413300088.html">CarrierWave1 インストール</a></li>
+      <li><a href="../20141022/1413907332.html">CarrierWave2 カスタマイズ</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">検索機能・Elasticsearch</span>
+    <ul class="side-category-list">
+      <li><a href="../20141008/1412774436.html">Ransack 検索機能</a></li>
+      <li><a href="../20150224/1424776132.html">Sunspot 全文検索</a></li>
+      <li><a href="../20151018/1445142266.html">Elasticsearch 1: 全文検索・フィルタ</a></li>
+      <li><a href="../20151019/1445265581.html">Elasticsearch 2: ページネーション</a></li>
+      <li><a href="../20151021/1445353566.html">Elasticsearch 3: ソート</a></li>
+      <li><a href="../20151022/1445439798.html">Elasticsearch 4: アグリゲーション（ファセット）・post_filter</a></li>
+      <li><a href="../../20151025/1445703231.html">Elasticsearch 5: ハイライト</a></li>
+      <li><a href="../20151027/1445957667.html">Elasticsearch 6: サジェスト</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">ページネーション</span>
+    <ul class="side-category-list">
+      <li><a href="../20141118/1416314608.html">ページネーションまとめ</a></li>
+      <li><a href="../20141113/1415874683.html">kaminari</a></li>
+      <li><a href="../20141114/1415967206.html">will_paginate</a></li>
+      <li><a href="../20141115/1416021886.html">動的ページロード</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">CSV</span>
+    <ul class="side-category-list">
+      <li><a href="../20141119/1416398472.html">CSVダウンロード</a></li>
+      <li><a href="../20141120/1416483136.html">CSVアップロード</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">PDFファイル作成機能</span>
+    <ul class="side-category-list">
+      <li><a href="../20140906/1409995011.html">PDF作成Gem まとめ</a></li>
+      <li><a href="../20140907/1410078997.html">コードのみでPDF作成 Prawn</a></li>
+      <li><a href="../20140908/1410176894.html">HTMLを変換してPDF作成 PDFKit + wkhtmltopdf</a></li>
+      <li><a href="../20140909/1410241835.html">GUIツールでPDF作成 ThinReports</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">開発効率をあげる</span>
+    <ul class="side-category-list">
+      <li><a href="../20141026/1414289421.html">Spring</a></li>
+      <li><a href="../20141016/1413389293.html">Guard-LiveReload</a></li>
+      <li><a href="../20141021/1413819783.html">Guard-RSpec</a></li>
+      <li><a href="../20141019/1413698128.html">Guard-RuboCop</a></li>
+      <li><a href="../20141024/1414081224.html">Pry-Rails / Pry-BuyBug</a></li>
+      <li><a href="../20141024/1414160189.html">Hirb</a></li>
+      <li><a href="../20141028/1414505988.html">Awesome Print</a></li>
+      <li><a href="../20141029/1414584929.html">Quiet Assets</a></li>
+      <li><a href="../20141025/1414225490.html">Better_Errors</a></li>
+      <li><a href="../20141027/1414409495.html">Rails-ERD</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">その他Gem</span>
+    <ul class="side-category-list">
+      <li><a href="../20150225/1424858414.html">acts-as-taggable-on タグ管理</a></li>
+      <li><a href="../20141016/1413389293.html">wenerber Cron設定</a></li>
+      <li><a href="../20150221/1424489524.html">friendly_id URLスラッグ</a></li>
+      <li><a href="../20150216/1424092796.html">awesome_nested_set ツリー構造</a></li>
+      <li><a href="../20150217/1424179269.html">awesome_nested_set にjsTreeを追加</a></li>
+      <li><a href="../20150214/1423923524.html">PaperTrail 取り消し機能</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Tips</span>
+    <ul class="side-category-list">
+      <li><a href="../20141229/1419856433.html">Virtual Attributes(仮想属性)</a></li>
+      <li><a href="../20141226/1419600679.html">日付/時刻のフォーマット</a></li>
+      <li><a href="../20141225/1419515057.html">1フォームに複数のSubmitボタンを配置</a></li>
+      <li><a href="../20141223/1419334845.html">URLのパーマリンクをID以外に変更</a></li>
+      <li><a href="../20141220/1419058040.html">CSSスタイリングのコントローラー単位で分割</a></li>
+      <li><a href="../20141219/1418990626.html">ページタイトルの変更</a></li>
+      <li><a href="../20150101/1420049679.html">Ruby/Railsの便利なメソッド(useful methods)</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Rubyテクニック</span>
+    <ul class="side-category-list">
+      <li><a href="../20150921/1442839934.html">キーワード引数</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">良い設計/リファクタリング</span>
+    <ul class="side-category-list">
+      <li><a href="../20150922/1442923521.html">デメテルの法則(Law of Demeter)</a></li>
+      <li><a href="../20150312/1426141352.html">HTML/CSS/JSを疎結合にする方法</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">JavaScript</span>
+    <ul class="side-category-list">
+      <li><a href="../20150311/1426062668.html">オブジェクト指向</a></li>
+      <li><a href="../20150313/1426238835.html">thisの参照先</a></li>
+      <li><a href="../20150317/1426599220.html">設定データを分離</a></li>
+      <li><a href="../20150607/1433652441.html">ページを離れる時にアラートを出す</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">jQuery</span>
+    <ul class="side-category-list">
+      <li><a href="../20150325/1427291741.html">Ajax</a></li>
+      <li><a href="../20150326/1427379215.html">イベント処理(Event)</a></li>
+      <li><a href="../20150331/1427809820.html">DOM操作</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">React.js</span>
+    <ul class="side-category-list">
+      <li><a href="../20151122/1448118932.html">React.jsチュートリアル: メッセージボックス</a></li>
+      <li><a href="../20151124/1448300267.html">サーバーレンダリング</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">AngularJS</span>
+    <ul class="side-category-list">
+      <li><a href="../20150114/1421235346.html">AngularJSのインストール</a></li>
+      <li><a href="../20150115/1421316461.html">UI Bootstrapのインストール</a></li>
+      <li><a href="../20150116/1421407124.html">AngularJS Controller</a>
+      <li><a href="../20150119/1421666497.html">ngResource + RailsでAPI作成</a></li>
+      <li><a href="../20150120/1421761471.html">ngRoute</a></li>
+      <li><a href="../20150126/1422276839.html">編集可能(Editable)</a></li>
+      <li><a href="../20150127/1422357163.html">ソート可能(Sortable)</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">開発手法</span>
+    <ul class="side-category-list">
+      <li><a href="../20140917/1410963376.html">スクラム開発</a></li>
+      <li><a href="../20141010/1412867452.html">カイゼンフレームワークKPT</a>
+      <li><a href="../20140816/1408126999.html">GitHubを使ったチーム開発フロー</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">開発ツール</span>
+    <ul class="side-category-list">
+      <li><a href="../20141103/1414940400.html">git - 初期設定と便利なエイリアス</a></li>
+      <li><a href="../20140713/1405248403.html">git - よく使うコマンド</a></li>
+      <li><a href="../20140724/1406137504.html">SublimeText3 - 便利コマンドとプラグイン</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">DB</span>
+    <ul class="side-category-list">
+      <li><a href="../20140726/1406331785.html">MongoDBの基礎入門 CRUD操作</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">インフラ</span>
+    <ul class="side-category-list">
+      <li><a href="../20150719/1437249020.html">Vagrant</a></li>
+      <li><a href="../20150721/1437404524.html">Chef(Rails環境構築)</a></li>
+      <li><a href="../20150314/1426332751.html">Herokuの準備とデプロイ</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">リファレンス</span>
+    <ul class="side-category-list">
+      <li><a href="https://github.com/" target="_blank">GitHub</a></li>
+      <li><a href="http://guides.rubyonrails.org/index.html" target="_blank">RailsGuides</a></li>
+      <li><a href="http://railscasts.com/" target="_blank">RailsCast</a></li>
+      <li><a href="https://rubygems.org/" target="_blank">RubyGems</a></li>
+      <li><a href="https://www.ruby-toolbox.com/" target="_blank">RubyToolbox</a></li>
+      <li><a href="http://rubular.com/" target="_blank">正規表現 Rubular</a></li>
+      <li><a href="http://ruby-doc.org/core-2.1/" target="_blank">Ruby API (2.1)</a></li>
+      <li><a href="http://api.rubyonrails.org/" target="_blank">Ruby on Rails API (4.1)</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Phoenix</span>
+    <ul class="side-category-list">
+      <li><a href="../20151011/1444560106.html">Phoenix環境設定(Phoenix入門1)</a></li>
+      <li><a href="../20151013/1444662887.html">基本的な認証機能(Phoenix入門2)</a></li>
+      <li><a href="1444930756.html">基本的なチャット機能(Phoenix入門3)</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">その他</span>
+    <ul class="side-category-list">
+      <li><a href="../20150401/1427898898.html">広告収入向上</a></li>
+      <li><a href="../20140830/1409361710.html">著者が読んだ本</a></li>
+    </ul>
+  </div>
+</nav>
+
+  </div>
+</div>
+
+      
+      
+    
+      
+
+<div class="hatena-module hatena-module-archive" data-archive-type="default" data-archive-url="http://ruby-rails.hatenadiary.com/archive">
+  <div class="hatena-module-title">
+    <a href="../../archive.html">月別アーカイブ</a>
+  </div>
+  <div class="hatena-module-body">
+  </div>
+</div>
+
+      
+      
+    
+    
+  </div>
+</aside>
+
+  </div>
+</div>
+
+
+
+
+        
+        
+          <script type="text/javascript" src="http://b.hatena.ne.jp/js/hatena_dfp2.js"></script>
+        
+        
+          <div id="bottom-editarea">
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script>
+$('.unsubscribing').on('click', function() {
+    ga('send', 'event', 'button', 'click', 'hatenaReader');  
+});
+</script>
+          </div>
+        
+      </div>
+    </div>
+
+    
+      <footer id="footer" data-brand="hatenablog">
+  <div id="footer-inner">
+    <address>
+      
+      <a href="../../about.html"><img src="http://cdn1.www.st-hatena.com/users/ni/nipe880324/profile.gif" width="16" height="16" alt=""/>
+        <span data-load-nickname="1" data-user-name="nipe880324">nipe880324</span>
+      </a>
+    </address>
+    <p class="services">Powered by <a href="http://hatenablog.com/">Hatena Blog</a></p>
+  </div>
+</footer>
+
+    
+
+    
+  <script type="text/javascript">!function(d,i){if(!d.getElementById(i)){var j=d.createElement("script");j.id=i;j.src="https://widgets.getpocket.com/v1/j/btn.js?v=1";var w=d.getElementById(i);d.body.appendChild(j);}}(document,"pocket-btn-js");</script>
+
+
+    
+
+    <script type="text/javascript" src="https://platform.twitter.com/widgets.js"></script>
+<script type="text/javascript" src="https://apis.google.com/js/plusone.js">
+  {"parsetags": "explicit"}
+</script>
+<script type="text/javascript" src="https://b.st-hatena.com/js/bookmark_button.js" charset="utf-8" async="async"></script>
+
+
+
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.7/react-with-addons.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.7/react-dom.min.js"></script>
+
+
+<script type="text/javascript" src="http://cdn7.www.st-hatena.com/js/jquery-1.9.1.min.js"></script>
+<script type="text/javascript" src="http://cdn7.www.st-hatena.com/js/jquery/jquery-ui.1.10.0.custom.min.js"></script>
+<script type="text/javascript" src="http://cdn7.www.st-hatena.com/js/jquery/jquery.flot.0.8.3.js"></script>
+<script type="text/javascript" src="http://cdn7.www.st-hatena.com/js/jquery/jquery.flot.time.0.8.3.js"></script>
+
+
+
+<script id="hatenablog-js" data-env="production"
+  type="text/javascript" src="https://blog.st-hatena.com/js/hatenablog.js?version=228df9a6e5a3ae04fdb53d33befa3556" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://blog.st-hatena.com/js/texts-ja.js?version=228df9a6e5a3ae04fdb53d33befa3556"></script>
+
+
+  <script type="text/javascript">Hatena.Diary.GlobalHeader.init()</script>
+
+
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
+
+
+
+    
+
+
+    
+       
+
+  <script id="hatena-counter-script" type="text/javascript"><!--
+      hatena_counter_name = "nipe880324";
+      hatena_counter_id = "102";
+      hatena_counter_ref = document.referrer+"";
+      hatena_counter_screen = screen.width + "x" + screen.height+","+screen.colorDepth;
+  //--></script>
+  <script type="text/javascript" src="http://counter.hatena.ne.jp/js/counter.js"></script>
+  <noscript><img src="http://counter.hatena.ne.jp/nipe880324/102" border="0" alt="counter"></noscript>
+
+
+    
+
+  </body>
+</html>
+

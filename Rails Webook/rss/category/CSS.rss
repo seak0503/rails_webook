@@ -1,0 +1,143 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>CSS - Rails Webook</title>
+    <link>http://ruby-rails.hatenadiary.com/category/CSS</link>
+    <description>自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</description>
+    <lastBuildDate>Fri, 18 Dec 2015 02:44:31 +0900</lastBuildDate>
+    <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+    <generator>Hatena::Blog</generator>
+    
+      
+      
+        <item>
+          <title>HTML/CSS/JavaScriptを疎結合にする方法</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20150312/1426141352</link>
+          <description>&lt;p&gt;HTML/CSS/JavaScriptは相互に関係しています。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150312/20150312021825.jpg&quot; alt=&quot;f:id:nipe880324:20150312021825j:plain:w360&quot; title=&quot;f:id:nipe880324:20150312021825j:plain:w360&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:360px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;しかし、それぞれが関係しているからといって、不必要に複雑にして良いわけではありません。&lt;/p&gt;&lt;p&gt;理想としては、&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;テキストや構造に関する問題がある場合は「HTML」&lt;/li&gt;
+&lt;li&gt;スタイルの問題がある場合は「CSS」&lt;/li&gt;
+&lt;li&gt;振る舞いに問題がある場合は「JavaScript」&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;を確認し、修正する&lt;b&gt;だけ&lt;/b&gt;で良いようにしたいです。&lt;/p&gt;&lt;p&gt;こうすることで、デバッグのしやすさ、コードの理解しやすさ、保守性が上がり、幸せになれます！（きっと）&lt;/p&gt;&lt;p&gt;&lt;i&gt;パフォーマンスなどの事情で理想通りにはできないので、あくまで理想として。&lt;/i&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;それぞれができるかぎり関係しないようにし、疎結合にする方法を説明します。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#javascript-good-design-html-js&quot;&gt;HTMLからJavaScriptを隔離する&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#javascript-good-design-js-css&quot;&gt;JavaScriptからCSSを隔離する&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#javascript-good-design-js-html&quot;&gt;JavaScriptからHTMLを隔離する&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;javascript-good-design-html-js&quot;&gt;1. HTMLからJavaScriptを隔離する&lt;/h3&gt;イベントの登録には、&lt;code&gt;onclick&lt;/code&gt;などのon属性を使ってイベントを割り当てないようにすることで、HTML内にJavaScriptのメソッドが入ることを避けるようにします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- Bad: HTML内にJavaScriptのコードが入ってしまっている --&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;button&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;onclick=&amp;quot;doSomething&lt;/span&gt;()&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;action-btn&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Click Me&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;button&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+代わりに、ライブラリが提供するメソッドを使って要素へのイベントハンドラを行うようにします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// Good&lt;/span&gt;
+$(&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;action-btn&amp;quot;&lt;/span&gt;).on(&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;click&amp;quot;&lt;/span&gt;, doSomething);
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+また、イベントハンドラと同様に、JavaScriptをHTML内にインライン化せず、すべて外部ファイルに格納するようにしましょう。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- Bad: HTML内にJavaScriptコードを記載している --&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;script&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt; doSomething&lt;/span&gt;()&lt;span class=&quot;synSpecial&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;    &lt;/span&gt;&lt;span class=&quot;synComment&quot;&gt;// コード&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;script&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- Good: 外部ファイルとしてJavaScriptを読み込んでいる --&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;script&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;src&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;js/all.min.js&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;script&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;i&gt;外部JavaScriptファイルへのリクエストを抑えパフォーマンスを優先させるなどの場合は、やむを得ない。&lt;/i&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;javascript-good-design-js-css&quot;&gt;2. JavaScriptからCSSを隔離する&lt;/h3&gt;可能な限り、DOM要素の&lt;code&gt;style&lt;/code&gt;プロパティを使ってJavaScriptからスタイリング情報を設定しないようにしましょう。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// Bad: JavaScript内にスタイリング情報が入ってしまっている&lt;/span&gt;
+element.style.color = &lt;span class=&quot;synConstant&quot;&gt;&#39;gray&#39;&lt;/span&gt;;
+element.style.text-decoration = &lt;span class=&quot;synConstant&quot;&gt;&#39;line-through&#39;&lt;/span&gt;; &lt;span class=&quot;synComment&quot;&gt;// line-through: 取り消し線&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+代わりに、要素の&lt;code&gt;class&lt;/code&gt;属性の追加/削除によってJavaScript内からスタイリング情報を分離するようにする。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// Good&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;/* CSS */&lt;/span&gt;
+.completed &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  color: gray;
+  text-decoration: line-through;
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+
+
+&lt;span class=&quot;synComment&quot;&gt;// JavaScript (jQuery)&lt;/span&gt;
+$(element).addClass(&lt;span class=&quot;synConstant&quot;&gt;&#39;completed&#39;&lt;/span&gt;);
+$(element).removeClass(&lt;span class=&quot;synConstant&quot;&gt;&#39;completed&#39;&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;javascript-good-design-js-html&quot;&gt;3. JavaScriptからHTMLを隔離する&lt;/h3&gt;&lt;code&gt;innerHTML&lt;/code&gt;プロパティを使って、JavaScript内でHTMLを設定しないようにしましょう。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// Bad: JavaScriptコード内でHTMLコードが混入してしまっている&lt;/span&gt;
+$(&lt;span class=&quot;synConstant&quot;&gt;&#39;my-div&#39;&lt;/span&gt;).html(&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;&amp;lt;h3&amp;gt;Error&amp;lt;/h3&amp;gt;&amp;lt;p&amp;gt;Invalid e-mail address.&amp;lt;/p&amp;gt;&amp;quot;&lt;/span&gt;);
+&lt;/pre&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;解決策1: サーバーからHTMLをロードする&lt;/h4&gt;
+    &lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;$.get(&lt;span class=&quot;synConstant&quot;&gt;&#39;&#39;&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;(data) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;// サーバーから取得したHTMLを設定する&lt;/span&gt;
+    $(&lt;span class=&quot;synConstant&quot;&gt;&#39;my-div&#39;&lt;/span&gt;).html(data.res);
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;)
+  .fail(&lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;(data) &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;// エラー処理&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;;
+&lt;/pre&gt;&lt;p&gt;サーバーから取得したHTML片を設定することで、JavaScriptからHTML片を取り除くことができます。&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;解決策2: クライアントサイドのテンプレートを使う&lt;/h4&gt;
+    &lt;p&gt;JavaScriptのテンプレートエンジンの&lt;a href=&quot;http://handlebarsjs.com/&quot; target=&quot;_blank&quot;&gt;Handlebars&lt;/a&gt;を使って、テンプレートを使った流れを説明します。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;まず、HTMLのテンプレートファイルを用意します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- account-validation-template.hbs --&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h3&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;{{account.error.title}}&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h3&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;{{account.error.message}}&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+そして、JavaScript側でテンプレートファイルを設定します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; html = Handlebars.templates&lt;span class=&quot;synIdentifier&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;account-validation-template.hbs&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;]&lt;/span&gt;(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+   account : &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    error : &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+      title : &lt;span class=&quot;synConstant&quot;&gt;&#39;Error&#39;&lt;/span&gt;,
+      message : &lt;span class=&quot;synConstant&quot;&gt;&#39;Invalid e-mail address.&#39;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+$(&lt;span class=&quot;synConstant&quot;&gt;&#39;my-div&#39;&lt;/span&gt;).html(html);
+&lt;/pre&gt;&lt;p&gt;こうすることで、JavaScriptからHTML片を取り除くことができます。&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;メンテナブルJavaScript&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://qiita.com/sassy_watson/items/f9947624876bf75a9eff&quot;&gt;JavaScript&amp;#x306E;&amp;#x30C6;&amp;#x30F3;&amp;#x30D7;&amp;#x30EC;&amp;#x30FC;&amp;#x30C8;&amp;#x30A8;&amp;#x30F3;&amp;#x30B8;&amp;#x30F3;Handlebars&amp;#x5165;&amp;#x9580; - Qiita&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Thu, 12 Mar 2015 15:22:32 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450087840482</guid>
+          
+            <category>Javascript</category>
+          
+            <category>HTML</category>
+          
+            <category>CSS</category>
+          
+            <category>設計</category>
+          
+        </item>
+      
+    
+  </channel>
+</rss>

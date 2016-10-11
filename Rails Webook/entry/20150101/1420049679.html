@@ -1,0 +1,1547 @@
+<!DOCTYPE html>
+<html
+  lang="ja"
+data-avail-langs="ja en"
+
+data-page="entry"
+data-static-domain="https://blog.st-hatena.com"
+data-blog="ruby-rails.hatenadiary.com"
+data-blog-name="Rails Webook"
+data-blogs-uri-base="http://ruby-rails.hatenadiary.com"
+data-globalheader-color="b"
+data-author="nipe880324"
+data-version="228df9a6e5a3ae04fdb53d33befa3556"
+data-blog-comments-top-is-new=""
+data-plus-available=""
+
+
+
+data-admin-domain="http://blog.hatena.ne.jp"
+
+data-brand="hatenablog"
+
+data-has-touch-view="1"
+
+
+itemscope
+itemtype="http://schema.org/Article"
+
+
+  data-device="pc"
+  data-globalheader-type="pc"
+  >
+  <head prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# article: http://ogp.me/ns/article#">
+    
+    
+    
+
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=7; IE=9; IE=10; IE=11" />
+    <title>Ruby 2.1 / Rails4.1 の意外に忘れられている便利なメソッド - Rails Webook</title>
+
+    
+
+    
+      <link rel="canonical" href="1420049679.html"/>
+    
+
+    
+    
+
+<meta itemprop="name" content="Ruby 2.1 / Rails4.1 の意外に忘れられている便利なメソッド - Rails Webook"/>
+
+  <meta itemprop="image" content="http://f.st-hatena.com/images/fotolife/n/nipe880324/20140802/20140802105152.png"/>
+
+
+    <meta property="og:title" content="Ruby 2.1 / Rails4.1 の意外に忘れられている便利なメソッド - Rails Webook"/>
+<meta property="og:type" content="article"/>
+<meta property="og:url" content="http://ruby-rails.hatenadiary.com/entry/20150101/1420049679"/>
+
+  <meta property="og:image" content="http://f.st-hatena.com/images/fotolife/n/nipe880324/20140802/20140802105152.png"/>
+
+    <meta property="og:description" content="Ruby 2.1 / Rails4.1 での意外に忘れらている便利なメソッドを集めました。 RubyやRailsでは有用なメソッドがたくさん実装されており、車輪の再発明にならないように、それらを覚えて適切な箇所で使うだけで生産性はあがります。" />
+<meta property="og:site_name" content="http://ruby-rails.hatenadiary.com/"/>
+
+  <meta property="article:published_time" content="1420049679" />
+
+    <meta property="article:tag" content="Ruby" />
+    <meta property="article:tag" content="Rails中級" />
+    <meta property="article:tag" content="まとめ" />
+    <meta property="article:tag" content="リファレンス" />
+        <meta name="twitter:card"  content="summary_large_image" />
+    <meta name="twitter:image" content="http://f.st-hatena.com/images/fotolife/n/nipe880324/20140802/20140802105152.png" />
+  <meta name="twitter:title" content="Ruby 2.1 / Rails4.1 の意外に忘れられている便利なメソッド - Rails Webook" />    <meta name="twitter:description" content="Ruby 2.1 / Rails4.1 での意外に忘れらている便利なメソッドを集めました。 RubyやRailsでは有用なメソッドがたくさん実装されており、車輪の再発明にならないように、それらを覚えて適切な箇所で使うだけで生産性はあがります。" />  <meta name="twitter:app:name:iphone" content="はてなブログアプリ" />
+  <meta name="twitter:app:id:iphone" content="583299321" />
+  <meta name="twitter:app:url:iphone" content="hatenablog:///open?uri=http%3A%2F%2Fruby-rails.hatenadiary.com%2Fentry%2F20150101%2F1420049679" />  <meta name="twitter:site" content="@nipe032488" />
+    
+    <meta name="google-site-verification" content="OyOieuLgSrQckqbACTn_Q3G1dPq6LMlTqBRHa6V1XsA">    <meta name="keywords" content="Rails,Ruby on Rails,gem,Webアプリケーション,開発,構築,運用,インフラ">    <meta name="description" content="Ruby 2.1 / Rails4.1 での意外に忘れらている便利なメソッドを集めました。 RubyやRailsでは有用なメソッドがたくさん実装されており、車輪の再発明にならないように、それらを覚えて適切な箇所で使うだけで生産性はあがります。" />
+
+    
+<script type="text/javascript">
+// <!--
+
+if (~navigator.userAgent.indexOf('Mac OS X')) {
+  document.write('<style type="text/css">html, body { font-family: \x27Helvetica\x27, \x27Arial\x27, \x27ヒラギノ角ゴ Pro W3\x27, \x27Hiragino Kaku Gothic Pro\x27, sans-serif; } </style>');
+} else {
+  document.write('<style type="text/css">html, body { font-family: \x27Helvetica\x27, \x27Arial\x27, \x27メイリオ\x27, \x27Meiryo\x27, \x27MS PGothic\x27, sans-serif; } </style>');
+}
+
+// -->
+</script>
+
+<!--[if lt IE 9]>
+<script src="https://html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+<![endif]-->
+
+
+
+
+    <link rel="shortcut icon" href="https://blog.st-hatena.com/images/favicon.ico">
+<link rel="icon" sizes="192x192" href="https://blog.st-hatena.com/images/common/meta-icon-global.png">
+
+    
+<link rel="alternate" type="application/atom+xml" title="Atom" href="../../feed"/>
+<link rel="alternate" type="application/rss+xml" title="RSS2.0" href="../../rss.rss"/>
+<link rel="alternate" type="application/json+oembed" href="http://hatenablog.com/oembed?url=http%3A%2F%2Fruby-rails.hatenadiary.com%2Fentry%2F20150101%2F1420049679&amp;format=json" title="oEmbed Profile of Ruby 2.1 / Rails4.1 の意外に忘れられている便利なメソッド"/>
+<link rel="alternate" type="text/xml+oembed" href="http://hatenablog.com/oembed?url=http%3A%2F%2Fruby-rails.hatenadiary.com%2Fentry%2F20150101%2F1420049679&amp;format=xml" title="oEmbed Profile of Ruby 2.1 / Rails4.1 の意外に忘れられている便利なメソッド"/>
+
+      <link rel="author" href="http://www.hatena.ne.jp/nipe880324/">
+
+    <link rel="stylesheet" type="text/css" href="https://blog.st-hatena.com/css/blog.css?version=228df9a6e5a3ae04fdb53d33befa3556"/>
+
+    
+  <link rel="stylesheet" type="text/css" href="http://blog.hatena.ne.jp/-/blog_style/12921228815727789780/a052dbbef76fd4380abc811c11814f2d9f990b9a"/>
+
+    <script></script>
+
+    
+<style>div#google_afc_user,
+  div#google_afc_user_container_0,
+  div#google_afc_user_container_1,
+  div#google_afc_user_container_2,
+  div#google_afc_user_container_3,
+  div#google_afc_user_container_4,
+  div#google_afc_user_container_5,
+  div.google_afc_image,
+  div.google_afc_blocklink {
+      display: block !important;
+  }
+</style>
+
+
+    
+  </head>
+
+  <body class="page-entry enable-top-editarea enable-bottom-editarea category-Ruby category-Rails中級 category-まとめ category-リファレンス">
+    <!-- Google Universal Analytics -->
+<script id="google-analytics-script">
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-29716941-6', 'auto', {'name': 'HatenaBlogTracker', 'sampleRate': 1});
+  ga('HatenaBlogTracker.require', 'displayfeatures');
+  ga('HatenaBlogTracker.send', 'pageview');
+  ga('create', 'UA-29716941-26', 'auto', {'name': 'HatenaBlogSeparatedTracker', 'sampleRate': 10});
+  ga('HatenaBlogSeparatedTracker.require', 'displayfeatures');
+  ga('HatenaBlogSeparatedTracker.send', 'pageview');
+
+    
+      ga('create', 'UA-45988509-6', 'auto', {'name': 'HatenaBlogUserTracker'});
+      ga('HatenaBlogUserTracker.require', 'displayfeatures');
+      ga('HatenaBlogUserTracker.send', 'pageview');
+    
+  
+  ga('create', 'UA-7855606-1', 'auto', {'name': 'HatenaGlobalTracker', 'sampleRate': 1});
+  ga('HatenaGlobalTracker.require', 'displayfeatures');
+  ga('HatenaGlobalTracker.send', 'pageview');
+</script>
+<!-- End Google Universal Analytics -->
+
+    
+    <div id="header-container">
+     <div id="sp-suggest" style="display: none;"><a id="sp-suggest-link" href="1420049679.html#">スマートフォン用の表示で見る</a></div>
+    </div>
+
+    
+
+<div class="quote-box">
+  <div class="tooltip-quote tooltip-quote-star">
+    <i class="blogicon-star" title="引用スターをつける"></i>
+  </div>
+  <div class="tooltip-quote tooltip-quote-stock">
+    <i class="blogicon-quote" title="引用をストック"></i>
+  </div>
+</div>
+
+<div class="message-box" id="quote-star-message-box" style="display: none; position: absolute;">
+  スターをつけました
+</div>
+
+<div class="quote-stock-panel" id="quote-stock-message-box" style="position: absolute; z-index: 3000">
+  <div class="message-box" id="quote-stock-succeeded-message" style="display: none">
+    <p>引用をストックしました</p>
+    <button class="btn btn-primary" id="quote-stock-show-editor-button" data-track-name="curation-quote-edit-button">ストック一覧を見る</button>
+    <button class="btn quote-stock-close-message-button">閉じる</button>
+  </div>
+
+  <div class="message-box" id="quote-login-required-message" style="display: none">
+    <p>引用するにはまずログインしてください</p>
+    <button class="btn btn-primary" id="quote-login-button">ログイン</button>
+    <button class="btn quote-stock-close-message-button">閉じる</button>
+  </div>
+
+  <div class="error-box" id="quote-stock-failed-message" style="display: none">
+    <p>引用をストックできませんでした。再度お試しください</p>
+    <button class="btn quote-stock-close-message-button">閉じる</button>
+  </div>
+
+  <div class="error-box" id="unstockable-quote-message-box" style="display: none; position: absolute; z-index: 3000;">
+    <p>限定公開記事のため引用できません。</p>
+  </div>
+</div>
+
+<script type="x-underscore-template" id="js-requote-button-template">
+  <div class="requote-button js-requote-button">
+    <button class="requote-button-btn tipsy-top" title="引用する"><i class="blogicon-quote"></i></button>
+  </div>
+</script>
+
+
+    <div id="globalheader-container" >
+  <iframe id="globalheader" height="37" frameborder="0" allowTransparency="true"></iframe>
+</div>
+
+
+    
+    <div id="hidden-subscribe-button">
+      <div class="hatena-follow-button-box btn-subscribe js-hatena-follow-button-box"
+  
+  >
+
+  <a href="1420049679.html#" class="hatena-follow-button js-hatena-follow-button">
+    <span class="subscribing">
+      <span class="foreground">読者です</span>
+      <span class="background">読者をやめる</span>
+    </span>
+    <span class="unsubscribing" data-track-name="profile-widget-subscribe-button" data-track-once>
+      <span class="foreground">読者になる</span>
+      <span class="background">読者になる</span>
+    </span>
+  </a>
+  <div class="subscription-count-box js-subscription-count-box">
+    <i></i>
+    <u></u>
+    <span class="subscription-count js-subscription-count">
+    </span>
+  </div>
+</div>
+
+    </div>
+
+    <div id="container">
+      <div id="container-inner">
+        <header id="blog-title" data-brand="hatenablog">
+  <div id="blog-title-inner" >
+    <div id="blog-title-content">
+      <h1 id="title"><a href="../../index.html">Rails Webook</a></h1>
+      
+        <h2 id="blog-description">自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</h2>
+      
+    </div>
+  </div>
+</header>
+
+        
+          <div id="top-editarea">
+            <!-- start Mixpanel --><script type="text/javascript">(function(e,b){if(!b.__SV){var a,f,i,g;window.mixpanel=b;b._i=[];b.init=function(a,e,d){function f(b,h){var a=h.split(".");2==a.length&&(b=b[a[0]],h=a[1]);b[h]=function(){b.push([h].concat(Array.prototype.slice.call(arguments,0)))}}var c=b;"undefined"!==typeof d?c=b[d]=[]:d="mixpanel";c.people=c.people||[];c.toString=function(b){var a="mixpanel";"mixpanel"!==d&&(a+="."+d);b||(a+=" (stub)");return a};c.people.toString=function(){return c.toString(1)+".people (stub)"};i="disable time_event track track_pageview track_links track_forms register register_once alias unregister identify name_tag set_config people.set people.set_once people.increment people.append people.union people.track_charge people.clear_charges people.delete_user".split(" ");
+for(g=0;g<i.length;g++)f(c,i[g]);b._i.push([a,e,d])};b.__SV=1.2;a=e.createElement("script");a.type="text/javascript";a.async=!0;a.src="undefined"!==typeof MIXPANEL_CUSTOM_LIB_URL?MIXPANEL_CUSTOM_LIB_URL:"file:"===e.location.protocol&&"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js".match(/^\/\//)?"https://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js":"//cdn.mxpnl.com/libs/mixpanel-2-latest.min.js";f=e.getElementsByTagName("script")[0];f.parentNode.insertBefore(a,f)}})(document,window.mixpanel||[]);
+mixpanel.init("16db652100dca0a23c6a55a9205f0824");</script><!-- end Mixpanel -->
+<script async src="http://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- rails top bar 728 x 90 -->
+<ins class="adsbygoogle"
+     style="display:inline-block;width:728px;height:90px"
+     data-ad-client="ca-pub-2736751992834286"
+     data-ad-slot="6687328050"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+
+          </div>
+        
+        
+        
+
+
+
+<div id="content" class="hfeed"
+  
+  >
+  <div id="content-inner">
+    <div id="wrapper">
+      <div id="main">
+        <div id="main-inner">
+          
+            
+            <!-- google_ad_section_start -->
+            <!-- rakuten_ad_target_begin -->
+            
+              
+                <article class="entry hentry js-entry-article date-first autopagerize_page_element chars-200 words-100 mode-hatena entry-odd" id="entry-8454420450075660675" data-keyword-campaign="" data-uuid="8454420450075660675">
+  <div class="entry-inner">
+    <header class="entry-header">
+      <div class="entry-date date first">
+        <a href="../../entries/2015/01/01.html" rel="nofollow">
+          <time pubdate datetime="2014-12-31T18:14:39Z" title="2014-12-31T18:14:39Z">
+            <span class="date-year">2015</span><span class="hyphen">-</span><span class="date-month">01</span><span class="hyphen">-</span><span class="date-day">01</span>
+          </time>
+        </a>
+      </div>
+      <h1 class="entry-title">
+        <a href="1420049679.html" class="entry-title-link bookmark">Ruby 2.1 / Rails4.1 の意外に忘れられている便利なメソッド</a>
+      </h1>
+      
+      
+        <div class="entry-categories categories">
+          
+          <a href="../../archive/category/Ruby.html">Ruby</a>
+          
+          <a href="../../archive/category/Rails%E4%B8%AD%E7%B4%9A.html">Rails中級</a>
+          
+          <a href="../../archive/category/%E3%81%BE%E3%81%A8%E3%82%81.html">まとめ</a>
+          
+          <a href="../../archive/category/%E3%83%AA%E3%83%95%E3%82%A1%E3%83%AC%E3%83%B3%E3%82%B9.html">リファレンス</a>
+          
+        </div>
+      
+      
+
+      
+    </header>
+        
+    <div class="entry-content">
+
+      
+        <p>Ruby 2.1 / Rails4.1 での意外に忘れらている便利なメソッドを集めました。</p><p>RubyやRailsでは有用なメソッドがたくさん実装されており、車輪の再発明にならないように、それらを覚えて適切な箇所で使うだけで生産性はあがります。</p><p><i>（大雑把に書いたので、まだまとまってないので、随時修正します）</i></p><p></p>
+
+<div class="section">
+    <h3>動作確認</h3>
+    
+<ul>
+<li>Ruby 2.1.2</li>
+<li>Rails 4.1</li>
+<li>ActiveSupport 4.1.7</li>
+</ul>
+</div>
+<div class="section">
+    <h3>目次</h3>
+    
+<ul>
+<li><a href="1420049679.html#useful-methods-ruby-basic">Rubyの基本</a></li>
+</ul><p>代入、範囲、正規表現、%記法</p>
+
+<ul>
+<li><a href="1420049679.html#useful-methods-meta-programming">メタプログラミング</a></li>
+</ul><p>文字列からクラスを作成 constantize<br />
+動的にメソッドを定義 class_eval</p>
+
+<ul>
+<li><a href="1420049679.html#useful-methods-of-object">Object</a></li>
+</ul><p>nilや空を判定する(present?, blank?)、nilや空以外の値を取得(present)、nilを扱う(try)</p>
+
+<ul>
+<li><a href="1420049679.html#useful-methods-of-string">String</a></li>
+</ul><p>複数行の文字列(ヒアドキュメント)、文字列を含む(include?, index)、パターンにマッチする(match, =~)<br />
+パターンで置換する(gsub)、文字列で分割し配列にする(split)<br />
+1行ずつ取り出す(each_line)、1文字ずつ取り出す(each_char)、部分文字列を取り出す(slice)<br />
+文字列を削除(delete)、空白を除く(strip)、改行文字除く(chomp)</p>
+
+<ul>
+<li><a href="1420049679.html#useful-methods-of-array">Array</a></li>
+</ul><p>長さ(length, size), 空かどうか(empty?), 値が含まれるか(include?)<br />
+繰り返し(each, each_with_index, reverse_each)<br />
+連結(+)、追加(<<)<br />
+１要素の検索(find), 複数要素の検索(select, reject), 最大値、最小値(max, min)、各要素を処理(collect, map)<br />
+すべて◯◯か(all?), どれか◯◯か(any?)<br />
+各要素を結合(join)、合計を計算(sum)<br />
+ソート(sort)、重複除去(uniq)、ランダムに要素を取得(sample)<br />
+<a href="http://ref.xaio.jp/ruby/classes/array">その他のArrayクラスのメソッド</a><br />
+</p>
+
+<ul>
+<li><a href="1420049679.html#useful-methods-of-hash">Hash</a></li>
+</ul><p>要素の取り出しと設定(<span data-unlink>, </span>=)、キーを配列で取得(keys)、値を配列で取得(values)、値の数(length)<br />
+空かどうか(empty?)、キーが含まれるか(has_key?)、値が含まれるか(has_value?)<br />
+繰り返し(each)、値の取得(select, collect, map)<br />
+ハッシュを統合(merge)、差を取得する(diff)<br />
+<a href="http://ref.xaio.jp/ruby/classes/hash">その他のHashクラスのメソッド</a><br />
+</p>
+
+<ul>
+<li><a href="1420049679.html#useful-methods-of-activerecord">ActiveRecord</a></li>
+</ul><p>指定した要素を配列で取得(pluck)<br />
+変更を確認する(changes, changed?)<br />
+カラム値の存在有無を確認(カラム名+?)<br />
+DBに保存されていないか(new_record?)、DBに保存されているか(persisted?)<br />
+DBに存在しない場合作成(find_or_create_by)</p>
+
+<ul>
+<li><a href="1420049679.html#useful-methods-of-controller">コントローラー</a></li>
+</ul><p>コントローラーのメソッドをビューで使う（helper_method）</p><br />
+<br />
+<br />
+<p><h3 id="useful-methods-ruby-basic">Rubyの基本</h3></p>
+
+<ul>
+<li>代入</li>
+</ul><pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synComment"># 多重代入</span>
+a, b = <span class="synConstant">1</span>, <span class="synConstant">2</span>
+a <span class="synComment"># =&gt; 1</span>
+b <span class="synComment"># =&gt; 2</span>
+
+a, b = [<span class="synConstant">1</span>, <span class="synConstant">2</span>, <span class="synConstant">3</span>]
+a <span class="synComment"># =&gt; 1</span>
+b <span class="synComment"># =&gt; 2</span>
+
+a, *b = [<span class="synConstant">1</span>, <span class="synConstant">2</span>, <span class="synConstant">3</span>]
+a <span class="synComment"># =&gt; 1</span>
+b <span class="synComment"># =&gt; [2, 3]</span>
+
+a, b, c = [<span class="synConstant">1</span>, <span class="synConstant">2</span>]
+a <span class="synComment"># =&gt; 1</span>
+b <span class="synComment"># =&gt; 2</span>
+c <span class="synComment"># =&gt; nil</span>
+
+<span class="synComment"># 入れ替え</span>
+a, b = b, a
+
+<span class="synComment"># 自己代入</span>
+a += <span class="synConstant">1</span>   <span class="synComment"># a = a + 1</span>
+b ||= <span class="synConstant">2</span>  <span class="synComment"># b = b || 2</span>
+</pre>
+<ul>
+<li>範囲</li>
+</ul><p>>ruby|<br />
+(1..5).include?(5)  # => true  (5も含む)<br />
+(1...5).include?(5) # => false (5は含まない)</p>
+
+<ul>
+<li>%記法</li>
+</ul><pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synSpecial">%w(</span><span class="synConstant">Alice Bob Chrlie</span><span class="synSpecial">)</span> <span class="synComment"># =&gt; [&quot;Alice&quot;, &quot;Bob&quot;, &quot;Chrlie&quot;]</span>
+</pre><p></p><br />
+<p><h3 id="useful-methods-ruby-basic">Rubyの基本</h3></p>
+
+<ul>
+<li>文字列からクラスを作成(constantize)</li>
+</ul><pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synSpecial">&quot;</span><span class="synConstant">User</span><span class="synSpecial">&quot;</span>.constantize <span class="synComment">#=&gt; Userクラスが作成される</span>
+<span class="synSpecial">&quot;</span><span class="synConstant">User</span><span class="synSpecial">&quot;</span>.constantize.new
+<span class="synComment">#=&gt; #&lt;User id: nil, name: nil, created_at: nil, updated_at: nil&gt;</span>
+
+<span class="synComment"># 応用: URLから動的にモデルのレコードを読み出す</span>
+<span class="synComment">#</span>
+<span class="synComment"># URL例(request.path): /events/:id/comments, /articles/:id/comments</span>
+resource, id = request.path.split(<span class="synSpecial">'</span><span class="synConstant">/</span><span class="synSpecial">'</span>)[<span class="synConstant">1</span>, <span class="synConstant">2</span>] <span class="synComment"># resource = events か articles</span>
+<span class="synIdentifier">@commentable</span> = resource.singularize.classify.constantize.find(id)
+</pre><p></p><br />
+<p><h3 id="useful-methods-meta-programming">メタプログラミング</h3></p>
+
+<ul>
+<li>メソッドを動的に定義する(class_eval, module_eval)</li>
+</ul><pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synComment"># Cクラスを定義</span>
+<span class="synPreProc">class</span> <span class="synType">C</span>; <span class="synPreProc">end</span>
+
+<span class="synComment"># class_evalメソッドで、Cクラスにmメソッドを定義</span>
+<span class="synType">C</span>.class_eval <span class="synSpecial">%Q{</span>
+<span class="synConstant">  def m</span>
+<span class="synConstant">    puts &quot;hello&quot;</span>
+<span class="synConstant">  end</span>
+<span class="synSpecial">}</span>
+
+<span class="synComment"># mメソッドを実行</span>
+<span class="synType">C</span>.new.m
+<span class="synComment"># =&gt; hello</span>
+</pre><p></p><br />
+<p><h3 id="useful-methods-of-object">Object</h3>nilや空文字など空でないか確認(present?)<br />
+'', ' ', nil, [], {}など空っぽいもの以外の場合、trueを返す</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>[<span class="synSpecial">''</span>, <span class="synSpecial">'</span><span class="synConstant"> </span><span class="synSpecial">'</span>, <span class="synSpecial">&quot;&quot;</span>, <span class="synSpecial">&quot;</span><span class="synConstant"> </span><span class="synSpecial">&quot;</span>, <span class="synConstant">nil</span>, [], {}].each { |<span class="synIdentifier">a</span>| p a.present? }
+<span class="synComment"># =&gt; false</span>
+<span class="synComment"># ... （全て false)</span>
+</pre><p>nilや空文字など空であるか確認(blank?)<br />
+'', ' ', "", " ", nil, [], {}などの空ぽいものの場合、trueを返す</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>[<span class="synSpecial">''</span>, <span class="synSpecial">'</span><span class="synConstant"> </span><span class="synSpecial">'</span>, <span class="synConstant">nil</span>, [], {}].each { |<span class="synIdentifier">a</span>| p a.blank? }
+<span class="synComment"># =&gt; true</span>
+<span class="synComment"># ... （全て true)</span>
+</pre><p>nilや空文字など空でない値を取得(present)<br />
+'', ' ', nil, [], {}など空っぽいもの以外の場合、値を返す。</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synSpecial">'</span><span class="synConstant">a</span><span class="synSpecial">'</span>.presence <span class="synComment">#=&gt; &quot;a&quot;</span>
+<span class="synSpecial">''</span>.presence  <span class="synComment">#=&gt; nil</span>
+</pre><p>tryメソッド(nilの場合、nilを返す)</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synIdentifier">@person</span> ? <span class="synIdentifier">@pserson</span>.name : <span class="synConstant">nil</span>
+<span class="synComment"># をtryで次のように書き換えれる</span>
+<span class="synIdentifier">@poerson</span>.try(<span class="synConstant">:name</span>)
+
+<span class="synComment"># 引数やブロックも渡せる</span>
+<span class="synSpecial">&quot;</span><span class="synConstant">abc</span><span class="synSpecial">&quot;</span>.try(<span class="synConstant">:includes?</span>, <span class="synSpecial">&quot;</span><span class="synConstant">a</span><span class="synSpecial">&quot;</span>)
+</pre><p></p><br />
+<p><h3 id="useful-methods-of-string">String</h3>複数行に渡る文字列(ヒアドキュメント)</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>str = &lt;&lt;<span class="synSpecial">TEXT</span>
+<span class="synConstant">1行目</span>
+<span class="synConstant">2行目</span>
+<span class="synConstant">3行目</span>
+<span class="synSpecial">TEXT</span>
+
+str <span class="synComment">#=&gt; &quot;1行目\n2行目\n3行目\n&quot;</span>
+</pre><p><br />
+指定した文字列を含んでいるか(include?)</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synSpecial">&quot;</span><span class="synConstant">abcde</span><span class="synSpecial">&quot;</span>.include?(<span class="synSpecial">&quot;</span><span class="synConstant">bc</span><span class="synSpecial">&quot;</span>) <span class="synComment">#=&gt; true</span>
+<span class="synSpecial">&quot;</span><span class="synConstant">abcde</span><span class="synSpecial">&quot;</span>.include?(<span class="synSpecial">&quot;</span><span class="synConstant">zy</span><span class="synSpecial">&quot;</span>) <span class="synComment">#=&gt; false</span>
+</pre><p><br />
+指定した文字列を含んでいれば、その開始位置を整数で返す(index)</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synSpecial">&quot;</span><span class="synConstant">abcdefg</span><span class="synSpecial">&quot;</span>.index(<span class="synSpecial">&quot;</span><span class="synConstant">cd</span><span class="synSpecial">&quot;</span>) <span class="synComment"># =&gt; 2</span>
+<span class="synSpecial">&quot;</span><span class="synConstant">abcdefg</span><span class="synSpecial">&quot;</span>.index(<span class="synSpecial">&quot;</span><span class="synConstant">zy</span><span class="synSpecial">&quot;</span>) <span class="synComment"># =&gt; nil</span>
+</pre><p><br />
+パターンにマッチする(=~, match)</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>html = <span class="synSpecial">&quot;</span><span class="synConstant">&lt;p&gt;&lt;/p&gt;</span><span class="synSpecial">&quot;</span>
+html.match(<span class="synSpecial">/</span><span class="synConstant">&lt;</span><span class="synSpecial">(\w)</span><span class="synConstant">&gt;</span><span class="synSpecial">/</span>) <span class="synStatement">do</span> |<span class="synIdentifier">m</span>|
+  p match[<span class="synConstant">0</span>]
+  p match[<span class="synConstant">1</span>]
+<span class="synStatement">end</span>
+<span class="synComment"># =&gt; &quot;&lt;p&gt;&quot;</span>
+<span class="synComment"># =&gt; &quot;p&quot;</span>
+</pre><p><br />
+パターンで置換(gsub)</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>html = <span class="synSpecial">&quot;</span><span class="synConstant">hello,</span><span class="synSpecial">\n</span><span class="synConstant">world</span><span class="synSpecial">\r\n&quot;</span>
+
+<span class="synComment"># 改行コードを&lt;br /&gt;に置き換える</span>
+html.gsub(<span class="synSpecial">/(\r\n|\r|\n)/</span>, <span class="synSpecial">&quot;</span><span class="synConstant">&lt;br /&gt;</span><span class="synSpecial">&quot;</span>) <span class="synComment"># =&gt; &quot;hello,&lt;br /&gt;world&lt;br /&gt;&quot;</span>
+</pre><p><br />
+指定した文字列で分割し、配列にする(split)</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synSpecial">&quot;</span><span class="synConstant">Alice,Bob,Charlie</span><span class="synSpecial">&quot;</span>.split(<span class="synSpecial">&quot;</span><span class="synConstant">,</span><span class="synSpecial">&quot;</span>) <span class="synComment"># =&gt; [&quot;Alice&quot;, &quot;Bob&quot;, &quot;Charlie&quot;]</span>
+</pre><p><br />
+1行ずつ取り出す(each_line)</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synSpecial">&quot;</span><span class="synConstant">1行目</span><span class="synSpecial">\n</span><span class="synConstant">2行目</span><span class="synSpecial">\n</span><span class="synConstant">3行目</span><span class="synSpecial">\n&quot;</span>.each_line { |<span class="synIdentifier">line</span>| p line }
+<span class="synComment"># =&gt; &quot;1行目\n&quot;</span>
+<span class="synComment"># =&gt; &quot;2行目\n&quot;</span>
+<span class="synComment"># =&gt; &quot;3行目\n&quot;</span>
+</pre><p><br />
+1文字ずつ取り出す(each_char)</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synSpecial">&quot;</span><span class="synConstant">abcde</span><span class="synSpecial">&quot;</span>.each_char { |<span class="synIdentifier">ch</span>| p ch }
+<span class="synComment"># =&gt; &quot;a&quot;</span>
+<span class="synComment"># =&gt; &quot;b&quot;</span>
+<span class="synComment"># ...</span>
+</pre><p><br />
+部分文字列を取り出す(slice)</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synSpecial">&quot;</span><span class="synConstant">abcdefg</span><span class="synSpecial">&quot;</span>.slice(<span class="synConstant">1</span>, <span class="synConstant">3</span>) <span class="synComment"># 2番目から3文字分</span>
+<span class="synComment"># =&gt; &quot;bcd&quot;</span>
+<span class="synSpecial">&quot;</span><span class="synConstant">abcdefg</span><span class="synSpecial">&quot;</span>.slice(<span class="synConstant">1</span>..<span class="synConstant">3</span>) <span class="synComment"># 1文字目から3文字目まで</span>
+<span class="synComment"># =&gt; &quot;bcd&quot;</span>
+<span class="synSpecial">&quot;</span><span class="synConstant">abcdefg</span><span class="synSpecial">&quot;</span>.slice(<span class="synSpecial">/\w+/</span>) <span class="synComment"># 正規表現</span>
+<span class="synComment"># =&gt; &quot;abcdefg&quot;</span>
+</pre><p><br />
+指定した文字列を削除(delete)</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synSpecial">&quot;</span><span class="synConstant">abcde</span><span class="synSpecial">&quot;</span>.delete(<span class="synSpecial">&quot;</span><span class="synConstant">cd</span><span class="synSpecial">&quot;</span>) <span class="synComment"># =&gt; &quot;abe&quot;</span>
+<span class="synSpecial">&quot;</span><span class="synConstant">abcde</span><span class="synSpecial">&quot;</span>.delete(<span class="synSpecial">&quot;</span><span class="synConstant">xy</span><span class="synSpecial">&quot;</span>) <span class="synComment"># =&gt; &quot;abcde&quot;</span>
+</pre><p><br />
+先頭と末尾の空白を取り除く(strip)</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synSpecial">&quot;</span><span class="synConstant"> hi </span><span class="synSpecial">\t</span><span class="synConstant"> “.strip # =&gt; “hi”</span>
+</pre><p><br />
+文字列の末尾の改行文字を除く(chomp)</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synSpecial">&quot;</span><span class="synConstant">hi</span><span class="synSpecial">\r\n&quot;</span>.chomp  <span class="synComment"># =&gt; “hi”</span>
+<span class="synSpecial">&quot;</span><span class="synConstant">hi</span><span class="synSpecial">\n&quot;</span>.chomp    <span class="synComment"># =&gt; &quot;hi&quot;</span>
+<span class="synSpecial">&quot;</span><span class="synConstant">hi</span><span class="synSpecial">\r&quot;</span>.chomp    <span class="synComment"># =&gt; &quot;hi&quot;</span>
+
+<span class="synSpecial">&quot;</span><span class="synConstant">1行目</span><span class="synSpecial">\n</span><span class="synConstant">2行目</span><span class="synSpecial">\n</span><span class="synConstant">3行目</span><span class="synSpecial">\n&quot;</span>.chomp <span class="synComment">#=&gt; &quot;1行目\n2行目\n3行目&quot;</span>
+</pre><p></p><br />
+<p><h3 id="useful-methods-of-array">Array</h3>長さ(length, size)</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>[].length <span class="synComment">#=&gt; 0</span>
+[<span class="synConstant">1</span>, <span class="synConstant">2</span>, <span class="synConstant">3</span>].length <span class="synComment">#=&gt; 3</span>
+[<span class="synConstant">1</span>, <span class="synConstant">2</span>, <span class="synConstant">3</span>].size   <span class="synComment">#=&gt; 3</span>
+</pre><p><br />
+空かどうか(empty?)</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>[].empty?  <span class="synComment">#=&gt; true</span>
+
+<span class="synComment"># Railsの場合、ActiveSupportで拡張されたblank?の方が都合が良い場合が多い</span>
+[].blank?  <span class="synComment">#=&gt; true</span>
+</pre><p><br />
+値が含まれるか(include?)</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>[<span class="synConstant">1</span>, <span class="synConstant">2</span>, <span class="synConstant">3</span>].include?(<span class="synConstant">1</span>)  <span class="synComment">#=&gt; true</span>
+[<span class="synConstant">1</span>, <span class="synConstant">2</span>, <span class="synConstant">3</span>].include?(<span class="synConstant">10</span>) <span class="synComment">#=&gt; false</span>
+</pre><p><br />
+繰り返し(each, each_with_index, reverse_each)</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>[<span class="synConstant">1</span>, <span class="synConstant">2</span>, <span class="synConstant">3</span>].each { |<span class="synIdentifier">a</span>| p a }
+<span class="synComment"># =&gt; 1</span>
+<span class="synComment"># =&gt; 2</span>
+<span class="synComment"># =&gt; 3</span>
+
+[<span class="synConstant">1</span>, <span class="synConstant">2</span>, <span class="synConstant">3</span>].each_with_index { |<span class="synIdentifier">a</span>, <span class="synIdentifier">i</span>| p <span class="synSpecial">&quot;#{</span>i<span class="synSpecial">}</span><span class="synConstant">番目:</span><span class="synSpecial">#{</span>a<span class="synSpecial">}&quot;</span> }
+<span class="synComment"># =&gt; &quot;0番目:1&quot;</span>
+<span class="synComment"># =&gt; &quot;1番目:2&quot;</span>
+<span class="synComment"># =&gt; &quot;2番目:3&quot;</span>
+
+[<span class="synConstant">1</span>, <span class="synConstant">2</span>, <span class="synConstant">3</span>].reverse_each { |<span class="synIdentifier">a</span>| p a }
+<span class="synComment"># =&gt; 3</span>
+<span class="synComment"># =&gt; 2</span>
+<span class="synComment"># =&gt; 1</span>
+</pre><p><br />
+配列の連結(+)</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>[<span class="synConstant">1</span>, <span class="synConstant">2</span>, <span class="synConstant">3</span>] + [<span class="synConstant">4</span>, <span class="synConstant">5</span>, <span class="synConstant">6</span>] <span class="synComment">#=&gt; [1, 2, 3, 4, 5, 6]</span>
+[<span class="synConstant">1</span>, <span class="synConstant">2</span>, <span class="synConstant">3</span>] + []        <span class="synComment">#=&gt; [1, 2, 3]</span>
+</pre><p><br />
+要素の追加(<<)</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>[<span class="synConstant">1</span>, <span class="synConstant">2</span>, <span class="synConstant">3</span>] &lt;&lt; <span class="synConstant">4</span>      <span class="synComment">#=&gt; [1, 2, 3, 4]</span>
+[<span class="synConstant">1</span>, <span class="synConstant">2</span>, <span class="synConstant">3</span>] &lt;&lt; [<span class="synConstant">4</span>, <span class="synConstant">5</span>] <span class="synComment">#=&gt; [1, 2, 3, [4, 5]]</span>
+</pre><p><br />
+１要素の検索(find)、複数要素の検索(select, reject),</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>[<span class="synConstant">1</span>, <span class="synConstant">2</span>, <span class="synConstant">3</span>, <span class="synConstant">4</span>, <span class="synConstant">5</span>, <span class="synConstant">6</span>].find { |<span class="synIdentifier">n</span>| n % <span class="synConstant">3</span> == <span class="synConstant">0</span> }
+<span class="synComment"># =&gt; 3</span>
+[<span class="synConstant">1</span>, <span class="synConstant">2</span>, <span class="synConstant">3</span>, <span class="synConstant">4</span>, <span class="synConstant">5</span>, <span class="synConstant">6</span>].find { |<span class="synIdentifier">n</span>| n % <span class="synConstant">3</span> == <span class="synConstant">100</span> }
+<span class="synComment"># =&gt; nil (条件に当てはまらないとnilを返す)</span>
+
+<span class="synComment"># selectはブロック内の条件に当てはまる要素を返す</span>
+[<span class="synConstant">1</span>, <span class="synConstant">2</span>, <span class="synConstant">3</span>, <span class="synConstant">4</span>, <span class="synConstant">5</span>, <span class="synConstant">6</span>].select { |<span class="synIdentifier">n</span>| n % <span class="synConstant">3</span> == <span class="synConstant">0</span> }
+=&gt; [<span class="synConstant">3</span>, <span class="synConstant">6</span>]
+[<span class="synConstant">1</span>, <span class="synConstant">2</span>, <span class="synConstant">3</span>, <span class="synConstant">4</span>, <span class="synConstant">5</span>, <span class="synConstant">6</span>].select { |<span class="synIdentifier">n</span>| n % <span class="synConstant">3</span> == <span class="synConstant">100</span> }
+=&gt; [] (条件に当てはまらないと[]を返す)
+
+<span class="synComment"># rejectはブロック内の条件に当てはまらない要素を返す</span>
+[<span class="synConstant">1</span>, <span class="synConstant">2</span>, <span class="synConstant">3</span>, <span class="synConstant">4</span>, <span class="synConstant">5</span>, <span class="synConstant">6</span>].reject { |<span class="synIdentifier">n</span>| n % <span class="synConstant">3</span> == <span class="synConstant">0</span> }
+=&gt; [<span class="synConstant">1</span>, <span class="synConstant">2</span>, <span class="synConstant">4</span>, <span class="synConstant">5</span>]
+</pre><p><br />
+最大値、最小値(max, min)</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>[<span class="synConstant">2</span>, <span class="synConstant">3</span>, <span class="synConstant">1</span>, <span class="synConstant">10</span>, <span class="synConstant">8</span>].min  <span class="synComment">#=&gt; 1</span>
+[<span class="synConstant">2</span>, <span class="synConstant">3</span>, <span class="synConstant">1</span>, <span class="synConstant">10</span>, <span class="synConstant">8</span>].max <span class="synComment">#=&gt; 10</span>
+</pre><p><br />
+各要素を処理する(collect, map)<br />
+collectもmapも別名で同じ処理をする。ブロックに与えた処理を行ったあとに、それらを配列で返す</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>[<span class="synSpecial">'</span><span class="synConstant">ruby</span><span class="synSpecial">'</span>, <span class="synSpecial">'</span><span class="synConstant">rails</span><span class="synSpecial">'</span>].map { |<span class="synIdentifier">str</span>| str.capitalize } <span class="synComment"># =&gt; [&quot;Ruby&quot;, &quot;Rails&quot;]</span>
+
+<span class="synComment"># 別の書き方もできる</span>
+[<span class="synSpecial">'</span><span class="synConstant">ruby</span><span class="synSpecial">'</span>, <span class="synSpecial">'</span><span class="synConstant">rails</span><span class="synSpecial">'</span>].map(&amp;<span class="synConstant">:capitalize</span>)            <span class="synComment"># =&gt; [&quot;Ruby&quot;, &quot;Rails&quot;]</span>
+</pre><p><br />
+すべて◯◯か(all?), どれか◯◯か(any?)</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>[<span class="synConstant">true</span>, <span class="synConstant">true</span>, <span class="synConstant">true</span>].all?      <span class="synComment"># =&gt; true</span>
+[<span class="synConstant">true</span>, <span class="synConstant">true</span>, <span class="synConstant">false</span>].all?     <span class="synComment"># =&gt; false</span>
+
+[<span class="synConstant">true</span>, <span class="synConstant">true</span>, <span class="synConstant">false</span>].any?     <span class="synComment"># =&gt; true</span>
+[<span class="synConstant">false</span>, <span class="synConstant">false</span>, <span class="synConstant">false</span>].any?   <span class="synComment"># =&gt; false</span>
+
+[<span class="synConstant">true</span>, <span class="synConstant">false</span>, <span class="synConstant">false</span>].one?    <span class="synComment"># =&gt; true</span>
+[<span class="synConstant">true</span>, <span class="synConstant">true</span>, <span class="synConstant">false</span>].one?     <span class="synComment"># =&gt; false</span>
+
+[<span class="synConstant">false</span>, <span class="synConstant">false</span>, <span class="synConstant">false</span>].none?  <span class="synComment"># =&gt; true</span>
+
+<span class="synComment"># ブロックを渡して条件判定ができる</span>
+[<span class="synSpecial">&quot;</span><span class="synConstant">abc tomato</span><span class="synSpecial">&quot;</span>, <span class="synSpecial">&quot;</span><span class="synConstant">xyz tomato</span><span class="synSpecial">&quot;</span>, <span class="synSpecial">&quot;</span><span class="synConstant">123 tomato</span><span class="synSpecial">&quot;</span>].all? { |<span class="synIdentifier">a</span>| a.include?(<span class="synSpecial">&quot;</span><span class="synConstant">tomato</span><span class="synSpecial">&quot;</span>) }
+<span class="synComment"># =&gt; true</span>
+</pre><p><br />
+各要素を指定した文字列で結合して文字列で返す(join)</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>[<span class="synSpecial">&quot;</span><span class="synConstant">ABC</span><span class="synSpecial">&quot;</span>, <span class="synSpecial">&quot;</span><span class="synConstant">DEF</span><span class="synSpecial">&quot;</span>, <span class="synSpecial">&quot;</span><span class="synConstant">GHI</span><span class="synSpecial">&quot;</span>].join(<span class="synSpecial">&quot;</span><span class="synConstant">,</span><span class="synSpecial">&quot;</span>)
+=&gt; <span class="synSpecial">&quot;</span><span class="synConstant">ABC,DEF,GHI</span><span class="synSpecial">&quot;</span>
+[].join(<span class="synSpecial">&quot;</span><span class="synConstant">,</span><span class="synSpecial">&quot;</span>)
+=&gt; <span class="synSpecial">&quot;&quot;</span>
+</pre><p><br />
+合計を計算(sum)</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>[<span class="synConstant">1</span>, <span class="synConstant">2</span>, <span class="synConstant">3</span>].sum             <span class="synComment"># =&gt; 6</span>
+[<span class="synSpecial">&quot;</span><span class="synConstant">abc</span><span class="synSpecial">&quot;</span>, <span class="synSpecial">&quot;</span><span class="synConstant">def</span><span class="synSpecial">&quot;</span>, <span class="synSpecial">&quot;</span><span class="synConstant">ghi</span><span class="synSpecial">&quot;</span>].sum <span class="synComment">#=&gt; &quot;abcdefghi&quot;</span>
+</pre><p><br />
+ソート(sort)</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>[<span class="synConstant">8</span>, <span class="synConstant">3</span>, <span class="synConstant">2</span>, <span class="synConstant">9</span>, <span class="synConstant">1</span>].sort <span class="synComment">#=&gt; [1, 2, 3, 8, 9]</span>
+</pre><p><br />
+重複する要素を除去する(uniq)</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>[<span class="synConstant">3</span>, <span class="synConstant">1</span>, <span class="synConstant">2</span>, <span class="synConstant">3</span>, <span class="synConstant">1</span>, <span class="synConstant">4</span>, <span class="synConstant">2</span>, <span class="synConstant">1</span>].uniq <span class="synComment"># =&gt; [3, 1, 2, 4]</span>
+</pre><p><br />
+ランダムに要素を取得する(sample)</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>[<span class="synConstant">1</span>, <span class="synConstant">2</span>, <span class="synConstant">3</span>, <span class="synConstant">4</span>, <span class="synConstant">5</span>].sample <span class="synComment"># =&gt; 5</span>
+[<span class="synConstant">1</span>, <span class="synConstant">2</span>, <span class="synConstant">3</span>, <span class="synConstant">4</span>, <span class="synConstant">5</span>].sample <span class="synComment"># =&gt; 2</span>
+</pre><p></p><p><h3 id="useful-methods-of-hash">Hash</h3>要素の取り出しと設定(<span data-unlink>, </span>=)</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>hash = { <span class="synSpecial">&quot;</span><span class="synConstant">1</span><span class="synSpecial">&quot;</span> =&gt; { <span class="synSpecial">&quot;</span><span class="synConstant">username</span><span class="synSpecial">&quot;</span> =&gt; <span class="synSpecial">&quot;</span><span class="synConstant">taro</span><span class="synSpecial">&quot;</span>, <span class="synSpecial">&quot;</span><span class="synConstant">age</span><span class="synSpecial">&quot;</span> =&gt; <span class="synConstant">20</span> }, <span class="synSpecial">&quot;</span><span class="synConstant">2</span><span class="synSpecial">&quot;</span> =&gt; { <span class="synSpecial">&quot;</span><span class="synConstant">username</span><span class="synSpecial">&quot;</span> =&gt; <span class="synSpecial">&quot;</span><span class="synConstant">chika</span><span class="synSpecial">&quot;</span>, <span class="synSpecial">&quot;</span><span class="synConstant">age</span><span class="synSpecial">&quot;</span> =&gt; <span class="synConstant">18</span> } }
+
+<span class="synComment"># 要素の取り出し</span>
+hash[<span class="synSpecial">&quot;</span><span class="synConstant">1</span><span class="synSpecial">&quot;</span>]
+<span class="synComment"># =&gt; {&quot;username&quot;=&gt;&quot;taro&quot;, &quot;age&quot;=&gt;20 }</span>
+
+<span class="synComment"># 要素の設定</span>
+hash[<span class="synSpecial">&quot;</span><span class="synConstant">3</span><span class="synSpecial">&quot;</span>] = { <span class="synSpecial">&quot;</span><span class="synConstant">username</span><span class="synSpecial">&quot;</span> =&gt; <span class="synSpecial">&quot;</span><span class="synConstant">tom</span><span class="synSpecial">&quot;</span>, <span class="synSpecial">&quot;</span><span class="synConstant">age</span><span class="synSpecial">&quot;</span> =&gt; <span class="synConstant">25</span> }
+hash
+<span class="synComment"># =&gt; {&quot;1&quot;=&gt;{&quot;username&quot;=&gt;&quot;taro&quot;, &quot;age&quot;=&gt;20}, &quot;2&quot;=&gt;{&quot;username&quot;=&gt;&quot;chika&quot;, &quot;age&quot;=&gt;18}, &quot;3&quot;=&gt;{&quot;username&quot;=&gt;&quot;tom&quot;, &quot;age&quot;=&gt;25}}</span>
+</pre><p>キーを配列で取得(keys)、値を配列で取得(values)、値の数(length)</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>hash = { <span class="synSpecial">&quot;</span><span class="synConstant">1</span><span class="synSpecial">&quot;</span> =&gt; { <span class="synSpecial">&quot;</span><span class="synConstant">username</span><span class="synSpecial">&quot;</span> =&gt; <span class="synSpecial">&quot;</span><span class="synConstant">taro</span><span class="synSpecial">&quot;</span>, <span class="synSpecial">&quot;</span><span class="synConstant">age</span><span class="synSpecial">&quot;</span> =&gt; <span class="synConstant">20</span> }, <span class="synSpecial">&quot;</span><span class="synConstant">2</span><span class="synSpecial">&quot;</span> =&gt; { <span class="synSpecial">&quot;</span><span class="synConstant">username</span><span class="synSpecial">&quot;</span> =&gt; <span class="synSpecial">&quot;</span><span class="synConstant">chika</span><span class="synSpecial">&quot;</span>, <span class="synSpecial">&quot;</span><span class="synConstant">age</span><span class="synSpecial">&quot;</span> =&gt; <span class="synConstant">18</span> } }
+
+hash.keys   <span class="synComment"># =&gt; [&quot;1&quot;, &quot;2&quot;]</span>
+hash.values <span class="synComment"># =&gt; [{&quot;username&quot;=&gt;&quot;taro&quot;, &quot;age&quot;=&gt;20}, {&quot;username&quot;=&gt;&quot;chika&quot;, &quot;age&quot;=&gt;18}]</span>
+hash.length <span class="synComment"># =&gt; 2</span>
+</pre><p>空かどうか(empty?)、キーが含まれるか(has_key?)、値が含まれるか(has_value?)</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>hash = { <span class="synConstant">name</span>: <span class="synConstant">:tom</span> }
+hash.empty?           <span class="synComment"># =&gt; false</span>
+hash.has_key?(<span class="synConstant">:name</span>)  <span class="synComment"># =&gt; true</span>
+hash.has_value?(<span class="synConstant">:tom</span>) <span class="synComment"># =&gt; true</span>
+
+hash = {}
+hash.empty?           <span class="synComment"># =&gt; true</span>
+hash.has_key?(<span class="synConstant">:name</span>)  <span class="synComment"># =&gt; false</span>
+hash.has_value?(<span class="synConstant">:tom</span>) <span class="synComment"># =&gt; false</span>
+</pre><p><br />
+繰り返し(each)</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>hash = { <span class="synSpecial">&quot;</span><span class="synConstant">1</span><span class="synSpecial">&quot;</span> =&gt; { <span class="synSpecial">&quot;</span><span class="synConstant">username</span><span class="synSpecial">&quot;</span> =&gt; <span class="synSpecial">&quot;</span><span class="synConstant">taro</span><span class="synSpecial">&quot;</span>, <span class="synSpecial">&quot;</span><span class="synConstant">age</span><span class="synSpecial">&quot;</span> =&gt; <span class="synConstant">20</span> }, <span class="synSpecial">&quot;</span><span class="synConstant">2</span><span class="synSpecial">&quot;</span> =&gt; { <span class="synSpecial">&quot;</span><span class="synConstant">username</span><span class="synSpecial">&quot;</span> =&gt; <span class="synSpecial">&quot;</span><span class="synConstant">chika</span><span class="synSpecial">&quot;</span>, <span class="synSpecial">&quot;</span><span class="synConstant">age</span><span class="synSpecial">&quot;</span> =&gt; <span class="synConstant">18</span> } }
+
+hash.each { |<span class="synIdentifier">k</span>, <span class="synIdentifier">v</span>| p <span class="synSpecial">&quot;#{</span>k<span class="synSpecial">}</span><span class="synConstant">:</span><span class="synSpecial">#{</span>v<span class="synSpecial">}&quot;</span> }
+<span class="synComment"># =&gt; &quot;1:{\&quot;username\&quot;=&gt;\&quot;taro\&quot;, \&quot;age\&quot;=&gt;20}&quot;</span>
+<span class="synComment"># =&gt; &quot;2:{\&quot;username\&quot;=&gt;\&quot;chika\&quot;, \&quot;age\&quot;=&gt;18}&quot;</span>
+</pre><p>値の取得(select, collect, map)</p>
+
+<ul>
+<li>select ... ブロックの条件に合致するハッシュを返す</li>
+<li>collect(map) ... 各要素に対して、処理を行った結果を配列で返す</li>
+</ul><pre class="code lang-ruby" data-lang="ruby" data-unlink>hash = { <span class="synSpecial">&quot;</span><span class="synConstant">1</span><span class="synSpecial">&quot;</span> =&gt; { <span class="synSpecial">&quot;</span><span class="synConstant">username</span><span class="synSpecial">&quot;</span> =&gt; <span class="synSpecial">&quot;</span><span class="synConstant">taro</span><span class="synSpecial">&quot;</span>, <span class="synSpecial">&quot;</span><span class="synConstant">age</span><span class="synSpecial">&quot;</span> =&gt; <span class="synConstant">20</span> }, <span class="synSpecial">&quot;</span><span class="synConstant">2</span><span class="synSpecial">&quot;</span> =&gt; { <span class="synSpecial">&quot;</span><span class="synConstant">username</span><span class="synSpecial">&quot;</span> =&gt; <span class="synSpecial">&quot;</span><span class="synConstant">chika</span><span class="synSpecial">&quot;</span>, <span class="synSpecial">&quot;</span><span class="synConstant">age</span><span class="synSpecial">&quot;</span> =&gt; <span class="synConstant">18</span> } }
+
+<span class="synComment"># ageが20以上のハッシュを取得する</span>
+hash.select { |<span class="synIdentifier">_</span>, <span class="synIdentifier">v</span>| v[<span class="synSpecial">&quot;</span><span class="synConstant">age</span><span class="synSpecial">&quot;</span>].to_i &gt;= <span class="synConstant">20</span> }
+<span class="synComment"># =&gt; {&quot;1&quot;=&gt;{&quot;username&quot;=&gt;&quot;taro&quot;, &quot;age&quot;=&gt;20}}</span>
+
+<span class="synComment"># ageを配列で取得する</span>
+hash.collect { |<span class="synIdentifier">_</span>, <span class="synIdentifier">v</span>| v[<span class="synSpecial">&quot;</span><span class="synConstant">age</span><span class="synSpecial">&quot;</span>].to_i }
+<span class="synComment"># =&gt; [20, 18]</span>
+<span class="synComment"># mapとcollectのエイリアスであるため挙動は同じ</span>
+hash.map { |<span class="synIdentifier">_</span>, <span class="synIdentifier">v</span>| v[<span class="synSpecial">&quot;</span><span class="synConstant">age</span><span class="synSpecial">&quot;</span>].to_i }
+<span class="synComment"># =&gt; [20, 18]</span>
+</pre><p><br />
+ハッシュを統合(merge)</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>h1 = { <span class="synConstant">price</span>: <span class="synConstant">100</span> }
+h2 = { <span class="synConstant">published</span>: <span class="synConstant">false</span> }
+h1.merge(h2) <span class="synComment"># =&gt; {:price=&gt;100, :published=&gt;false}</span>
+
+<span class="synComment"># 同じ値の場合は、後のハッシュが優先になる</span>
+h1 = { <span class="synConstant">published</span>: <span class="synConstant">true</span>  }
+h2 = { <span class="synConstant">published</span>: <span class="synConstant">false</span> }
+h1.merge(h2) <span class="synComment"># =&gt; {:published=&gt;false}</span>
+</pre><p></p><br />
+<p><h3 id="useful-methods-of-activerecord">ActiveRecord</h3></p>
+
+<ul>
+<li>指定した要素を配列で取得(pluck)</li>
+</ul><pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synType">User</span>.all.pluck(<span class="synConstant">:id</span>, <span class="synConstant">:name</span>)
+<span class="synComment">#(0.2ms)  SELECT &quot;users&quot;.&quot;id&quot;, &quot;users&quot;.&quot;name&quot; FROM &quot;users&quot;</span>
+<span class="synComment"># =&gt; [[1, nil], [2, &quot;田中&quot;]]</span>
+</pre>
+<ul>
+<li>変更を確認する(changes, changed?)</li>
+</ul><pre class="code lang-ruby" data-lang="ruby" data-unlink>u = <span class="synType">User</span>.first
+
+<span class="synComment"># 変更された要素を取得する</span>
+u.changes       <span class="synComment"># =&gt; {}</span>
+<span class="synComment"># すべての要素が変更されたかbooleanで取得</span>
+u.changed?      <span class="synComment"># =&gt; false</span>
+<span class="synComment"># nameカラムが変更されたかbooleanで取得</span>
+u.name_changed? <span class="synComment">#=&gt; false</span>
+
+u.name = <span class="synSpecial">&quot;</span><span class="synConstant">test</span><span class="synSpecial">&quot;</span>
+
+u.changes       <span class="synComment">#=&gt; {&quot;name&quot;=&gt;[nil, &quot;test&quot;]}</span>
+u.changed?      <span class="synComment">#=&gt; true</span>
+u.name_changed? <span class="synComment">#=&gt; true</span>
+</pre>
+<ul>
+<li>カラムの存在有無を確認する(カラム名+?)</li>
+</ul><p>boolean値のカラム</p>
+<pre class="code lang-ruby" data-lang="ruby" data-unlink>u = <span class="synType">User</span>.first
+
+<span class="synComment"># nil, &quot;&quot;, {}, [], falseなどの場合、falseを返す</span>
+u.name  = <span class="synConstant">nil</span>
+u.name? <span class="synComment"># =&gt; false</span>
+u.name  = <span class="synSpecial">&quot;&quot;</span>
+u.name? <span class="synComment"># =&gt; false</span>
+u.name = {}
+u.name? <span class="synComment"># =&gt; false</span>
+u.name = []
+u.name? <span class="synComment"># =&gt; false</span>
+u.name = <span class="synConstant">false</span>
+u.name? <span class="synComment"># =&gt; false</span>
+
+u.name = <span class="synSpecial">&quot;</span><span class="synConstant">test</span><span class="synSpecial">&quot;</span>
+u.name? <span class="synComment"># =&gt; true</span>
+</pre>
+<ul>
+<li>DBに保存されていないか(new_record?)、DBに保存されているか(persisted?)</li>
+</ul><pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synComment"># DBに保存されていない値</span>
+u = <span class="synType">User</span>.new
+u.new_record? <span class="synComment"># =&gt; true</span>
+u.persisted?  <span class="synComment"># =&gt; false</span>
+
+<span class="synComment"># DBに保存されている値</span>
+u = <span class="synType">User</span>.first
+u.new_record? <span class="synComment">#=&gt; false</span>
+u.persisted?  <span class="synComment">#=&gt; true</span>
+</pre>
+<ul>
+<li>DBに存在しない場合作成(find_or_create_by)</li>
+</ul><pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synComment"># DBに存在する場合、レコードを取得</span>
+<span class="synType">User</span>.find_or_create_by(<span class="synConstant">name</span>: <span class="synSpecial">&quot;</span><span class="synConstant">test</span><span class="synSpecial">&quot;</span>)
+<span class="synComment"># =&gt; #&lt;User id: 1, name: &quot;test&quot;, created_at: &quot;2014-11-29 09:02:15&quot;, updated_at: &quot;2014-11-30 10:49:04&quot;, active: nil&gt;</span>
+
+<span class="synComment"># DBに存在しない場合、レコードを作成</span>
+<span class="synType">User</span>.find_or_create_by(<span class="synConstant">name</span>: <span class="synSpecial">&quot;</span><span class="synConstant">test3</span><span class="synSpecial">&quot;</span>) <span class="synStatement">do</span> |<span class="synIdentifier">u</span>|
+  <span class="synComment"># 引数で指定した値は自動的に設定される</span>
+  <span class="synComment"># ブロック内でその他の値を設定する</span>
+  u.active = <span class="synConstant">false</span>
+<span class="synStatement">end</span>
+<span class="synComment"># =&gt; #&lt;User id: 4, name: &quot;test3&quot;, created_at: &quot;2014-11-30 10:51:45&quot;, updated_at: &quot;2014-11-30 10:51:45&quot;, active: false&gt;</span>
+</pre><p></p><br />
+<p><h3 id="useful-methods-of-controller">コントローラー</h3></p>
+
+<ul>
+<li>コントローラーのメソッドをビューで使う（helper_method）</li>
+</ul><pre class="code lang-ruby" data-lang="ruby" data-unlink><span class="synComment"># Controller</span>
+
+  <span class="synComment"># ビューでcurrent_userメソッドが利用できる</span>
+  helper_method <span class="synConstant">:current_user</span>
+
+  <span class="synStatement">private</span>
+  <span class="synPreProc">def</span> <span class="synIdentifier">current_user</span>
+    <span class="synIdentifier">@_current_user</span> ||= <span class="synType">User</span>.find(session[<span class="synConstant">:user_id</span>])
+  <span class="synPreProc">end</span>
+end
+
+<span class="synComment"># View</span>
+ユーザー名: &lt;%= current_user.name %&gt;
+</pre>
+</div>
+<div class="section">
+    <h3>参考文献</h3>
+    
+<ul>
+<li>Rails3 レシピブック 190の技</li>
+<li><a href="http://api.rubyonrails.org/">Ruby on Rails API</a></li>
+<li><a href="http://ref.xaio.jp/ruby">Ruby&#x30EA;&#x30D5;&#x30A1;&#x30EC;&#x30F3;&#x30B9;</a></li>
+</ul>
+</div>
+      
+    </div>
+    <footer class="entry-footer">
+      <p class="entry-footer-section">
+        <span class="author vcard"><span class="fn" data-load-nickname="1" data-user-name="nipe880324">nipe880324</span></span>
+        <span class="entry-footer-time"><a href="1420049679.html"><time data-relative datetime="2014-12-31T18:14:39Z" title="2014-12-31T18:14:39Z" pubdate class="updated">2015-01-01 03:14</time></a></span>
+      </p>
+
+      
+
+      
+<div class="social-buttons">
+  
+  
+    <div class="social-button-item">
+      <a href="http://b.hatena.ne.jp/entry/http://ruby-rails.hatenadiary.com/entry/20150101/1420049679" class="hatena-bookmark-button" data-hatena-bookmark-layout="vertical-balloon" data-hatena-bookmark-lang="ja" title="この記事をはてなブックマークに追加"><img src="https://b.st-hatena.com/images/entry-button/button-only.gif" alt="この記事をはてなブックマークに追加" width="20" height="20" style="border: none;" /></a>
+    </div>
+  
+  
+  
+    <div class="social-button-item">
+      <a href="https://twitter.com/search?q=http%3A%2F%2Fruby-rails.hatenadiary.com%2Fentry%2F20150101%2F1420049679" class="social-button-twitter-balloon" target="_blank">
+        <span class="social-button-twitter-balloon-list">list</span>
+        <i class="social-button-twitter-balloon-arrow-border"></i>
+        <u class="social-button-twitter-balloon-arrow"></u>
+      </a>
+      <a href="https://twitter.com/share" class="twitter-share-button" data-url="http://ruby-rails.hatenadiary.com/entry/20150101/1420049679" data-count="vertical" data-text="Ruby 2.1 / Rails4.1 の意外に忘れられている便利なメソッド - Rails Webook" data-lang="ja">Tweet</a>
+    </div>
+  
+  
+  
+  
+  
+    <div class="social-button-item">
+      <a data-pocket-label="pocket" data-save-url="http://ruby-rails.hatenadiary.com/entry/20150101/1420049679" data-pocket-count="vertical" class="pocket-btn" data-lang="en"></a>
+    </div>
+  
+</div>
+
+
+      
+        
+          
+            
+            <div class="google-afc-image test-google-rectangle-ads ">
+              
+              
+                <script>
+  var hatenadfp = hatenadfp || {};
+  hatenadfp.adUnits = hatenadfp.adUnits || [];
+  hatenadfp.adUnits.push(
+    
+      { unitName: 'blog_user', size: [[300, 250], [336, 280]], divId: 'google_afc_user_container_0', allowContentMatch: true }
+    
+  );
+  hatenadfp.isNGContent = false;
+  
+</script>
+
+                <div id="google_afc_user_container_0" class="google_afc_blocklink2_5 google_afc_boder"></div>
+                
+                  <a href="http://blog.hatena.ne.jp/guide/pro" class="open-pro-modal" data-guide-pro-modal-ad-url="http://hatenablog.com/guide/pro/modal/ad">広告を非表示にする</a>
+                
+                
+              
+            </div>
+          
+        
+      
+
+      <div class="customized-footer">
+
+        
+
+          
+
+          
+
+          
+        
+      </div>
+
+      <div class="comment-box">
+        
+        <ul class="comment">
+          
+        </ul>
+        
+          <a class="leave-comment-title">コメントを書く</a>
+        
+      </div>
+      <!-- enjapan ad -->
+      
+    </footer>
+  </div>
+</article>
+
+                
+
+                
+                  
+                  
+                  <div class="permalink pager">
+                    
+                      
+                      <span class="pager-prev">
+                        <a href="1420093487.html" rel="prev">
+                          <span class="pager-arrow">« </span>
+                          RSpec/Capybara/Capybara-Webkitの導入方法
+                        </a>
+                      </span>
+                    
+                    
+                      
+                      <span class="pager-next">
+                        <a href="../20141230/1419936984.html" rel="next">
+                          Rails4でJSON, XML, YAMLの読み込みと出力
+                          <span class="pager-arrow"> »</span>
+                        </a>
+                      </span>
+                    
+                  </div>
+                
+
+              
+            
+            <!-- rakuten_ad_target_end -->
+            <!-- google_ad_section_end -->
+
+            
+          
+        </div>
+      </div>
+
+      
+      <aside id="box1">
+        <div id="box1-inner">
+        </div>
+      </aside>
+
+    </div><!-- #wrapper -->
+
+    <aside id="box2">
+  
+  <div id="box2-inner">
+    
+      
+<div class="hatena-module hatena-module-html">
+  <div class="hatena-module-body">
+    <script async src="http://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+<!-- -->
+<ins class="adsbygoogle"
+     style="display:inline-block;width:160px;height:600px"
+     data-ad-client="ca-pub-2736751992834286"
+     data-ad-slot="8116686456"></ins>
+<script>
+(adsbygoogle = window.adsbygoogle || []).push({});
+</script>
+  </div>
+</div>
+
+      
+      
+    
+      
+
+<div class="hatena-module hatena-module-profile">
+  <div class="hatena-module-title">
+    プロフィール
+  </div>
+  <div class="hatena-module-body">
+    
+    <a href="../../about.html" class="profile-icon-link">
+      <img src="http://cdn1.www.st-hatena.com/users/ni/nipe880324/profile.gif?1406435422"
+      alt="id:nipe880324" class="profile-icon" />
+    </a>
+    
+
+    
+    <span class="id">
+      <a href="../../about.html" class="hatena-id-link"><span data-load-nickname="1" data-user-name="nipe880324">id:nipe880324</span></a>
+      
+  
+    
+    
+  
+
+
+    </span>
+    
+
+    
+
+    
+      <div class="hatena-follow-button-box btn-subscribe js-hatena-follow-button-box"
+  
+  >
+
+  <a href="1420049679.html#" class="hatena-follow-button js-hatena-follow-button">
+    <span class="subscribing">
+      <span class="foreground">読者です</span>
+      <span class="background">読者をやめる</span>
+    </span>
+    <span class="unsubscribing" data-track-name="profile-widget-subscribe-button" data-track-once>
+      <span class="foreground">読者になる</span>
+      <span class="background">読者になる</span>
+    </span>
+  </a>
+  <div class="subscription-count-box js-subscription-count-box">
+    <i></i>
+    <u></u>
+    <span class="subscription-count js-subscription-count">
+    </span>
+  </div>
+</div>
+
+    
+
+    
+
+    
+
+    
+  </div>
+</div>
+
+      
+      
+    
+      
+<div class="hatena-module hatena-module-entries-access-ranking"
+     data-count="4"
+     data-display_entry_category="1"
+     data-display_entry_image="0"
+     data-display_entry_image_size_width="100"
+     data-display_entry_image_size_height="100"
+     data-display_entry_body_length="0"
+     data-display_entry_date="1"
+     data-display_bookmark_count="0"
+     data-source="access"
+>
+  <div class="hatena-module-title">
+    
+      最近のアクセス
+    
+  </div>
+  <div class="hatena-module-body">
+    
+  </div>
+</div>
+
+      
+      
+    
+      
+<div class="hatena-module hatena-module-html">
+    <div class="hatena-module-title">    </div>
+  <div class="hatena-module-body">
+    <nav>
+  <div class="side-category">
+    <span class="side-category-title">Rails 入門</span>
+    <ul class="side-category-list">
+      <li><a href="../20140713/1405251091.html">RailsのためのRuby基礎</a></li>
+      <li><a href="../20140813/1407915718.html">Rails入門者向け ブログ開発</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Railsコマンド</span>
+    <ul class="side-category-list">
+      <li><a href="../20140713/1405251709.html">rails new / server / console</a></li>
+      <li><a href="../20150204/1423055537.html">rails new時の有用な6つの設定</a></li>
+      <li><a href="../20150208/1423391199.html">rails new時のテンプレート</a></li>
+      <li><a href="../20140802/1406948695.html">rails generate</a></li>
+      <li><a href="../20141116/1416115266.html">rakeコマンド一覧</a></li>
+      <li><a href="../20141117/1416225563.html">自前rakeコマンド</a></li>
+      <li><a href="../20141110/1415623670.html">productionモードで起動</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Route / Controller</span>
+    <ul class="side-category-list">
+      <li><a href="../20140716/1405451238.html">Routing</a></li>
+      <li><a href="../20140810/1407603600.html">レイアウトファイルを指定</a></li>
+      <li><a href="../20141125/1416918957.html">ビューを返す(render)</a></li>
+      <li><a href="../20140808/1407427457.html">リダイレクトする(redirect_to)</a></li>
+      <li><a href="../20141126/1417012848.html">Strong Parameters</a></li>
+      <li><a href="../20141129/1417223453.html">フィルタ(before_action, after_action)</a></li>
+      <li><a href="../20141127/1417086075.html">簡易なメッセージ表示(Flash)</a></li>
+      <li><a href="../20141130/1417334030.html">セッション(session)</a></li>
+      <li><a href="../20141201/1417432408.html">リクエストヘッダ、レスポンスヘッダ(request, response)</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Model, Migration</span>
+    <ul class="side-category-list">
+      <li><a href="../20140724/1406142120.html">CRUD</a></li>
+      <li><a href="../20141203/1417601540.html">1対多関連</a></li>
+      <li><a href="../20141204/1417688260.html">多対多関連</a></li>
+      <li><a href="../20141205/1417779929.html">1対1関連</a></li>
+      <li><a href="../20141206/1417839458.html">STI(単一継承テーブル)</a></li>
+      <li><a href="../20141207/1417926599.html">ポリモフィック関連</a></li>
+      <li><a href="../20141208/1418018874.html">複数の子レコードを作成/更新</a></li>
+      <li><a href="../20140724/1406145303.html">バリデーション(validation)</a></li>
+      <li><a href="../20140810/1407623400.html">バリデーションエラー(validation errors)</a></li>
+      <li><a href="../20140814/1407994568.html">スコープ(scope)</a></li>
+      <li><a href="../20141211/1418301640.html">コールバック(callback)</a></li>
+      <li><a href="../20150428/1430154446.html">複雑なSELECT文のまとめ</a></li>
+      <li><a href="../20150710/1436461745.html">enum (Rails 4.1以上)</a></li>
+      <li><a href="../20141209/1418123425.html">楽観的ロック</a></li>
+      <li><a href="../20141210/1418207618.html">悲観的ロック</a></li>
+      <li><a href="../20140810/1407634200.html">Migration(マイグレーション)</a></li>
+      <li><a href="../20150607/1433606267.html">Postgresとマイグレーション</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">API</span>
+    <ul class="side-category-list">
+      <li><a href="../20150708/1436284476.html">Roar</a></li>
+      <li>ActiveSerializer</li>
+      <li>Versioning</li>
+      <li>CORS</li>
+    </ul>
+  </div>
+
+  <div class="side-category">
+    <span class="side-category-title">View, Helper, Presenter</span>
+    <ul class="side-category-list">
+      <li><a href="../20140810/1407603600.html">レイアウトファイルを指定</a></li>
+      <li><a href="../20140807/1407419013.html">部分テンプレート</a></li>
+      <li><a href="../20140727/1406448610.html">フォーム周りのMVC連携フロー</a></li>
+      <li><a href="../20150113/1421149061.html">ビューヘルパーまとめ(View Helper)</a></li>
+      <li><a href="../20140802/1406969793.html">フォーマットヘルパー</a></li>
+      <li><a href="../20140803/1407049200.html">独自ヘルパー作成</a></li>
+      <li><a href="../20141208/1418018874.html">複数の子レコード(has_many)を作成/更新するフォーム</a></li>
+      <li><a href="../20141225/1419515057.html">1フォームに複数のSubmitボタンを配置</a></li>
+      <li><a href="../20140730/1406700205.html">simple_form</a></li>
+      <li><a href="../20150415/1429031791.html">Draper</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">テンプレートエンジン</span>
+    <ul class="side-category-list">
+      <li><a href="../20140929/1411997071.html">HTMLテンプレートエンジンまとめ</a></li>
+      <li><a href="../20140929/1411997071.html">Slim</a></li>
+      <li><a href="../20141001/1412097051.html">Haml</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">ActionSupport / ActionMailer / ActiveJob / i18n</span>
+    <ul class="side-category-list">
+      <li><a href="../20141217/1418817120.html">タイムゾーン、時刻処理</a></li>
+      <li><a href="../20141218/1418901424.html">Timecop 時刻処理のテスト</a></li>
+      <li><a href="../20141216/1418729961.html">クラス名,DB名,ファイル名の変換</a></li>
+      <li><a href="../20141230/1419936984.html">JSON, XML, YAMLの読み書き</a></li>
+      <li><a href="../20141030/1414599853.html">文字コード/エンコード</a></li>
+      <li><a href="../20140828/1409236436.html">メール送信</a></li>
+      <li><a href="../20150304/1425396671.html">DelayedJob バックグラウンド処理</a></li>
+      <li><a href="../20150110/1420863998.html">ログ・ログレベル・ログフォーマット(log, logger)</a></li>
+      <li><a href="../20150226/1424937175.html">i18nまとめ</a></li>
+      <li><a href="../20141111/1415707101.html">エラーハンドリング</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">テスト</span>
+    <ul class="side-category-list">
+      <li><a href="1420093487.html">RSpec/Capybaraの導入方法</a></li>
+      <li><a href="../20150103/1420280252.html">RSpec/Capybaraのレシピ集</a></li>
+      <li><a href="1420093487.html">FactoryGirlのレシピ集</a></li>
+      <li><a href="../20150105/1420465062.html">Jasmine(Javascriptの単体テスト)</a></li>
+      <li><a href="../20150108/1420675366.html">APIの作成とテスト</a></li>
+      <li><a href="../20150106/1420545920.html">RSpecテストを速くする</a></li>
+      <li><a href="../20150108/1420721205.html">デバッグ(debug)</a></li>
+      <li><a href="../20150420/1429462755.html">Seleniumでスタンドアローンなテスト</a></li>
+      <li><a href="../20140719/1405708234.html">Cucumber+RSpec+Capybara インストール</a></li>
+      <li><a href="../20140719/1405777918.html">Cucumber+RSpec+Capybara BDD/TDD開発例</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Security</span>
+    <ul class="side-category-list">
+      <li><a href="../20141215/1418641291.html">ログ上での秘密情報のフィルタリング</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">パフォーマンス</span>
+    <ul class="side-category-list">
+      <li><a href="../20141109/1415522242.html">Bullet</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">設定</span>
+    <ul class="side-category-list">
+      <li><a href="../20141224/1419414316.html">新しいEnvironmentを追加</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">UI/UX</span>
+    <ul class="side-category-list">
+      <li><a href="../20140801/1406818800.html">Twitter Bootstrap 3</a></li>
+      <li><a href="../20141112/1415804076.html">select2</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Gemの基礎</span>
+    <ul class="side-category-list">
+      <li><a href="../20140715/1405361727.html">RubyGemsの選び方</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">ログイン/認証機能</span>
+    <ul class="side-category-list">
+      <li><a href="../20140801/1406907000.html">devise1 インストール</a></li>
+      <li><a href="../20140804/1407168000.html">devise2 カスタマイズ</a></li>
+      <li><a href="../20140805/1407200400.html">devise3 Twitterでログイン(OAuth連携)</a></li>
+      <li><a href="../20141212/1418380288.html">devise4 ゲストユーザー(Guest)作成</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">ファイルアップロード機能</span>
+    <ul class="side-category-list">
+      <li><a href="../20140716/1405443484.html">PaperClip</a></li>
+      <li><a href="../20141015/1413300088.html">CarrierWave1 インストール</a></li>
+      <li><a href="../20141022/1413907332.html">CarrierWave2 カスタマイズ</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">検索機能・Elasticsearch</span>
+    <ul class="side-category-list">
+      <li><a href="../20141008/1412774436.html">Ransack 検索機能</a></li>
+      <li><a href="../20150224/1424776132.html">Sunspot 全文検索</a></li>
+      <li><a href="../20151018/1445142266.html">Elasticsearch 1: 全文検索・フィルタ</a></li>
+      <li><a href="../20151019/1445265581.html">Elasticsearch 2: ページネーション</a></li>
+      <li><a href="../20151021/1445353566.html">Elasticsearch 3: ソート</a></li>
+      <li><a href="../20151022/1445439798.html">Elasticsearch 4: アグリゲーション（ファセット）・post_filter</a></li>
+      <li><a href="../../20151025/1445703231.html">Elasticsearch 5: ハイライト</a></li>
+      <li><a href="../20151027/1445957667.html">Elasticsearch 6: サジェスト</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">ページネーション</span>
+    <ul class="side-category-list">
+      <li><a href="../20141118/1416314608.html">ページネーションまとめ</a></li>
+      <li><a href="../20141113/1415874683.html">kaminari</a></li>
+      <li><a href="../20141114/1415967206.html">will_paginate</a></li>
+      <li><a href="../20141115/1416021886.html">動的ページロード</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">CSV</span>
+    <ul class="side-category-list">
+      <li><a href="../20141119/1416398472.html">CSVダウンロード</a></li>
+      <li><a href="../20141120/1416483136.html">CSVアップロード</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">PDFファイル作成機能</span>
+    <ul class="side-category-list">
+      <li><a href="../20140906/1409995011.html">PDF作成Gem まとめ</a></li>
+      <li><a href="../20140907/1410078997.html">コードのみでPDF作成 Prawn</a></li>
+      <li><a href="../20140908/1410176894.html">HTMLを変換してPDF作成 PDFKit + wkhtmltopdf</a></li>
+      <li><a href="../20140909/1410241835.html">GUIツールでPDF作成 ThinReports</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">開発効率をあげる</span>
+    <ul class="side-category-list">
+      <li><a href="../20141026/1414289421.html">Spring</a></li>
+      <li><a href="../20141016/1413389293.html">Guard-LiveReload</a></li>
+      <li><a href="../20141021/1413819783.html">Guard-RSpec</a></li>
+      <li><a href="../20141019/1413698128.html">Guard-RuboCop</a></li>
+      <li><a href="../20141024/1414081224.html">Pry-Rails / Pry-BuyBug</a></li>
+      <li><a href="../20141024/1414160189.html">Hirb</a></li>
+      <li><a href="../20141028/1414505988.html">Awesome Print</a></li>
+      <li><a href="../20141029/1414584929.html">Quiet Assets</a></li>
+      <li><a href="../20141025/1414225490.html">Better_Errors</a></li>
+      <li><a href="../20141027/1414409495.html">Rails-ERD</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">その他Gem</span>
+    <ul class="side-category-list">
+      <li><a href="../20150225/1424858414.html">acts-as-taggable-on タグ管理</a></li>
+      <li><a href="../20141016/1413389293.html">wenerber Cron設定</a></li>
+      <li><a href="../20150221/1424489524.html">friendly_id URLスラッグ</a></li>
+      <li><a href="../20150216/1424092796.html">awesome_nested_set ツリー構造</a></li>
+      <li><a href="../20150217/1424179269.html">awesome_nested_set にjsTreeを追加</a></li>
+      <li><a href="../20150214/1423923524.html">PaperTrail 取り消し機能</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Tips</span>
+    <ul class="side-category-list">
+      <li><a href="../20141229/1419856433.html">Virtual Attributes(仮想属性)</a></li>
+      <li><a href="../20141226/1419600679.html">日付/時刻のフォーマット</a></li>
+      <li><a href="../20141225/1419515057.html">1フォームに複数のSubmitボタンを配置</a></li>
+      <li><a href="../20141223/1419334845.html">URLのパーマリンクをID以外に変更</a></li>
+      <li><a href="../20141220/1419058040.html">CSSスタイリングのコントローラー単位で分割</a></li>
+      <li><a href="../20141219/1418990626.html">ページタイトルの変更</a></li>
+      <li><a href="1420049679.html">Ruby/Railsの便利なメソッド(useful methods)</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Rubyテクニック</span>
+    <ul class="side-category-list">
+      <li><a href="../20150921/1442839934.html">キーワード引数</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">良い設計/リファクタリング</span>
+    <ul class="side-category-list">
+      <li><a href="../20150922/1442923521.html">デメテルの法則(Law of Demeter)</a></li>
+      <li><a href="../20150312/1426141352.html">HTML/CSS/JSを疎結合にする方法</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">JavaScript</span>
+    <ul class="side-category-list">
+      <li><a href="../20150311/1426062668.html">オブジェクト指向</a></li>
+      <li><a href="../20150313/1426238835.html">thisの参照先</a></li>
+      <li><a href="../20150317/1426599220.html">設定データを分離</a></li>
+      <li><a href="../20150607/1433652441.html">ページを離れる時にアラートを出す</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">jQuery</span>
+    <ul class="side-category-list">
+      <li><a href="../20150325/1427291741.html">Ajax</a></li>
+      <li><a href="../20150326/1427379215.html">イベント処理(Event)</a></li>
+      <li><a href="../20150331/1427809820.html">DOM操作</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">React.js</span>
+    <ul class="side-category-list">
+      <li><a href="../20151122/1448118932.html">React.jsチュートリアル: メッセージボックス</a></li>
+      <li><a href="../20151124/1448300267.html">サーバーレンダリング</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">AngularJS</span>
+    <ul class="side-category-list">
+      <li><a href="../20150114/1421235346.html">AngularJSのインストール</a></li>
+      <li><a href="../20150115/1421316461.html">UI Bootstrapのインストール</a></li>
+      <li><a href="../20150116/1421407124.html">AngularJS Controller</a>
+      <li><a href="../20150119/1421666497.html">ngResource + RailsでAPI作成</a></li>
+      <li><a href="../20150120/1421761471.html">ngRoute</a></li>
+      <li><a href="../20150126/1422276839.html">編集可能(Editable)</a></li>
+      <li><a href="../20150127/1422357163.html">ソート可能(Sortable)</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">開発手法</span>
+    <ul class="side-category-list">
+      <li><a href="../20140917/1410963376.html">スクラム開発</a></li>
+      <li><a href="../20141010/1412867452.html">カイゼンフレームワークKPT</a>
+      <li><a href="../20140816/1408126999.html">GitHubを使ったチーム開発フロー</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">開発ツール</span>
+    <ul class="side-category-list">
+      <li><a href="../20141103/1414940400.html">git - 初期設定と便利なエイリアス</a></li>
+      <li><a href="../20140713/1405248403.html">git - よく使うコマンド</a></li>
+      <li><a href="../20140724/1406137504.html">SublimeText3 - 便利コマンドとプラグイン</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">DB</span>
+    <ul class="side-category-list">
+      <li><a href="../20140726/1406331785.html">MongoDBの基礎入門 CRUD操作</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">インフラ</span>
+    <ul class="side-category-list">
+      <li><a href="../20150719/1437249020.html">Vagrant</a></li>
+      <li><a href="../20150721/1437404524.html">Chef(Rails環境構築)</a></li>
+      <li><a href="../20150314/1426332751.html">Herokuの準備とデプロイ</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">リファレンス</span>
+    <ul class="side-category-list">
+      <li><a href="https://github.com/" target="_blank">GitHub</a></li>
+      <li><a href="http://guides.rubyonrails.org/index.html" target="_blank">RailsGuides</a></li>
+      <li><a href="http://railscasts.com/" target="_blank">RailsCast</a></li>
+      <li><a href="https://rubygems.org/" target="_blank">RubyGems</a></li>
+      <li><a href="https://www.ruby-toolbox.com/" target="_blank">RubyToolbox</a></li>
+      <li><a href="http://rubular.com/" target="_blank">正規表現 Rubular</a></li>
+      <li><a href="http://ruby-doc.org/core-2.1/" target="_blank">Ruby API (2.1)</a></li>
+      <li><a href="http://api.rubyonrails.org/" target="_blank">Ruby on Rails API (4.1)</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">Phoenix</span>
+    <ul class="side-category-list">
+      <li><a href="../20151011/1444560106.html">Phoenix環境設定(Phoenix入門1)</a></li>
+      <li><a href="../20151013/1444662887.html">基本的な認証機能(Phoenix入門2)</a></li>
+      <li><a href="../20151016/1444930756.html">基本的なチャット機能(Phoenix入門3)</a></li>
+    </ul>
+  </div>
+  <div class="side-category">
+    <span class="side-category-title">その他</span>
+    <ul class="side-category-list">
+      <li><a href="../20150401/1427898898.html">広告収入向上</a></li>
+      <li><a href="../20140830/1409361710.html">著者が読んだ本</a></li>
+    </ul>
+  </div>
+</nav>
+
+  </div>
+</div>
+
+      
+      
+    
+      
+
+<div class="hatena-module hatena-module-archive" data-archive-type="default" data-archive-url="../../archive.html">
+  <div class="hatena-module-title">
+    <a href="../../archive.html">月別アーカイブ</a>
+  </div>
+  <div class="hatena-module-body">
+  </div>
+</div>
+
+      
+      
+    
+    
+  </div>
+</aside>
+
+  </div>
+</div>
+
+
+
+
+        
+        
+          <script type="text/javascript" src="http://b.hatena.ne.jp/js/hatena_dfp2.js"></script>
+        
+        
+          <div id="bottom-editarea">
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script>
+$('.unsubscribing').on('click', function() {
+    ga('send', 'event', 'button', 'click', 'hatenaReader');  
+});
+</script>
+          </div>
+        
+      </div>
+    </div>
+
+    
+      <footer id="footer" data-brand="hatenablog">
+  <div id="footer-inner">
+    <address>
+      
+      <a href="../../about.html"><img src="http://cdn1.www.st-hatena.com/users/ni/nipe880324/profile.gif" width="16" height="16" alt=""/>
+        <span data-load-nickname="1" data-user-name="nipe880324">nipe880324</span>
+      </a>
+    </address>
+    <p class="services">Powered by <a href="http://hatenablog.com/">Hatena Blog</a></p>
+  </div>
+</footer>
+
+    
+
+    
+  <script type="text/javascript">!function(d,i){if(!d.getElementById(i)){var j=d.createElement("script");j.id=i;j.src="https://widgets.getpocket.com/v1/j/btn.js?v=1";var w=d.getElementById(i);d.body.appendChild(j);}}(document,"pocket-btn-js");</script>
+
+
+    
+
+    <script type="text/javascript" src="https://platform.twitter.com/widgets.js"></script>
+<script type="text/javascript" src="https://apis.google.com/js/plusone.js">
+  {"parsetags": "explicit"}
+</script>
+<script type="text/javascript" src="https://b.st-hatena.com/js/bookmark_button.js" charset="utf-8" async="async"></script>
+
+
+
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.7/react-with-addons.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/react/0.14.7/react-dom.min.js"></script>
+
+
+<script type="text/javascript" src="http://cdn7.www.st-hatena.com/js/jquery-1.9.1.min.js"></script>
+<script type="text/javascript" src="http://cdn7.www.st-hatena.com/js/jquery/jquery-ui.1.10.0.custom.min.js"></script>
+<script type="text/javascript" src="http://cdn7.www.st-hatena.com/js/jquery/jquery.flot.0.8.3.js"></script>
+<script type="text/javascript" src="http://cdn7.www.st-hatena.com/js/jquery/jquery.flot.time.0.8.3.js"></script>
+
+
+
+<script id="hatenablog-js" data-env="production"
+  type="text/javascript" src="https://blog.st-hatena.com/js/hatenablog.js?version=228df9a6e5a3ae04fdb53d33befa3556" crossorigin="anonymous"></script>
+<script type="text/javascript" src="https://blog.st-hatena.com/js/texts-ja.js?version=228df9a6e5a3ae04fdb53d33befa3556"></script>
+
+
+  <script type="text/javascript">Hatena.Diary.GlobalHeader.init()</script>
+
+
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+
+
+
+
+    
+
+
+    
+       
+
+  <script id="hatena-counter-script" type="text/javascript"><!--
+      hatena_counter_name = "nipe880324";
+      hatena_counter_id = "102";
+      hatena_counter_ref = document.referrer+"";
+      hatena_counter_screen = screen.width + "x" + screen.height+","+screen.colorDepth;
+  //--></script>
+  <script type="text/javascript" src="http://counter.hatena.ne.jp/js/counter.js"></script>
+  <noscript><img src="http://counter.hatena.ne.jp/nipe880324/102" border="0" alt="counter"></noscript>
+
+
+    
+
+  </body>
+</html>
+

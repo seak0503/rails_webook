@@ -1,0 +1,665 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>assets - Rails Webook</title>
+    <link>http://ruby-rails.hatenadiary.com/category/assets</link>
+    <description>自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</description>
+    <lastBuildDate>Fri, 18 Dec 2015 02:44:31 +0900</lastBuildDate>
+    <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+    <generator>Hatena::Blog</generator>
+    
+      
+      
+        <item>
+          <title>Railsにgulpを統合させる</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20151218/1450374260</link>
+          <description>&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151218/20151218024113.png&quot; alt=&quot;f:id:nipe880324:20151218024113p:plain:w420&quot; title=&quot;f:id:nipe880324:20151218024113p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;でgulpを使ってアセットファイルの管理できる環境を構築します。&lt;br /&gt;
+gulpはアセットを管理する&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%C4%A1%BC%A5%EB&quot;&gt;ツール&lt;/a&gt;で、js、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/css&quot;&gt;css&lt;/a&gt;、imagesなどのアセットファイルをビルドして、それを&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;から参照する流れです。&lt;br /&gt;
+また、gemにバンドルされているアセットファイルもあるので、Sprockets(&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;のアセット管理のgem)は有効にしておきます。有効にしておきますが極力使いません。&lt;/p&gt;&lt;p&gt;gulpでsass/scssの&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%D1%A5%A4%A5%EB&quot;&gt;コンパイル&lt;/a&gt;、ES6の&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%D1%A5%A4%A5%EB&quot;&gt;コンパイル&lt;/a&gt;(babel, webpack)、gulpの便利&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%D7%A5%E9%A5%B0%A5%A4%A5%F3&quot;&gt;プラグイン&lt;/a&gt;(変更監視、画面リロード、通知)、ミニファイ、ダイジェスト付与をできるようにします。&lt;br /&gt;
+そして、gulpで作成された&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/css&quot;&gt;css&lt;/a&gt;やjsのアセットファイルを&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;からロードできるようにします。&lt;/p&gt;&lt;p&gt;参考にソースファイルを&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/GitHub&quot;&gt;GitHub&lt;/a&gt;に上げたあります。&lt;br /&gt;
+&lt;a href=&quot;https://github.com/nipe0324/rails_with_gulp&quot;&gt;https://github.com/nipe0324/rails_with_gulp&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#rails_with_gulp-rails-new&quot;&gt;railsの作成&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#rails_with_gulp-install-gulp&quot;&gt;gulpのインストール&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#rails_with_gulp-compile-sass-scss&quot;&gt;sass/scssのコンパイル&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#rails_with_gulp-compile-es6&quot;&gt;ES6のコンパイル&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#rails_with_gulp-watch-reload-notify&quot;&gt;変更監視、画面リロード、通知&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#rails_with_gulp-integration-with-rails&quot;&gt;Railsと統合&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認バージョン&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Ruby&quot;&gt;Ruby&lt;/a&gt; 2.2.2&lt;/li&gt;
+&lt;li&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt; 4.2.3&lt;/li&gt;
+&lt;li&gt;gulp 3.9.0&lt;/li&gt;
+&lt;li&gt;webpack 1.12.9&lt;/li&gt;
+&lt;li&gt;babel 6.3.13&lt;/li&gt;
+&lt;li&gt;その他のnpmライブラリは&lt;code&gt;package.json&lt;/code&gt;を見てください&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;rails_with_gulp-rails-new&quot;&gt;1. &lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/rails&quot;&gt;rails&lt;/a&gt;の作成&lt;/h3&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;プロジェクトを作成します。&lt;/p&gt;&lt;p&gt;&lt;h4&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;プロジェクトの作成&lt;/h4&gt;&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rails new rails_with_gulp&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;code&gt;.gitignore&lt;/code&gt;の一番下に&lt;code&gt;node_modules&lt;/code&gt;を追加しておきます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;// .gitignore
+..
+
++ # npm packages
++ node_modules
+
++ # ignore public/assets for compiled assets by gulp
++ /public/assets&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+ジェネレーターで&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/javascript&quot;&gt;javascript&lt;/a&gt;や&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/css&quot;&gt;css&lt;/a&gt;を作成されないようにします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;  &lt;span class=&quot;synComment&quot;&gt;# config/application.rb&lt;/span&gt;
+  ...
+
+  &lt;span class=&quot;synPreProc&quot;&gt;module&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;RailsWithGulp&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Application&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Application&lt;/span&gt;
+      ...
+
+      &lt;span class=&quot;synComment&quot;&gt;# Do not swallow errors in after_commit/after_rollback callbacks.&lt;/span&gt;
+      config.active_record.raise_in_transactional_callbacks = &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;
+
++     &lt;span class=&quot;synComment&quot;&gt;# Do not generate asset files&lt;/span&gt;
++     config.generators &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;g&lt;/span&gt;|
++       g.assets &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;
++     &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;code&gt;application.js&lt;/code&gt;と&lt;code&gt;application.css&lt;/code&gt;は極力使わないようにするので、記述を削除します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;# app/assets/javascripts/application.js
+
+  &lt;span class=&quot;synComment&quot;&gt;//&lt;/span&gt;
+- &lt;span class=&quot;synComment&quot;&gt;//= require jquery&lt;/span&gt;
+- &lt;span class=&quot;synComment&quot;&gt;//= require jquery_ujs&lt;/span&gt;
+- &lt;span class=&quot;synComment&quot;&gt;//= require turbolinks&lt;/span&gt;
+- &lt;span class=&quot;synComment&quot;&gt;//= require_tree .&lt;/span&gt;
+
+
+# app/assets/stylesheets/application.js
+   *
+-  *= require_tree .
+-  *= require_self
+   */
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+確認用にTopコントローラーを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rails g controller Top index&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;code&gt;top#index&lt;/code&gt;をルートに設定しておきます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;  &lt;span class=&quot;synComment&quot;&gt;# config/routes.rb&lt;/span&gt;
+  &lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt;.application.routes.draw &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+*   root &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;top#index&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+    ...
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;rails_with_gulp-install-gulp&quot;&gt;2. gulpのインストール&lt;/h3&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;にgulpをインストールしていきます。&lt;/p&gt;&lt;p&gt;&lt;h4&gt;package.&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/json&quot;&gt;json&lt;/a&gt;の作成&lt;/h4&gt;まず、gulpも含めた&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Javascript&quot;&gt;Javascript&lt;/a&gt;のライブラリを&lt;code&gt;npm&lt;/code&gt;を使って管理するため&lt;code&gt;package.json&lt;/code&gt;を作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;npm init -y&lt;/pre&gt;&lt;p&gt;&lt;i&gt;&lt;br /&gt;
+&lt;code&gt;-y&lt;/code&gt;は&lt;code&gt;package.json&lt;/code&gt;を作るときの質問ですべてyesを選択するオプションです。&lt;br /&gt;
+&lt;code&gt;npm&lt;/code&gt;はNode Package Managerの略で、最近はJSのライブラリを管理するために使われています。&lt;br /&gt;
+&lt;code&gt;npm&lt;/code&gt;は&lt;code&gt;Node.js&lt;/code&gt;をインストールすると一緒にインストールされます。&lt;/i&gt;&lt;/p&gt;&lt;p&gt;作成された&lt;code&gt;package.json&lt;/code&gt;は次のとおりです。&lt;br /&gt;
+プロジェクトの基本的な情報が記載されています。ここに依存するライブラリも後ほど追加していきます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// package.json&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;name&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;rails_with_gulp&amp;quot;&lt;/span&gt;,
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;version&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;1.0.0&amp;quot;&lt;/span&gt;,
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;description&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;,
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;main&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;index.js&amp;quot;&lt;/span&gt;,
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;directories&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;test&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;test&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;,
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;scripts&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;test&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;echo &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;\&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Error: no test specified&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;\&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; &amp;amp;&amp;amp; exit 1&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;,
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;repository&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;type&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;git&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;url&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;git+https://github.com/nipe0324/rails_with_gulp.git&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;,
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;keywords&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synIdentifier&quot;&gt;[]&lt;/span&gt;,
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;author&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;,
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;license&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;ISC&amp;quot;&lt;/span&gt;,
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;bugs&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;url&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;https://github.com/nipe0324/rails_with_gulp/issues&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;,
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;homepage&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;https://github.com/nipe0324/rails_with_gulp#readme&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;gulpのインストール&lt;/h4&gt;gulpをグローバル(&lt;code&gt;-g&lt;/code&gt;オプション)とプロジェクト(&lt;code&gt;--save-dev&lt;/code&gt;オプション)にインストールします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;npm install -g gulp
+npm install --save-dev gulp&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;gulpfile.jsの作成&lt;/h4&gt;gulpのエントリポイントは&lt;code&gt;gulpfile.js&lt;/code&gt;となりますので作成します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// gulpfile.js&lt;/span&gt;
++ &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; requireDir = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;require-dir&#39;&lt;/span&gt;);
++ requireDir(&lt;span class=&quot;synConstant&quot;&gt;&#39;./gulp/tasks&#39;&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; recurse: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;); &lt;span class=&quot;synComment&quot;&gt;// recurse: true はサブディレクトリもrequireする&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;a href=&quot;https://www.npmjs.com/package/require-dir&quot;&gt;require-dir&lt;/a&gt;は指定したディレクトリをrequireできるので、一気に多くのファイルをrequireしたい時に便利です。&lt;br /&gt;
+&lt;code&gt;gulpfile.js&lt;/code&gt;に直接gulpのタスクを記載してもよいですが、タスクが増えた場合に見づらくなるので、&lt;code&gt;gulp/tasks&lt;/code&gt;配下にタスクごとにファイルを作成し、&lt;code&gt;require-dir&lt;/code&gt;ですべてのタスクファイルを読み込むようにします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;mkdir -p gulp/tasks&lt;/pre&gt;&lt;p&gt;&lt;code&gt;require-dir&lt;/code&gt;をインストールしていないので、&lt;code&gt;npm install&lt;/code&gt;コマンドでインストールします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;npm install --save-dev require-dir&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;コンフィグファイルの作成&lt;/h4&gt;&lt;code&gt;config.js&lt;/code&gt;を作成し、設定値をここにまとめます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// gulp/tasks/config.js&lt;/span&gt;
+
++ &lt;span class=&quot;synComment&quot;&gt;// gulpのアセットファイルを配置する場所&lt;/span&gt;
++ gulpAssets   = &lt;span class=&quot;synConstant&quot;&gt;&#39;gulp/assets&#39;&lt;/span&gt;;
++ &lt;span class=&quot;synComment&quot;&gt;// publicのアセットファイルを配置する場所&lt;/span&gt;
++ publicAssets = &lt;span class=&quot;synConstant&quot;&gt;&#39;public/assets&#39;&lt;/span&gt;;
++
++ module.exports = &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++   gulpAssets:   gulpAssets,
++   publicAssets: publicAssets,
++
++   javascript: &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++     src:  gulpAssets   + &lt;span class=&quot;synConstant&quot;&gt;&#39;/javascripts/**/*&#39;&lt;/span&gt;,
++     dest: publicAssets + &lt;span class=&quot;synConstant&quot;&gt;&#39;/javascripts&#39;&lt;/span&gt;
++   &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;,
++   stylesheet: &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++     srcSass:  gulpAssets   + &lt;span class=&quot;synConstant&quot;&gt;&#39;/stylesheets/**/*.sass&#39;&lt;/span&gt;,
++     srcScss:  gulpAssets   + &lt;span class=&quot;synConstant&quot;&gt;&#39;/stylesheets/**/*.scss&#39;&lt;/span&gt;,
++     dest: publicAssets + &lt;span class=&quot;synConstant&quot;&gt;&#39;/stylesheets&#39;&lt;/span&gt;
++   &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;,
++   watch: &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++     javascript:     gulpAssets + &lt;span class=&quot;synConstant&quot;&gt;&#39;/javascripts/**/*&#39;&lt;/span&gt;,
++     stylesheetSass: gulpAssets + &lt;span class=&quot;synConstant&quot;&gt;&#39;/stylesheets/**/*.sass&#39;&lt;/span&gt;,
++     stylesheetScss: gulpAssets + &lt;span class=&quot;synConstant&quot;&gt;&#39;/stylesheets/**/*.scss&#39;&lt;/span&gt;,
++     browserSync: &lt;span class=&quot;synConstant&quot;&gt;&#39;public/**/*&#39;&lt;/span&gt;
++   &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;,
++   browserSync: &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++     proxy: &lt;span class=&quot;synConstant&quot;&gt;&#39;localhost:3000&#39;&lt;/span&gt;
++   &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;,
++   rev: &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++     dest: publicAssets + &lt;span class=&quot;synConstant&quot;&gt;&#39;/rev-manifest.json&#39;&lt;/span&gt;,
++     opts: &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++       base:  process.cwd() + &lt;span class=&quot;synConstant&quot;&gt;&#39;/&#39;&lt;/span&gt; + publicAssets,
++       merge: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;
++     &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
++   &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
++ &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;gulpのタスクを作成&lt;/h4&gt;まずは、&lt;code&gt;public/assets&lt;/code&gt;ディレクトリを削除する&lt;code&gt;clean&lt;/code&gt;タスクを作成します。&lt;br /&gt;
+&lt;a href=&quot;https://www.npmjs.com/package/del&quot;&gt;del&lt;/a&gt;を使うことで、フォルダやファイルを削除できます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;npm install --save-dev del&lt;/pre&gt;&lt;p&gt;&lt;code&gt;clean.js&lt;/code&gt;ファイルを作成し、&lt;code&gt;del&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%D7%A5%E9%A5%B0%A5%A4%A5%F3&quot;&gt;プラグイン&lt;/a&gt;を使用してファイルを削除します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// gulp/tasks/clean.js&lt;/span&gt;
++ &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; config = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;./config&#39;&lt;/span&gt;);
++ &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; gulp = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp&#39;&lt;/span&gt;);
++ &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; del  = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;del&#39;&lt;/span&gt;);
++
++ gulp.task(&lt;span class=&quot;synConstant&quot;&gt;&#39;clean&#39;&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++   &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; del(config.publicAssets);
++ &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;gulpのタスクを作成するには、&lt;code&gt;gulp.task(&#39;&lt;タスク名&gt;&#39;, function() { &lt;タスクの処理&gt; })&lt;/code&gt;の形式で作成します。&lt;/p&gt;&lt;p&gt;では、&lt;code&gt;gulp clean&lt;/code&gt;コマンドを実行し、&lt;code&gt;clean&lt;/code&gt;タスクを実行し、&lt;code&gt;public/assets&lt;/code&gt;を削除します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ mkdir public/assets
+
+$ gulp clean
+[02:04:34] Using gulpfile ~/rails_with_gulp/gulpfile.js
+[02:04:34] Starting &amp;#39;clean&amp;#39;...
+[02:04:34] Finished &amp;#39;clean&amp;#39; after 5.24 ms
+
+$ ls public/assets
+ls: public/assets: No such file or directory&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;デフォルトタスクの作成&lt;/h4&gt;&lt;code&gt;default.js&lt;/code&gt;を作成し、&lt;code&gt;default&lt;/code&gt;タスクを登録します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// gulp/tasks/default.js&lt;/span&gt;
++ &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; gulp = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp&#39;&lt;/span&gt;);
++
++ gulp.task(&lt;span class=&quot;synConstant&quot;&gt;&#39;default&#39;&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;clean&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;]&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;&lt;code&gt;gulp&lt;/code&gt;コマンドを実行すると&lt;code&gt;default&lt;/code&gt;タスクが実行されます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ gulp
+[02:06:28] Using gulpfile ~/rails_with_gulp/gulpfile.js
+[02:06:28] Starting &amp;#39;clean&amp;#39;...
+[02:06:28] Finished &amp;#39;clean&amp;#39; after 4.48 ms
+[02:06:28] Starting &amp;#39;default&amp;#39;...
+[02:06:28] Finished &amp;#39;default&amp;#39; after 12 μs&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;rails_with_gulp-compile-sass-scss&quot;&gt;3. sass/scssの&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%D1%A5%A4%A5%EB&quot;&gt;コンパイル&lt;/a&gt;&lt;/h3&gt;gulpで&lt;code&gt;sass&lt;/code&gt;と&lt;code&gt;scss&lt;/code&gt;を&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%D1%A5%A4%A5%EB&quot;&gt;コンパイル&lt;/a&gt;できるようにします。&lt;/p&gt;&lt;p&gt;&lt;h4&gt;Sassの&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%D1%A5%A4%A5%EB&quot;&gt;コンパイル&lt;/a&gt;&lt;/h4&gt;まず、&lt;code&gt;gulp-sass&lt;/code&gt;をインストールします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;npm install --save-dev gulp-sass&lt;/pre&gt;&lt;p&gt;sassとscssを&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%D1%A5%A4%A5%EB&quot;&gt;コンパイル&lt;/a&gt;するタスクの&lt;code&gt;compile-sass&lt;/code&gt;と&lt;code&gt;compile-scss&lt;/code&gt;を作成します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// gulp/tasks/sass_scss.js&lt;/span&gt;
++ &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; config = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;./config&#39;&lt;/span&gt;);
++ &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; gulp = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp&#39;&lt;/span&gt;);
++ &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; sass = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp-sass&#39;&lt;/span&gt;);
++
++ gulp.task(&lt;span class=&quot;synConstant&quot;&gt;&#39;compile-sass&#39;&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++   &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; gulp.src(config.stylesheet.srcSass)
++       .pipe(sass(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; indentedSyntax: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;, errLogToConsole: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;))
++       .pipe(gulp.dest(config.stylesheet.dest));
++ &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
++
++ gulp.task(&lt;span class=&quot;synConstant&quot;&gt;&#39;compile-scss&#39;&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++   &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; gulp.src(config.stylesheet.srcScss)
++       .pipe(sass(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; indentedSyntax: &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;, errLogToConsole: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;))
++       .pipe(gulp.dest(config.stylesheet.dest));
++ &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;&lt;code&gt;src&lt;/code&gt;でインプットとなるファイルを指定し、&lt;code&gt;sass&lt;/code&gt;でsass/scssファイルを&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%D1%A5%A4%A5%EB&quot;&gt;コンパイル&lt;/a&gt;し、&lt;code&gt;dest&lt;/code&gt;で出力先を指定しています。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;デフォルトのタスクを修正します。&lt;br /&gt;
+cleanタスクでディレクトリを削除してから、sass/scssの&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%D1%A5%A4%A5%EB&quot;&gt;コンパイル&lt;/a&gt;を処理したいので&lt;a href=&quot;https://www.npmjs.com/package/run-sequence&quot;&gt;run-sequence&lt;/a&gt;を使います。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;npm install --save-dev run-sequence&lt;/pre&gt;&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;  &lt;span class=&quot;synComment&quot;&gt;// gulp/tasks/default.js&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; gulp = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp&#39;&lt;/span&gt;);
++ &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; runSequence = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;run-sequence&#39;&lt;/span&gt;);
+
+* gulp.task(&lt;span class=&quot;synConstant&quot;&gt;&#39;default&#39;&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++   runSequence(
++     &lt;span class=&quot;synConstant&quot;&gt;&#39;clean&#39;&lt;/span&gt;, &lt;span class=&quot;synComment&quot;&gt;// まずcleanタスクを実行&lt;/span&gt;
++     &lt;span class=&quot;synIdentifier&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;compile-sass&#39;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;&#39;compile-scss&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;]&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;// 次に並列でコンパイル&lt;/span&gt;
++   );
+* &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B9%A5%BF%A5%A4%A5%EB%A5%B7%A1%BC%A5%C8&quot;&gt;スタイルシート&lt;/a&gt;を配置する&lt;code&gt;gulp/assets/stylesheets&lt;/code&gt;ディレクトリを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;mkdir -p gulp/assets/stylesheets&lt;/pre&gt;&lt;p&gt;そして、&lt;code&gt;application.scss&lt;/code&gt;を作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;// gulp/assets/stylesheets/application.scss
++ body {
++   background-color: gray;
++
++   h1 {
++     color: white;
++   }
++ }&lt;/pre&gt;&lt;p&gt;&lt;code&gt;gulp&lt;/code&gt;コマンドでscssを&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%D1%A5%A4%A5%EB&quot;&gt;コンパイル&lt;/a&gt;してみます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;gulp&lt;/pre&gt;&lt;p&gt;&lt;code&gt;public/stylesheets/application.css&lt;/code&gt;というファイルが作成されます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;body {
+  background-color: blue; }
+  body h1 {
+    color: white; }&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;ファイル名を変更&lt;/h4&gt;ビルドで作られたファイルには、&lt;code&gt;.bundle&lt;/code&gt;をつけるようにして、ビルドされたかどうかわかりやすくしたいと思います。&lt;br /&gt;
+&lt;a href=&quot;https://www.npmjs.com/package/gulp-rename&quot;&gt;gulp-rename&lt;/a&gt;でファイル名を変更するようにします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;npm install --save-dev gulp-rename&lt;/pre&gt;&lt;p&gt;&lt;code&gt;rename&lt;/code&gt;でファイル名を変更できます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// gulp/tasks/sass_scss.js&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; config = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;./config&#39;&lt;/span&gt;);
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; gulp = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp&#39;&lt;/span&gt;);
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; sass = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp-sass&#39;&lt;/span&gt;);
++ &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; rename = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp-rename&#39;&lt;/span&gt;);
+
+  gulp.task(&lt;span class=&quot;synConstant&quot;&gt;&#39;compile-sass&#39;&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; gulp.src(config.stylesheet.srcSass)
+        .pipe(sass(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; indentedSyntax: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;, errLogToConsole: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;))
++       .pipe(rename(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; suffix: &lt;span class=&quot;synConstant&quot;&gt;&#39;.bundle&#39;&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;))
+        .pipe(gulp.dest(config.stylesheet.dest));
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+
+  gulp.task(&lt;span class=&quot;synConstant&quot;&gt;&#39;compile-scss&#39;&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; gulp.src(config.stylesheet.srcScss)
+        .pipe(sass(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; indentedSyntax: &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;, errLogToConsole: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;))
++       .pipe(rename(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; suffix: &lt;span class=&quot;synConstant&quot;&gt;&#39;.bundle&#39;&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;))
+        .pipe(gulp.dest(config.stylesheet.dest));
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;ファイル名にダイジェストを追加&lt;/h4&gt;&lt;code&gt;unicorn.css =&gt; unicorn-d41d8cd98f.css&lt;/code&gt;のようにファイル名にダイジェストを追加します。&lt;br /&gt;
+&lt;a href=&quot;https://www.npmjs.com/package/gulp-rev&quot;&gt;gulp-rev&lt;/a&gt;を使って、ダイジェストをつけれます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;npm install --save-dev gulp-rev&lt;/pre&gt;&lt;p&gt;&lt;code&gt;rev()&lt;/code&gt;でファイル名にダイジェストを追加し、&lt;code&gt;rev.manifest(&lt;ファイル名&gt;)&lt;/code&gt;で&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%DE%A5%CB%A5%D5%A5%A7%A5%B9%A5%C8&quot;&gt;マニフェスト&lt;/a&gt;ファイルを作成し、&lt;code&gt;gulp.dest&lt;/code&gt;で&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%DE%A5%CB%A5%D5%A5%A7%A5%B9%A5%C8&quot;&gt;マニフェスト&lt;/a&gt;ファイルの配置先を指定しています。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// gulp/tasks/sass_scss.js&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; config = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;./config&#39;&lt;/span&gt;);
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; gulp = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp&#39;&lt;/span&gt;);
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; sass = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp-sass&#39;&lt;/span&gt;);
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; rename = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp-rename&#39;&lt;/span&gt;);
++ &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; rev  = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp-rev&#39;&lt;/span&gt;);
+
+  gulp.task(&lt;span class=&quot;synConstant&quot;&gt;&#39;compile-sass&#39;&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; gulp.src(config.stylesheet.srcSass)
+        .pipe(sass(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; indentedSyntax: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;, errLogToConsole: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;))
+        .pipe(rename(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; suffix: &lt;span class=&quot;synConstant&quot;&gt;&#39;.bundle&#39;&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;))
++       .pipe(rev())
+*       .pipe(gulp.dest(config.stylesheet.dest))
++       .pipe(rev.manifest(config.rev.dest, config.rev.opts))
++       .pipe(gulp.dest(config.publicAssets))
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+
+  gulp.task(&lt;span class=&quot;synConstant&quot;&gt;&#39;compile-scss&#39;&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; gulp.src(config.stylesheet.srcScss)
+        .pipe(sass(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; indentedSyntax: &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;, errLogToConsole: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;))
+        .pipe(rename(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; suffix: &lt;span class=&quot;synConstant&quot;&gt;&#39;.bundle&#39;&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;))
++       .pipe(rev())
+*       .pipe(gulp.dest(config.stylesheet.dest))
++       .pipe(rev.manifest(config.rev.dest, config.rev.opts))
++       .pipe(gulp.dest(config.publicAssets))
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;&lt;code&gt;gulp&lt;/code&gt;でsass/scssをビルドすると、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/JSON&quot;&gt;JSON&lt;/a&gt;形式で&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%DE%A5%CB%A5%D5%A5%A7%A5%B9%A5%C8&quot;&gt;マニフェスト&lt;/a&gt;ファイルが作成されます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// public/assets/rev-manifest.json&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;application.bundle.css&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;application-b4f27b6d0b.bundle.css&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/css&quot;&gt;css&lt;/a&gt;ファイルのminify(ミニファイ）&lt;/h4&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/css&quot;&gt;css&lt;/a&gt;ファイルのファイルサイズを小さくすることでパフォーマンスが少し向上します。&lt;br /&gt;
+&lt;a href=&quot;https://www.npmjs.com/package/gulp-minify-css&quot;&gt;gulp-minify-css&lt;/a&gt;で&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/CSS&quot;&gt;CSS&lt;/a&gt;をミニファイします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;npm install --save-dev gulp-minify-css&lt;/pre&gt;&lt;p&gt;&lt;code&gt;minifyCss&lt;/code&gt;でミニファイできます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// gulp/tasks/sass_scss.js&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; config = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;./config&#39;&lt;/span&gt;);
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; gulp = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp&#39;&lt;/span&gt;);
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; sass = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp-sass&#39;&lt;/span&gt;);
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; rename = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp-rename&#39;&lt;/span&gt;);
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; rev  = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp-rev&#39;&lt;/span&gt;);
++ &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; minifyCss = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp-minify-css&#39;&lt;/span&gt;);
+
+  gulp.task(&lt;span class=&quot;synConstant&quot;&gt;&#39;compile-sass&#39;&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; gulp.src(config.stylesheet.srcSass)
+        .pipe(sass(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; indentedSyntax: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;, errLogToConsole: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;))
++       .pipe(minifyCss())
+        .pipe(rename(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; suffix: &lt;span class=&quot;synConstant&quot;&gt;&#39;.bundle&#39;&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;))
+        .pipe(rev())
+        .pipe(gulp.dest(config.stylesheet.dest))
+        .pipe(rev.manifest(config.rev.dest, config.rev.opts))
+        .pipe(gulp.dest(config.publicAssets))
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+
+  gulp.task(&lt;span class=&quot;synConstant&quot;&gt;&#39;compile-scss&#39;&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; gulp.src(config.stylesheet.srcScss)
+        .pipe(sass(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; indentedSyntax: &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;, errLogToConsole: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;))
++       .pipe(minifyCss())
+        .pipe(rename(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; suffix: &lt;span class=&quot;synConstant&quot;&gt;&#39;.bundle&#39;&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;))
+        .pipe(rev())
+        .pipe(gulp.dest(config.stylesheet.dest))
+        .pipe(rev.manifest(config.rev.dest, config.rev.opts))
+        .pipe(gulp.dest(config.publicAssets))
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;&lt;code&gt;gulp&lt;/code&gt;コマンドで作成された&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/css&quot;&gt;css&lt;/a&gt;ファイルを見ると、&lt;br /&gt;
+次のように、スペースが削除されている（ミニファイ）ことがわかります。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;// public/assets/stylesheets/application-742938ec8.bundle.css
+body{background-color:gray}body h1{color:red}&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;rails_with_gulp-compile-es6&quot;&gt;4. ES6の&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%D1%A5%A4%A5%EB&quot;&gt;コンパイル&lt;/a&gt;&lt;/h3&gt;babelを使ってES6を使えるようにします。また、webpackを使うことで、jsファイル群の依存関係を管理するようにします。&lt;br /&gt;
+&lt;i&gt;※babelはES6をES5に変換する&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%C4%A1%BC%A5%EB&quot;&gt;ツール&lt;/a&gt;（トランスパイラ）です。トランスパイルすることで、ES6がまだ実装されていない段階でもES6の文法でjsファイルを記載でき、ES6のメリットを享受できます&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;h4&gt;webpackで&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%D1%A5%A4%A5%EB&quot;&gt;コンパイル&lt;/a&gt;&lt;/h4&gt;&lt;code&gt;webpack&lt;/code&gt;はモジュールバンドラで、js、jade、coffee、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/css&quot;&gt;css&lt;/a&gt;など&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%CA%A3%BF%F4&quot;&gt;複数&lt;/a&gt;のファイルの依存関係を記載することで、&lt;code&gt;webpack&lt;/code&gt;がいいかんじにまとめてくれるのでそれぞれのモジュールの独立性を保つことができます。&lt;br /&gt;
+今回は、主に&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%CA%A3%BF%F4&quot;&gt;複数&lt;/a&gt;のjsを必要に応じてまとめあげるために利用します。&lt;/p&gt;&lt;p&gt;&lt;code&gt;gulp-webpack&lt;/code&gt;をインストールします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;npm install --save-dev gulp-webpack&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+webpackタスクを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// gulp/tasks/webpack.js&lt;/span&gt;
++ &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; config        = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;./config&#39;&lt;/span&gt;);
++ &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; gulp          = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp&#39;&lt;/span&gt;);
++ &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; webpack       = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp-webpack&#39;&lt;/span&gt;);
++ &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; webpackConfig = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;./webpack.config.js&#39;&lt;/span&gt;);
++
++ gulp.task(&lt;span class=&quot;synConstant&quot;&gt;&#39;webpack&#39;&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++   &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; gulp.src(config.javascript.src)
++       .pipe(webpack(webpackConfig))
++       .pipe(gulp.dest(webpackConfig.output.publicPath))
++ &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;&lt;code&gt;webpack(webpackConfig)&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;で、&lt;code&gt;webpackConfig&lt;/code&gt;の設定に従って、ビルドされます。&lt;/p&gt;&lt;p&gt;webpack.config.jsを作成します。&lt;br /&gt;
+webpackの設定ファイルは、&lt;code&gt;webpack.config.js&lt;/code&gt;とし、webpackのビルドの設定を記載します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// gulp/taks/webpack.config.js&lt;/span&gt;
++ &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; config = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;./config&#39;&lt;/span&gt;);
++
++ module.exports = &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++   &lt;span class=&quot;synComment&quot;&gt;// エントリファイルを記載(複数記載できます)&lt;/span&gt;
++   entry: &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++     application: &lt;span class=&quot;synConstant&quot;&gt;&#39;./&#39;&lt;/span&gt; + config.gulpAssets + &lt;span class=&quot;synConstant&quot;&gt;&#39;/javascripts/application&#39;&lt;/span&gt;
++   &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;,
++   &lt;span class=&quot;synComment&quot;&gt;// 出力先を記載。filenameで作成されたファイルを指定&lt;/span&gt;
++   output: &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++     filename:   &lt;span class=&quot;synConstant&quot;&gt;&#39;[name].bundle.js&#39;&lt;/span&gt;,
++     publicPath: config.javascript.dest
++   &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;,
++   &lt;span class=&quot;synComment&quot;&gt;// 対照するファイル(extension: 拡張子を指定)&lt;/span&gt;
++   resolve: &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++     extensions: &lt;span class=&quot;synIdentifier&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;&#39;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;&#39;.js&#39;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;&#39;.jsx&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;]&lt;/span&gt;
++   &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
++ &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;;
+&lt;/pre&gt;&lt;p&gt;webpackのconfigのドキュメント: &lt;a href=&quot;https://webpack.github.io/docs/configuration.html&quot;&gt;configuration&lt;/a&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;defaultタスクに&lt;code&gt;webpack&lt;/code&gt;タスクを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;  &lt;span class=&quot;synComment&quot;&gt;// gulp/tasks/default.js&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; gulp = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp&#39;&lt;/span&gt;);
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; runSequence = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;run-sequence&#39;&lt;/span&gt;);
+
+  gulp.task(&lt;span class=&quot;synConstant&quot;&gt;&#39;default&#39;&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    runSequence(
+      &lt;span class=&quot;synConstant&quot;&gt;&#39;clean&#39;&lt;/span&gt;,
+*     &lt;span class=&quot;synIdentifier&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;compile-sass&#39;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;&#39;compile-scss&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;]&lt;/span&gt;,
++     &lt;span class=&quot;synConstant&quot;&gt;&#39;webpack&#39;&lt;/span&gt;
+    );
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/jQuery&quot;&gt;jQuery&lt;/a&gt;をインストールしてみます&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;npm install --save jquery&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+そして、作成したjsファイルから&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/jQuery&quot;&gt;jQuery&lt;/a&gt;を呼び込み利用してみます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// gulp/assets/javascripts/application.js&lt;/span&gt;
++ &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; $ = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;jquery&#39;&lt;/span&gt;);
++ &lt;span class=&quot;synStatement&quot;&gt;alert&lt;/span&gt;(&lt;span class=&quot;synConstant&quot;&gt;&#39;jQuery version:&#39;&lt;/span&gt; + $.fn.jquery);
+&lt;/pre&gt;&lt;p&gt;npmでインストールしたパッケージを&lt;code&gt;require(&#39;&lt;パッケージ&gt;&#39;)&lt;/code&gt;でインポートできるようになります。&lt;/p&gt;&lt;p&gt;では、&lt;code&gt;gulp&lt;/code&gt;コマンドでビルドすると、webpackで&lt;code&gt;application.bundle.js&lt;/code&gt;が作成されたのがわかると思います。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ gulp
+[11:09:02] Using gulpfile ~/GDrive/rails/rails_with_gulp/gulpfile.js
+[11:09:02] Starting &amp;#39;default&amp;#39;...
+...
+[11:09:02] Starting &amp;#39;webpack&amp;#39;...
+[11:09:02] Finished &amp;#39;webpack&amp;#39; after 219 ms
+[11:09:02] Finished &amp;#39;default&amp;#39; after 244 ms
+[11:09:03] Version: webpack 1.12.9
+                Asset    Size  Chunks             Chunk Names
+application.bundle.js  257 kB       0  [emitted]  application&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;babelでES6を&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%D1%A5%A4%A5%EB&quot;&gt;コンパイル&lt;/a&gt;&lt;/h4&gt;&lt;code&gt;babel&lt;/code&gt;をインストールします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;npm install --save-dev babel babel-core babel-cli babel-loader babel-preset-es2015&lt;/pre&gt;&lt;p&gt;&lt;code&gt;webpack.config.js&lt;/code&gt;に&lt;code&gt;babel&lt;/code&gt;を追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;  &lt;span class=&quot;synComment&quot;&gt;// gulp/tasks/webpack.config.js&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; config = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;./config&#39;&lt;/span&gt;);
+
+  module.exports = &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;// エントリファイルを記載(複数記載できます)&lt;/span&gt;
+    entry: &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+      application: &lt;span class=&quot;synConstant&quot;&gt;&#39;./&#39;&lt;/span&gt; + config.gulpAssets + &lt;span class=&quot;synConstant&quot;&gt;&#39;/javascripts/application&#39;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;,
+    &lt;span class=&quot;synComment&quot;&gt;// 出力先を記載。filenameで作成されたファイルを指定&lt;/span&gt;
+    output: &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+      filename:   &lt;span class=&quot;synConstant&quot;&gt;&#39;[name].bundle.js&#39;&lt;/span&gt;,
+      publicPath: config.javascript.dest
+    &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;,
+    &lt;span class=&quot;synComment&quot;&gt;// 対照するファイル(extension: 拡張子を指定)&lt;/span&gt;
+    resolve: &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+      extensions: &lt;span class=&quot;synIdentifier&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;&#39;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;&#39;.js&#39;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;&#39;.jsx&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;]&lt;/span&gt;
+*   &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;,
++   &lt;span class=&quot;synComment&quot;&gt;// baelをloaderとすることでes6をjsに変換できます&lt;/span&gt;
++   &lt;span class=&quot;synComment&quot;&gt;// 他loaderによりcoffeeなどのファイルをjsに変換できます&lt;/span&gt;
++   module: &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++     loaders: &lt;span class=&quot;synIdentifier&quot;&gt;[&lt;/span&gt;
++       &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; test: &lt;span class=&quot;synConstant&quot;&gt;/\.js?$/&lt;/span&gt;, loader: &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;babel?presets[]=es2015&amp;quot;&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
++     &lt;span class=&quot;synIdentifier&quot;&gt;]&lt;/span&gt;
++   &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+jsファイルをES6の記法で書きなおしてみます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// gulp/assets/javascripts/application.js&lt;/span&gt;
+* &lt;span class=&quot;synStatement&quot;&gt;import&lt;/span&gt; $ from &lt;span class=&quot;synConstant&quot;&gt;&#39;jquery&#39;&lt;/span&gt;;
+  &lt;span class=&quot;synStatement&quot;&gt;alert&lt;/span&gt;(&lt;span class=&quot;synConstant&quot;&gt;&#39;jQuery version:&#39;&lt;/span&gt; + $.fn.jquery);
+
++ &lt;span class=&quot;synStatement&quot;&gt;class&lt;/span&gt; Hoge &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++   constructor() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++     &lt;span class=&quot;synIdentifier&quot;&gt;let&lt;/span&gt; a = 1;
++     console.log(`Hello es6. a is $&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;a&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;`);
++   &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
++ &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
++
++ &lt;span class=&quot;synStatement&quot;&gt;new&lt;/span&gt; Hoge();
+&lt;/pre&gt;&lt;p&gt;&lt;code&gt;gulp&lt;/code&gt;でビルドしなおしても、問題なくbableでES6がトランスパイルされます。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h4&gt;ダイジェストを追加&lt;/h4&gt;sass/scssと同様に、jsファイル名にもダイジェストを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// gulp/webpack.js&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; config        = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;./config&#39;&lt;/span&gt;);
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; gulp          = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp&#39;&lt;/span&gt;);
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; webpack       = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp-webpack&#39;&lt;/span&gt;);
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; webpackConfig = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;./webpack.config.js&#39;&lt;/span&gt;);
++ &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; rev           = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp-rev&#39;&lt;/span&gt;);
+
+  gulp.task(&lt;span class=&quot;synConstant&quot;&gt;&#39;webpack&#39;&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; gulp.src(config.javascript.src)
+        .pipe(webpack(webpackConfig))
++       .pipe(rev()) &lt;span class=&quot;synComment&quot;&gt;// ダイジェストをファイル名につける&lt;/span&gt;
+        .pipe(gulp.dest(webpackConfig.output.publicPath)) &lt;span class=&quot;synComment&quot;&gt;// jsファイルの出力先&lt;/span&gt;
++       .pipe(rev.manifest(config.rev.dest, config.rev.opts)) &lt;span class=&quot;synComment&quot;&gt;// manifestファイルの設定&lt;/span&gt;
++       .pipe(gulp.dest(config.publicAssets)); &lt;span class=&quot;synComment&quot;&gt;// manifestファイルの出力先&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+rev.manifestの引数で適切にパスやオプションを指定しているので、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/css&quot;&gt;css&lt;/a&gt;とjsのダイジェスト値が次のようにマージされています。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// public/assets/rev-manifest.json&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;application.bundle.css&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;application-d621e173c7.bundle.css&amp;quot;&lt;/span&gt;,
+  &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;application.bundle.js&amp;quot;&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;&amp;quot;application-c87f2216e1.bundle.js&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;JSファイルをミニファイ&lt;/h4&gt;JSファイルのミニファイには、&lt;a href=&quot;https://www.npmjs.com/package/gulp-uglify&quot;&gt;gulp-uglify&lt;/a&gt;を使用します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;npm install --save-dev gulp-uglify&lt;/pre&gt;&lt;p&gt;&lt;code&gt;uglify&lt;/code&gt;でjsファイルをミニファイします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// public/assets/javascripts/webpack.js&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; config        = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;./config&#39;&lt;/span&gt;);
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; gulp          = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp&#39;&lt;/span&gt;);
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; webpack       = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp-webpack&#39;&lt;/span&gt;);
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; webpackConfig = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;./webpack.config.js&#39;&lt;/span&gt;);
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; rev           = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp-rev&#39;&lt;/span&gt;);
++ &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; uglify        = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp-uglify&#39;&lt;/span&gt;);
+
+  gulp.task(&lt;span class=&quot;synConstant&quot;&gt;&#39;webpack&#39;&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; gulp.src(config.javascript.src)
+        .pipe(webpack(webpackConfig))
++ 　　　 .pipe(uglify())
+        .pipe(rev())
+        .pipe(gulp.dest(webpackConfig.output.publicPath))
+        .pipe(rev.manifest(config.rev.dest, config.rev.opts))
+        .pipe(gulp.dest(config.publicAssets));
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;code&gt;gulp&lt;/code&gt;でビルドし、JSファイルを見ると次のようにミニファイされていることがわかると思います。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// public/assets/javascripts/application-63a661c7c2.bundle.js&lt;/span&gt;
+
+!&lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;(e)&lt;span class=&quot;synIdentifier&quot;&gt;{function&lt;/span&gt; t(r)&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt;(n&lt;span class=&quot;synIdentifier&quot;&gt;[&lt;/span&gt;r&lt;span class=&quot;synIdentifier&quot;&gt;]&lt;/span&gt;)&lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; n&lt;span class=&quot;synIdentifier&quot;&gt;[&lt;/span&gt;r&lt;span class=&quot;synIdentifier&quot;&gt;]&lt;/span&gt;.exports;&lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; i=n&lt;span class=&quot;synIdentifier&quot;&gt;[&lt;/span&gt;r&lt;span class=&quot;synIdentifier&quot;&gt;]&lt;/span&gt;=&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;exports:&lt;span class=&quot;synIdentifier&quot;&gt;{}&lt;/span&gt;,id:r,loaded:!1&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;;&lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; e&lt;span class=&quot;synIdentifier&quot;&gt;[&lt;/span&gt;r&lt;span class=&quot;synIdentifier&quot;&gt;]&lt;/span&gt;.call(i.exports,i,i.exports,t),i.loaded=!0,i.exports&lt;span class=&quot;synIdentifier&quot;&gt;}var&lt;/span&gt; n=&lt;span class=&quot;synIdentifier&quot;&gt;{}&lt;/span&gt;;&lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; t.m=e,t.
+...
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;rails_with_gulp-watch-reload-notify&quot;&gt;5. 変更監視、画面リロード、通知&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;&lt;h4&gt;変更監視&lt;/h4&gt;ファイルの変更を監視し、変更されたらビルドが走るようにします。&lt;br /&gt;
+&lt;code&gt;gulp.watch&lt;/code&gt;という&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;がデフォルトであるのでそれを利用します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// gulp/tasks/watch.js&lt;/span&gt;
++ &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; config = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;./config&#39;&lt;/span&gt;);
++ &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; gulp   = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp&#39;&lt;/span&gt;);
++
++ gulp.task(&lt;span class=&quot;synConstant&quot;&gt;&#39;watch&#39;&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
++   gulp.watch(config.watch.stylesheetSass, &lt;span class=&quot;synIdentifier&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;compile-sass&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;]&lt;/span&gt;);
++   gulp.watch(config.watch.stylesheetScss, &lt;span class=&quot;synIdentifier&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;compile-scss&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;]&lt;/span&gt;);
++   gulp.watch(config.watch.javascript,     &lt;span class=&quot;synIdentifier&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;webpack&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;]&lt;/span&gt;);
++ &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;&lt;code&gt;watch&lt;/code&gt;タスクを実行すると、jsやsass/scssファイルを変更すると自動的にビルドを行ってくれるようになります。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;gulp watch&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h4&gt;画面リロード&lt;/h4&gt;ファイルがビルドしたら、画面をリロードするようにします。&lt;br /&gt;
+&lt;a href=&quot;https://www.npmjs.com/package/browser-sync&quot;&gt;browser-sync&lt;/a&gt;をインストールします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;npm install --save-dev browser-sync&lt;/pre&gt;&lt;p&gt;browserSyncを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// gulp/tasks/watch.js&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; config = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;./config&#39;&lt;/span&gt;);
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; gulp   = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp&#39;&lt;/span&gt;);
++ &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; browserSync = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;browser-sync&#39;&lt;/span&gt;).create();
+
+  gulp.task(&lt;span class=&quot;synConstant&quot;&gt;&#39;watch&#39;&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    browserSync.init(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+      proxy: &lt;span class=&quot;synConstant&quot;&gt;&#39;localhost:3000&#39;&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;// サーバのホスト名を記載&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+
+    gulp.watch(config.watch.stylesheetSass, &lt;span class=&quot;synIdentifier&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;compile-sass&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;]&lt;/span&gt;);
+    gulp.watch(config.watch.stylesheetScss, &lt;span class=&quot;synIdentifier&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;compile-scss&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;]&lt;/span&gt;);
+    gulp.watch(config.watch.javascript,     &lt;span class=&quot;synIdentifier&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;webpack&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;]&lt;/span&gt;);
+
++   &lt;span class=&quot;synComment&quot;&gt;// public配下のファイルが変更された場合画面をリロードする(必要に応じてwatch先を変更)&lt;/span&gt;
++   gulp.watch(config.watch.browserSync).on(&lt;span class=&quot;synConstant&quot;&gt;&#39;change&#39;&lt;/span&gt;, browserSync.reload);
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;こちらも&lt;code&gt;gulp watch&lt;/code&gt;で監視し、画面がリロードされます。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h4&gt;通知&lt;/h4&gt;次のように、&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%B3%A5%F3%A5%D1%A5%A4%A5%EB&quot;&gt;コンパイル&lt;/a&gt;が完了したら通知を出すようにしてみます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151218/20151218023734.png&quot; alt=&quot;f:id:nipe880324:20151218023734p:plain:w240&quot; title=&quot;f:id:nipe880324:20151218023734p:plain:w240&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:240px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;a href=&quot;https://www.npmjs.com/package/gulp-notify&quot;&gt;gulp-notify&lt;/a&gt;をインストールします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;npm install --save-dev gulp-notify&lt;/pre&gt;&lt;p&gt;&lt;code&gt;notify&lt;/code&gt;&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%E1%A5%BD%A5%C3%A5%C9&quot;&gt;メソッド&lt;/a&gt;を呼ぶことで通知が表示されます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// gulp/tasks/webpack.js&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; config        = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;./config&#39;&lt;/span&gt;);
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; gulp          = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp&#39;&lt;/span&gt;);
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; webpack       = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp-webpack&#39;&lt;/span&gt;);
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; webpackConfig = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;./webpack.config.js&#39;&lt;/span&gt;);
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; rev           = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp-rev&#39;&lt;/span&gt;);
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; uglify        = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp-uglify&#39;&lt;/span&gt;);
++ &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; notify        = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp-notify&#39;&lt;/span&gt;);
+
+  gulp.task(&lt;span class=&quot;synConstant&quot;&gt;&#39;webpack&#39;&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; gulp.src(config.javascript.src)
+        .pipe(webpack(webpackConfig))
+  　　　 .pipe(uglify())
+        .pipe(rev())
+        .pipe(gulp.dest(webpackConfig.output.publicPath))
+        .pipe(rev.manifest(config.rev.dest, config.rev.opts))
+*       .pipe(gulp.dest(config.publicAssets))
++       .pipe(notify(&lt;span class=&quot;synConstant&quot;&gt;&#39;finish webpack&#39;&lt;/span&gt;));
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;sass_scss.jsにも追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-javascript&quot; data-lang=&quot;javascript&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;// gulp/tasks/sass_scss.js&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; config = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;./config&#39;&lt;/span&gt;);
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; gulp = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp&#39;&lt;/span&gt;);
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; sass = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp-sass&#39;&lt;/span&gt;);
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; rename = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp-rename&#39;&lt;/span&gt;);
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; rev  = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp-rev&#39;&lt;/span&gt;);
+  &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; minifyCss = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp-minify-css&#39;&lt;/span&gt;);
++ &lt;span class=&quot;synIdentifier&quot;&gt;var&lt;/span&gt; notify    = require(&lt;span class=&quot;synConstant&quot;&gt;&#39;gulp-notify&#39;&lt;/span&gt;);
+
+  gulp.task(&lt;span class=&quot;synConstant&quot;&gt;&#39;compile-sass&#39;&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; gulp.src(config.stylesheet.srcSass)
+        .pipe(sass(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; indentedSyntax: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;, errLogToConsole: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;))
+        .pipe(minifyCss())
+        .pipe(rename(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; suffix: &lt;span class=&quot;synConstant&quot;&gt;&#39;.bundle&#39;&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;))
+        .pipe(rev())
+        .pipe(gulp.dest(config.stylesheet.dest))
+        .pipe(rev.manifest(config.rev.dest, config.rev.opts))
+*       .pipe(gulp.dest(config.publicAssets))
++       .pipe(notify(&lt;span class=&quot;synConstant&quot;&gt;&#39;finish compile-sass&#39;&lt;/span&gt;));
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+
+  gulp.task(&lt;span class=&quot;synConstant&quot;&gt;&#39;compile-scss&#39;&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;function&lt;/span&gt;() &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; gulp.src(config.stylesheet.srcScss)
+        .pipe(sass(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; indentedSyntax: &lt;span class=&quot;synConstant&quot;&gt;false&lt;/span&gt;, errLogToConsole: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;))
+        .pipe(minifyCss())
+        .pipe(rename(&lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt; suffix: &lt;span class=&quot;synConstant&quot;&gt;&#39;.bundle&#39;&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;))
+        .pipe(rev())
+        .pipe(gulp.dest(config.stylesheet.dest))
+        .pipe(rev.manifest(config.rev.dest, config.rev.opts))
+*       .pipe(gulp.dest(config.publicAssets))
++       .pipe(notify(&lt;span class=&quot;synConstant&quot;&gt;&#39;finish compile-scss&#39;&lt;/span&gt;));
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;);
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;rails_with_gulp-integration-with-rails&quot;&gt;6. &lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/Rails&quot;&gt;Rails&lt;/a&gt;と統合&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;まずは、&lt;code&gt;gulp&lt;/code&gt;でビルドしておきます。&lt;/p&gt;&lt;p&gt;&lt;code&gt;index.html.erb&lt;/code&gt;などの各テンプレートファイルから特定のjsや&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/css&quot;&gt;css&lt;/a&gt;を読み込めるようにするために、、&lt;code&gt;content_for&lt;/code&gt;を追加ます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;  &lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- app/views/layouts/application.html.erb --&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;&amp;lt;!DOCTYPE html&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;html&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;head&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;    &lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;title&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;GulpTest&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;title&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;-   &lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; stylesheet_link_tag&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;    &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;application&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;media&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;all&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;data-turbolinks-track&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; =&amp;gt;&lt;/span&gt;&lt;span class=&quot;synPreProc&quot;&gt; true %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;-   &lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; javascript_include_tag&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;application&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;data-turbolinks-track&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; =&amp;gt;&lt;/span&gt;&lt;span class=&quot;synPreProc&quot;&gt; true %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;+   &lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; yield&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :head if content_for?(:head) %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;    &lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; csrf_meta_tags&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;head&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; yield&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+
++ &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; yield&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :head if content_for?(:foot) %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;html&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;code&gt;index.html.erb&lt;/code&gt;でjsファイルをロードするようにします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;  &lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- app/views/top/index.html.erb --&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Top#index&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Find me in app/views/top/index.html.erb&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
++ &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% content_for :head do %&amp;gt;&lt;/span&gt;
++   &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; stylesheet_link_tag&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; gulp_asset_path(&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;application.bundle.css&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;) %&amp;gt;&lt;/span&gt;
++ &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% end %&amp;gt;&lt;/span&gt;
++
++ &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% content_for :foot do %&amp;gt;&lt;/span&gt;
++   &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; javascript_include_tag&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; gulp_asset_path(&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;application.bundle.js&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;) %&amp;gt;&lt;/span&gt;
++ &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% end %&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;ダイジェストに対応できるために&lt;a class=&quot;keyword&quot; href=&quot;http://d.hatena.ne.jp/keyword/%A5%DE%A5%CB%A5%D5%A5%A7%A5%B9%A5%C8&quot;&gt;マニフェスト&lt;/a&gt;ファイルを&lt;code&gt;REV_MANIFEST&lt;/code&gt;定数に入れておきます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# config/initializers/rev_manifest.rb&lt;/span&gt;
++ rev_manifest_path = &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;public/assets/rev-manifest.json&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
++
++ &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;File&lt;/span&gt;.exist?(rev_manifest_path)
++   &lt;span class=&quot;synType&quot;&gt;REV_MANIFEST&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;JSON&lt;/span&gt;.parse(&lt;span class=&quot;synType&quot;&gt;File&lt;/span&gt;.read(rev_manifest_path))
++ &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;gulpで作成されたファイルへのパスを返す&lt;code&gt;gulp_assets_path&lt;/code&gt;ヘルパーを作成します。&lt;br /&gt;
+※少しバグがあるので適宜直してください。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/helpers/applicaiton_helper.rb&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;module&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ApplicationHelper&lt;/span&gt;
++   &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;gulp_asset_path&lt;/span&gt;(path)
++     new_path = &lt;span class=&quot;synType&quot;&gt;REV_MANIFEST&lt;/span&gt;[path] &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;defined?&lt;/span&gt;(&lt;span class=&quot;synType&quot;&gt;REV_MANIFEST&lt;/span&gt;)
++     &lt;span class=&quot;synStatement&quot;&gt;raise&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;path miss match error: &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;path&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; new_path.blank?
++
++     &lt;span class=&quot;synStatement&quot;&gt;return&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;/assets/javascripts/&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;new_path&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; new_path.end_with?(&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;.js&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;)
++     &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;/assets/stylesheets/&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;new_path&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt;        &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; new_path.end_with?(&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;.css&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;)
++   &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;code&gt;rails server&lt;/code&gt;でサーバーを起動させ、&lt;code&gt;gulp watch&lt;/code&gt;でbrowserSyncを起動させると次のように画面が開きます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20151218/20151218023652.png&quot; alt=&quot;f:id:nipe880324:20151218023652p:plain:w420&quot; title=&quot;f:id:nipe880324:20151218023652p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;アセットファイルなどを変更すると、ビルドされ、通知が出て、画面がリロードされます。&lt;/p&gt;&lt;p&gt;以上です。&lt;/p&gt;
+
+&lt;/div&gt;</description>
+          <pubDate>Fri, 18 Dec 2015 02:44:20 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/6653586347148953100</guid>
+          
+            <category>gulp</category>
+          
+            <category>assets</category>
+          
+        </item>
+      
+    
+  </channel>
+</rss>

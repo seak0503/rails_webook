@@ -1,0 +1,586 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>ファイルアップロード - Rails Webook</title>
+    <link>http://ruby-rails.hatenadiary.com/category/%E3%83%95%E3%82%A1%E3%82%A4%E3%83%AB%E3%82%A2%E3%83%83%E3%83%97%E3%83%AD%E3%83%BC%E3%83%89</link>
+    <description>自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</description>
+    <lastBuildDate>Fri, 18 Dec 2015 02:44:31 +0900</lastBuildDate>
+    <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+    <generator>Hatena::Blog</generator>
+    
+      
+      
+        <item>
+          <title>RailsのCarrierWaveのカスタマイズ - ファイルの配置先、リサイズ、テストなど</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20141022/1413907332</link>
+          <description>&lt;p&gt;前回は&lt;a href=&quot;/entry/20141015/1413300088&quot; target=&quot;_blank&quot;&gt;CarrierWaveのインストール方法&lt;/a&gt;について説明しました。&lt;br /&gt;
+今回は、ファイルの配置先、リサイズ、テストなどCarrirWaveをもっと使いこなしていくための方法を説明します。&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;#carrirwave-customize-filepath&quot;&gt;ファイルの配置先&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#carrirwave-customize-resize&quot;&gt;画像サイズの変更（リサイズ）&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#carrirwave-customize-extension&quot;&gt;アップロードファイルの拡張子&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#carrirwave-customize-filename&quot;&gt;アップロードされたファイルのファイル名&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#carrirwave-customize-i18n&quot;&gt;i18n&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;carrirwave-customize-filepath&quot;&gt;ファイルの配置先&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;まず、ファイルの配置先としては、大まかには次のどちらにするか選ぶ必要があります。&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;Railsが動いているサーバーに配置&lt;/li&gt;
+&lt;li&gt;Amazon S3, Rackspace Cloud Files, Google Strage for Developersなどのクラウド上のストレージに配置&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;上記の1について説明します。&lt;br /&gt;
+2については、公式ページを参照してください。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/carrierwaveuploader/carrierwave#using-amazon-s3&quot; target=&quot;_blank&quot;&gt;Amazon S3を使う&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/carrierwaveuploader/carrierwave#using-rackspace-cloud-files&quot; target=&quot;_blank&quot;&gt;Rackspace Cloud Filesを使う&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/carrierwaveuploader/carrierwave#using-google-storage-for-developers&quot; target=&quot;_blank&quot;&gt;Google Strage for Developersを使う&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;アップロードしたファイルの配置場所を変更するために、&lt;code&gt;store_dir&lt;/code&gt;メソッドをオーバーライドしてください。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/uploaders/image_uploader.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ImageUploader&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;CarrierWave&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Uploader&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  ...
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;store_dir&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# デフォルト値&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;# &amp;quot;uploads/#{model.class.to_s.underscore}/#{mounted_as}/#{model.id}&amp;quot;&lt;/span&gt;
+
+    &lt;span class=&quot;synComment&quot;&gt;# Rails.root/public/mypath/ 配下にファイルが配置される&lt;/span&gt;
+    &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;mypath&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  ...
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;carrirwave-customize-resize&quot;&gt;画像サイズの変更（リサイズ）&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;サムネイル画像など同じファイルの異なったサイズのファイルを表示したい場合があると思います。&lt;br /&gt;
+画像をリサイズするために&lt;code&gt;Imagemagick&lt;/code&gt;と&lt;code&gt;MiniMagick&lt;/code&gt;のインストールが必要です。&lt;/p&gt;&lt;p&gt;&lt;code&gt;MiniMagick&lt;/code&gt;の代わりに&lt;code&gt;RMagick&lt;/code&gt;を紹介しているサイトもありますが、&lt;code&gt;MiniMagick&lt;/code&gt;は公式に推奨されています。&lt;/p&gt;&lt;p&gt;OSXの場合、BrewコマンドでImageMagickを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;brew install imagemagick&lt;/pre&gt;&lt;p&gt;次に、GemfileにMiniMagickを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# Gemfile&lt;/span&gt;
+gem &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;mini_magick&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;Bundlerでインストールします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;bundle install&lt;/pre&gt;&lt;p&gt;次にMiniMagickをincludeし、また、アップローダーにサイズを変換する指定をいれます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/uploaders/image_uploader.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ImageUploader&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;CarrierWave&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Uploader&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;include&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;CarrierWave&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;MiniMagick&lt;/span&gt;
+  ...
+
+  &lt;span class=&quot;synComment&quot;&gt;# resize_to_fitはファイルのサイズを変更します&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# アップロードされたファイルを200〜200以下に変換する&lt;/span&gt;
+  process &lt;span class=&quot;synConstant&quot;&gt;:resize_to_fit&lt;/span&gt; =&amp;gt; [&lt;span class=&quot;synConstant&quot;&gt;200&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;200&lt;/span&gt;]
+
+  &lt;span class=&quot;synComment&quot;&gt;# 別のスケールを設定&lt;/span&gt;
+  version &lt;span class=&quot;synConstant&quot;&gt;:thumb&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+    process &lt;span class=&quot;synConstant&quot;&gt;:resize_to_fit&lt;/span&gt; =&amp;gt; [&lt;span class=&quot;synConstant&quot;&gt;50&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;50&lt;/span&gt;]
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+  ...
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;では、ファイルをアップロードし直してみましょう。&lt;br /&gt;
+分かりづらいですが、ファイルサイズがリサイズされてサーバーに配置されています。&lt;br /&gt;
+そのため、画面上で画像のサイズが少し小さくなっています。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141022/20141022005200.png&quot; alt=&quot;f:id:nipe880324:20141022005200p:plain:w480&quot; title=&quot;f:id:nipe880324:20141022005200p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;carrirwave-customize-extension&quot;&gt;アップロードファイルの拡張子&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;PHPやスクリプトファイルなどをサーバー上にアップロードされると危険な場合があります。&lt;br /&gt;
+そのために、CarrirWaveでは拡張子のホワイトリストを指定し、アップロード可能な拡張子を記載したリストを作成できます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/uploaders/image_uploader.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ImageUploader&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;CarrierWave&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Uploader&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  ...
+
+  &lt;span class=&quot;synComment&quot;&gt;# jpg, jpeg, gif, png のみ許可する&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;extension_white_list&lt;/span&gt;
+    &lt;span class=&quot;synSpecial&quot;&gt;%w(&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;jpg jpeg gif png&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;)&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  ...
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+もし、Modelでアップローダーをマウントしている場合（&lt;code&gt;mount_uploader :image, ImageUploader&lt;/code&gt;）、誤った拡張子がアップロードされた場合には、Validationエラーになります。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/models/product.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  mount_uploader &lt;span class=&quot;synConstant&quot;&gt;:image&lt;/span&gt;, &lt;span class=&quot;synType&quot;&gt;ImageUploader&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141022/20141022005304.png&quot; alt=&quot;f:id:nipe880324:20141022005304p:plain:w480&quot; title=&quot;f:id:nipe880324:20141022005304p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;carrirwave-customize-filename&quot;&gt;アップロードファイルのファイル名&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;デフォルトでは、CarrierWaveは、アップロードされたファイル名にアルファベット、数字などの簡易な文字しか許可していません。&lt;br /&gt;
+もし、日本語などをサポートしたい場合は、&lt;code&gt;sanitize_regexp&lt;/code&gt;メソッドをオーハーライドし、全ての許可されていない文字列にマッチする正規表現を返す必要があります。&lt;/p&gt;&lt;p&gt;Ruby 2.0以上の場合、&lt;a href=&quot;https://github.com/k-takata/Onigmo&quot; target=&quot;_blank&quot;&gt;Onigumo&lt;/a&gt;を使って簡単に記載できます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synType&quot;&gt;CarrierWave&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;SanitizedFile&lt;/span&gt;.sanitize_regexp = &lt;span class=&quot;synSpecial&quot;&gt;/[^&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;[:word:&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;]\.&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;\-&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;\+&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;/&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;Ruby 1.8の場合、手動で特定の文字列にマッチする正規表現を記載する必要があります。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synType&quot;&gt;CarrierWave&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;SanitizedFile&lt;/span&gt;.sanitize_regexp = &lt;span class=&quot;synSpecial&quot;&gt;/[^&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;a-zA-Zа-яА-ЯёЁ0-9&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;\.&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;\-&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;\+&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;_&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;]/&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;carrirwave-customize-i18n&quot;&gt;i18n&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;CarrierWAveのi18nファイルを作成しましょう。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# carrierwave.ja.yml
+errors:
+  messages:
+    carrierwave_processing_error: &amp;#34;Cannot resize image.&amp;#34;
+    carrierwave_integrity_error: &amp;#34;Not an image.&amp;#34;
+    carrierwave_download_error: &amp;#34;Couldn&amp;#39;t download image.&amp;#34;
+    extension_white_list_error: &amp;#34;You are not allowed to upload %{extension} files, allowed types: %{allowed_types}&amp;#34;
+    extension_black_list_error: &amp;#34;You are not allowed to upload %{extension} files, prohibited types: %{prohibited_types}&amp;#34;&lt;/pre&gt;&lt;p&gt;日本語のファイルは次の箇所にあります。&lt;br /&gt;
+&lt;a href=&quot;https://github.com/carrierwaveuploader/carrierwave/blob/master/lib/carrierwave/locale/ja.yml&quot; target=&quot;_blank&quot;&gt;GitHub - carrierwave/locale/ja.yml&lt;/a&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/carrierwaveuploader/carrierwave&quot;&gt;https://github.com/carrierwaveuploader/carrierwave&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;以上です。&lt;br /&gt;
+よく分からない箇所がある場合はコメントください。&lt;/p&gt;
+
+&lt;/div&gt;</description>
+          <pubDate>Wed, 22 Oct 2014 01:02:12 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450069740014</guid>
+          
+            <category>Rails gem</category>
+          
+            <category>ファイルアップロード</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>RailsのファイルをアップロードするgemのCarrierWaveのインストール方法</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20141015/1413300088</link>
+          <description>
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;CarrierWaveとは&lt;/h3&gt;
+    &lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141015/20141015002041.jpg&quot; alt=&quot;f:id:nipe880324:20141015002041j:plain:w240&quot; title=&quot;f:id:nipe880324:20141015002041j:plain:w240&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:240px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;CarrierWaveとは有名なファイルアップロード用のgemです。他にはPaperclipというものもあります。&lt;br /&gt;
+この２つがRuby/Railsでのファイルアップロードgemとしてトップ２を争っています。&lt;/p&gt;&lt;p&gt;これらの違いは、&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Paperclipは機能がシンプルで使いやすい&lt;/li&gt;
+&lt;li&gt;CarrierWaveは機能がいろいろあり、応用が聞きやすい&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;です。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;完成イメージ&lt;/h3&gt;
+    &lt;p&gt;新規/編集画面で画像をアップロードをし、次のように詳細画面で表示することができます。&lt;br /&gt;
+また、チェックボックスをつけて、削除することも可能です。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141015/20141015000556.png&quot; alt=&quot;f:id:nipe880324:20141015000556p:plain:w320&quot; title=&quot;f:id:nipe880324:20141015000556p:plain:w320&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:320px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;実施環境&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Mac OS X 10.9&lt;/li&gt;
+&lt;li&gt;Ruby  2.0&lt;/li&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;li&gt;CarrierWave 0.10.0&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#carrierwave-create-rails&quot;&gt;Railsプロジェクトの作成&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#carrierwave-getting-started&quot;&gt;CarrierWaveのインストールと導入&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#carrierwave-usefull-method&quot;&gt;CarrierWaveの良く使うメソッド&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;carrierwave-create-rails&quot;&gt;Railsプロジェクトの作成&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;まず Railsプロジェクトを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rails new carrierwave_test&lt;/pre&gt;&lt;p&gt;そして Scaffoldで簡単なProductクラスを作ります。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;cd carrierwave_test
+rails g scaffold Product name:string price:integer&lt;/pre&gt;&lt;p&gt;では DBマイグレートをして、ローカル環境で動かしてみましょう。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rake db:migrate
+rails s&lt;/pre&gt;&lt;p&gt;以下のような画面ができるはずです。&lt;/p&gt;&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141015/20141015000549.png&quot; alt=&quot;f:id:nipe880324:20141015000549p:plain:w480&quot; title=&quot;f:id:nipe880324:20141015000549p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;carrierwave-getting-started&quot;&gt;CarrierWaveのインストールと導入&lt;/h3&gt;&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;Gemのインストール&lt;/h4&gt;
+    &lt;p&gt;では、CarrierWaveのインストールをプロジェクトに導入します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# Gemfile
+...
+gem &amp;#34;carrierwave&amp;#34;&lt;/pre&gt;&lt;p&gt;gemをインストールします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;bundle install&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;アップローダーの生成&lt;/h4&gt;
+    &lt;p&gt;CarrierWaveのジェネレーターでアップローダーを作成します&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rails g uploader Image
+      create  app/uploaders/image_uploader.rb&lt;/pre&gt;&lt;p&gt;作成されたファイルの&lt;code&gt;image_uploader.rb&lt;/code&gt;の中をのぞいてみると、ファイルの保存方法（デフォルトはファイル）、保存パス、ファイルのサイズ、拡張子やファイル名の変換などが変更できることがわかると思います。&lt;/p&gt;&lt;p&gt;CarrierWaveはActiveRecordやMongoId、DataMapperなどのORMと連携することができます。&lt;br /&gt;
+今回は、RailsのデフォルトでもあるActiveRecordを使って、アップロードしたファイルの情報を保存します。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;Modelに画像情報保持用のカラムの追加&lt;/h4&gt;
+    &lt;p&gt;まずは、Stringカラムをモデルに追加するために、Productモデルにマイグレーションファイルを作成し、マイグレートをします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rails g migration add_image_to_product image:string
+rake db:migrate&lt;/pre&gt;&lt;p&gt;その後、モデルファイルを開き、アップローダーへのマウントする記述を追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/models/product.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  mount_uploader &lt;span class=&quot;synConstant&quot;&gt;:image&lt;/span&gt;, &lt;span class=&quot;synType&quot;&gt;ImageUploader&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;画像の追加/編集/表示/削除処理の追加&lt;/h4&gt;
+    &lt;p&gt;商品の新規/編集フォームに画像アップロードの入力フィールドを追加します。&lt;br /&gt;
+hidden属性で&lt;code&gt;image_cache&lt;/code&gt;を指定しましたが、これは、画像を指定したけれども、バリデーションエラーなどにより保存が失敗した場合の画面再表示時などに、画像情報をキャッシュしておくための領域です。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/products/_form.html.erb
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; form_for(@product)&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; do |f| %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% if @product.errors.any? %&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;error_explanation&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h2&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; pluralize(@product.errors.count,&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;error&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;) %&amp;gt;&lt;/span&gt; prohibited this product from being saved:&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h2&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;ul&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% @product.errors.full_messages.each do |message| %&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;li&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; message&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;li&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% end %&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;ul&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% end %&amp;gt;&lt;/span&gt;
+
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;field&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :&lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;br&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.text_field&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :&lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;field&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :price %&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;br&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.number_field&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :price %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- 追加箇所 開始 --&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;field&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% if @product.image? %&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;thumbnail&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; image_tag&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; @product.image.&lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% end %&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;br&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :image %&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;br&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.file_field&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :image %&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.hidden_field&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :image_cache %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;field&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- 既存レコード(DBに保存されている)かつ、画像が存在する場合 --&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% if @product.persisted? &amp;amp;&amp;amp; @product.image? %&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+        &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.check_box&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :remove_image %&amp;gt;&lt;/span&gt;
+        画像を削除
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% end %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- 追加箇所 終了 --&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;actions&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.submit&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% end %&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+コントローラーにファイルの属性を更新できるようにするために、StrongParametersの箇所を修正します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/products_controller.rb&lt;/span&gt;
+
+...
+    &lt;span class=&quot;synComment&quot;&gt;# Never trust parameters from the scary internet, only allow the white list through.&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;product_params&lt;/span&gt;
+      params.require(&lt;span class=&quot;synConstant&quot;&gt;:product&lt;/span&gt;).permit(&lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:price&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:image&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:image_cache&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:remove_image&lt;/span&gt;)
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+end
+&lt;/pre&gt;&lt;p&gt;そして、画像がアップロードされたら、詳細画面で表示するようにします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/products/show.html.erb
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;id&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;notice&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; notice&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Name:&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; @product.name&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Price:&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; @product.price&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- 追加箇所 開始 --&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Image:&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% if @product.image? %&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;thumbnail&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; image_tag&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; @product.image.&lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% end %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- 追加箇所 終了 --&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;Edit&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, edit_product_path(@product) %&amp;gt;&lt;/span&gt; |
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;Back&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, products_path %&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+では、サーバーを起動して画像を登録してみましょう。&lt;br /&gt;
+新規画面から画像を選択し、登録を押すと次のように画像が表示されます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141015/20141015000556.png&quot; alt=&quot;f:id:nipe880324:20141015000556p:plain:w320&quot; title=&quot;f:id:nipe880324:20141015000556p:plain:w320&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:320px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;また、このアップロードされたファイルはpublic/uploads/products配下に保存されています。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141015/20141015000604.png&quot; alt=&quot;f:id:nipe880324:20141015000604p:plain:w230&quot; title=&quot;f:id:nipe880324:20141015000604p:plain:w230&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:230px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;carrierwave-usefull-method&quot;&gt;CarrierWaveの良く使うメソッド&lt;/h3&gt;アップローダーをincludeしたモデル次のようなメソッドを使えます&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# モデルの作成&lt;/span&gt;
+product       = &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.new
+
+&lt;span class=&quot;synComment&quot;&gt;# 画像ファイルの設定&lt;/span&gt;
+product.image = params[&lt;span class=&quot;synConstant&quot;&gt;:image&lt;/span&gt;]         &lt;span class=&quot;synComment&quot;&gt;# paramsから設定&lt;/span&gt;
+product.image = &lt;span class=&quot;synType&quot;&gt;File&lt;/span&gt;.open(&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;somewhere&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;) &lt;span class=&quot;synComment&quot;&gt;# Fileオブジェクトを設定&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 保存&lt;/span&gt;
+product.save!
+
+&lt;span class=&quot;synComment&quot;&gt;# アップローダーの対するメソッド&lt;/span&gt;
+product.image.url          &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &#39;/url/to/file.png&#39;&lt;/span&gt;
+product.image.current_path &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &#39;path/to/file.png&#39;&lt;/span&gt;
+prodcut.image.identifier   &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &#39;file.png&#39;&lt;/span&gt;
+product.image?   &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; imageがあるかを true or false で返す&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;今回はCarrierWaveの基礎的な内容を記載しましたが、比較的簡単に画像のCRUDをActiveRecordのモデルに追加することができました。&lt;br /&gt;
+次は、より深くCarrierWaveを使うためのカスタマイズ方法を説明します。&lt;/p&gt;&lt;p&gt;間違っている箇所のご指摘、良く分からないといった質問などありましたら、お気軽に以下のコメント欄に記載ください。直に返します。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/carrierwaveuploader/carrierwave&quot; target=&quot;_blank&quot;&gt;GitHub公式ページ&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/carrierwaveuploader/carrierwave/wiki&quot; target=&quot;_blank&quot;&gt;Howto集&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://rubydoc.info/gems/carrierwave/frames&quot; target=&quot;_blank&quot;&gt;Howot集2&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Wed, 15 Oct 2014 00:21:28 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450068615327</guid>
+          
+            <category>Rails gem</category>
+          
+            <category>ファイルアップロード</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>RailsでPaperclipを使ってファイルをアップロードする</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20140716/1405443484</link>
+          <description>&lt;p&gt;Paperclipはは有名なファイルアップロード用のgemです。他にはCarrierWaveというものもあります。&lt;br /&gt;
+この２つがRailsでのファイルアップロードgemとしてトップ２を争っています。&lt;/p&gt;&lt;p&gt;これらの違いは、&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Paperclipは機能がシンプルで使いやすい&lt;/li&gt;
+&lt;li&gt;CarrierWaveは機能がいろいろあり、応用が聞きやすい&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;です。&lt;/p&gt;&lt;p&gt;Paperclipではアップロードしたファイルはサーバー上に配置されます。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;実装結果&lt;/h3&gt;
+    &lt;p&gt;追加/編集画面でファイルをアップロードします。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140716/20140716033100.png&quot; alt=&quot;f:id:nipe880324:20140716033100p:plain:w480&quot; title=&quot;f:id:nipe880324:20140716033100p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;すると。。。詳細画面にアップロードした画面が表示されます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140716/20140716033033.png&quot; alt=&quot;f:id:nipe880324:20140716033033p:plain:w480&quot; title=&quot;f:id:nipe880324:20140716033033p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Mac OS X 10.9&lt;/li&gt;
+&lt;li&gt;Ruby 2.0.0&lt;/li&gt;
+&lt;li&gt;Rails 4.1.4&lt;/li&gt;
+&lt;li&gt;Paperclip 4.2.0&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#paperclip-create-project&quot;&gt;Railsプロジェクトの作成&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#paperclip-getting-started&quot;&gt;PaperclipのRailsへの導入&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#paperclip-validation&quot;&gt;Paperclipのアップロードファイルの保存先とValidation&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#paperclip-add-image-from-console&quot;&gt;Paperclipへコンソール（$ rails console）から画像ファイルの追加&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#paperclip-add-csv&quot;&gt;PaperclipでCSVファイルをアップロードする&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;h3 id=&quot;paperclip-create-project&quot;&gt;1. Railsプロジェクトの作成&lt;/h3&gt;まず Railsプロジェクトを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ rails new paperclip_test&lt;/pre&gt;&lt;p&gt;そして Scaffoldで簡単なPictureクラスを作ります。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ cd paperclip_test
+$ rails g scaffold Picture name:string&lt;/pre&gt;&lt;p&gt;では DBマイグレートをして、ローカル環境で動かしてみましょう。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ rake db:migrate
+$ rails s&lt;/pre&gt;&lt;p&gt;以下のような画面ができるはずです。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140716/20140716033119.png&quot; alt=&quot;f:id:nipe880324:20140716033119p:plain:w480&quot; title=&quot;f:id:nipe880324:20140716033119p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;paperclip-getting-started&quot;&gt;2. PaperclipのRailsへの導入&lt;/h3&gt;では、Paperclipをプロジェクトに導入します。&lt;br /&gt;
+と、その前に &lt;a hre=&quot;http://www.imagemagick.org/&quot; target=&quot;_blank&quot;&gt;ImageMagick&lt;/a&gt; という画像変換ツールをインストールが必要です。&lt;br /&gt;
+Macの場合は、以下のコマンドで実施可能です。その他の環境では、上記のリンクからインストール方法を確認して、入れて下さい。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ brew install imagemagick&lt;/pre&gt;&lt;p&gt;&lt;code&gt;imagemagick&lt;/code&gt;がインストールされると、&lt;code&gt;convert&lt;/code&gt;コマンドが使えるようになりますので、確認で次のコマンドでパスが表示されるか確認しましょう。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ which convert
+/usr/local/bin/convert&lt;/pre&gt;&lt;p&gt;さて、いよいよpaperclipを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# Gemfile
+  ...
+  gem &amp;#34;paperclip&amp;#34;&lt;/pre&gt;&lt;p&gt;gemをインストールします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ bundle install&lt;/pre&gt;&lt;p&gt;つぎに Pictureテーブルに「ファイルの保存用のphotoカラムを追加するマイグレートファイル」を以下のコマンドで作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ rails g paperclip picture photo
+      create  db/migrate/20140715171251_add_attachment_photo_to_pictures.rb&lt;/pre&gt;&lt;p&gt;中身をいちおう確認しましょう。&lt;br /&gt;
+&lt;code&gt;attachment&lt;/code&gt;は、Paperclipが定義しているファイルで、ファイル情報を保持するための複数のカラムを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ cat db/migrate/20140715171251_add_attachment_photo_to_pictures.rb
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;AddAttachmentPhotoToPictures&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Migration&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;self&lt;/span&gt;.&lt;span class=&quot;synIdentifier&quot;&gt;up&lt;/span&gt;
+    change_table &lt;span class=&quot;synConstant&quot;&gt;:pictures&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;t&lt;/span&gt;|
+      t.attachment &lt;span class=&quot;synConstant&quot;&gt;:photo&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;self&lt;/span&gt;.&lt;span class=&quot;synIdentifier&quot;&gt;down&lt;/span&gt;
+    remove_attachment &lt;span class=&quot;synConstant&quot;&gt;:pictures&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:photo&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;マイグレーションファイルの中身は編集しないで、マイグレートさせます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ rake db:migrate
+== 20140715171251 AddAttachmentPhotoToPictures: migrating =====================
+-- change_table(:pictures)
+   -&amp;gt; 0.0015s
+== 20140715171251 AddAttachmentPhotoToPictures: migrated (0.0016s) ============&lt;/pre&gt;&lt;p&gt;次にPicture.dbモデルにphoto用のカラムを記載します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/models/picture.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Picture&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# photoをattachファイルとする。stylesで画像サイズを定義できる&lt;/span&gt;
+  has_attached_file &lt;span class=&quot;synConstant&quot;&gt;:photo&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;styles&lt;/span&gt;: { &lt;span class=&quot;synConstant&quot;&gt;medium&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;300x300&amp;gt;&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;thumb&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;100x100&amp;gt;&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; }
+
+  &lt;span class=&quot;synComment&quot;&gt;# ファイルの拡張子を指定（これがないとエラーが発生する）&lt;/span&gt;
+  validates_attachment &lt;span class=&quot;synConstant&quot;&gt;:photo&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;content_type&lt;/span&gt;: { &lt;span class=&quot;synConstant&quot;&gt;content_type&lt;/span&gt;: [&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;image/jpg&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;image/jpeg&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;image/png&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;image/gif&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;] }
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;次に、ビューに画像ファイルアップロード用のinput要素を追加します。&lt;/p&gt;&lt;p&gt;&lt;i&gt;ファイルなどをサーバに送信する場合、HTMLの仕様として&lt;code&gt;multipart&lt;/code&gt;という属性が必要なのですが、&lt;code&gt;form_for&lt;/code&gt;メソッド時のときは自動で追加されるため今回は追加が必要ありません。&lt;code&gt;form_tag&lt;/code&gt;メソッドの時は自分で記載する必要があります。&lt;/i&gt;&lt;br /&gt;
+&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/views/pictures/_form.html.erb&lt;/span&gt;
+  ...
+  &amp;lt;div &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt;=&amp;quot;field&amp;quot;&amp;gt;
+    &amp;lt;%= f.label &lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt; %&amp;gt;&amp;lt;br&amp;gt;
+    &amp;lt;%= f.text_field &lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt; %&amp;gt;
+  &amp;lt;/div&amp;gt;
+  &amp;lt;div &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt;=&amp;quot;field&amp;quot;&amp;gt;
+    &amp;lt;%= f.file_field &lt;span class=&quot;synConstant&quot;&gt;:photo&lt;/span&gt; %&amp;gt;
+  &amp;lt;/div&amp;gt;
+  &amp;lt;div &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt;=&amp;quot;actions&amp;quot;&amp;gt;
+    &amp;lt;%= f.submit %&amp;gt;
+  &amp;lt;/div&amp;gt;
+&amp;lt;% &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt; %&amp;gt;
+&lt;/pre&gt;&lt;p&gt;アップロードした画像を表示するための表示領域を、詳細画面に追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/pictures/show.html.erb
+
+...
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Name:&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; @picture.name&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- 追加箇所 開始--&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+   &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;Picture:&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;strong&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+   &lt;span class=&quot;synComment&quot;&gt;&amp;lt;!--- Modelのstyleで指定した :midium など渡すことでサイズを指定できる --&amp;gt;&lt;/span&gt;
+   &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; image_tag&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; @picture.photo.&lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;(:medium) %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- 追加箇所 終了--&amp;gt;&lt;/span&gt;
+...
+&lt;/pre&gt;&lt;p&gt;最後に、StrongParameterにinput属性の&lt;code&gt;photo&lt;/code&gt;を追加しましょう。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/pictures_controller.rb&lt;/span&gt;
+    ...
+
+    &lt;span class=&quot;synComment&quot;&gt;# Never trust parameters from the scary internet, only allow the white list through.&lt;/span&gt;
+    &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;picture_params&lt;/span&gt;
+      params.require(&lt;span class=&quot;synConstant&quot;&gt;:picture&lt;/span&gt;).permit(&lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:photo&lt;/span&gt;)
+    &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+end
+&lt;/pre&gt;&lt;p&gt;では、実際にアップロードした画像を確認してみましょう。画面に表示されていますね。&lt;br /&gt;
+アップロードしたファイルは&lt;code&gt;public/system&lt;/code&gt;配下に配置されています。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140716/20140716033033.png&quot; alt=&quot;f:id:nipe880324:20140716033033p:plain:w480&quot; title=&quot;f:id:nipe880324:20140716033033p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;paperclip-validation&quot;&gt;3. Paperclipのアップロードファイルの保存先とValidation&lt;/h3&gt;ファイルアップロードの保存先はurlとpathで指定することができます。&lt;br /&gt;
+また、Validationには次のような項目があります。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/models/picture.rb&lt;/span&gt;
+
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Picture&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+    has_attached_file &lt;span class=&quot;synConstant&quot;&gt;:photo&lt;/span&gt;, 
+  	&lt;span class=&quot;synConstant&quot;&gt;:styles&lt;/span&gt; =&amp;gt; { &lt;span class=&quot;synConstant&quot;&gt;medium&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;300x300&amp;gt;&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;thumb&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;100x100&amp;gt;&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; }, &lt;span class=&quot;synComment&quot;&gt;# 画像サイズを指定&lt;/span&gt;
+	&lt;span class=&quot;synConstant&quot;&gt;:url&lt;/span&gt;  =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;/assets/arts/:id/:style/:basename.:extension&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synComment&quot;&gt;# 画像保存先のURL先&lt;/span&gt;
+	&lt;span class=&quot;synConstant&quot;&gt;:path&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;#{&lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt;.root&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;/public/assets/arts/:id/:style/:basename.:extension&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# サーバ上の画像保存先パス&lt;/span&gt;
+
+    &lt;span class=&quot;synComment&quot;&gt;## Validation&lt;/span&gt;
+    validates_attachment &lt;span class=&quot;synConstant&quot;&gt;:photo&lt;/span&gt;,
+      &lt;span class=&quot;synConstant&quot;&gt;presence&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;,  &lt;span class=&quot;synComment&quot;&gt;# ファイルの存在チェック&lt;/span&gt;
+      &lt;span class=&quot;synConstant&quot;&gt;less_than&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;5&lt;/span&gt;.megabytes, &lt;span class=&quot;synComment&quot;&gt;# ファイルサイズのチェック&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;上記の設定の場合、実際に次の箇所にアップロードされたファイルは保存されます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140716/20140716033017.png&quot; alt=&quot;f:id:nipe880324:20140716033017p:plain:w480&quot; title=&quot;f:id:nipe880324:20140716033017p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;paperclip-add-image-from-console&quot;&gt;4. Paperclipへコンソール（rails console）から画像ファイルの追加&lt;/h3&gt;テストなどでファイルアップロードをRailsのコンソール&lt;code&gt;rails console&lt;/code&gt;から実施したい場合があると思います。&lt;br /&gt;
+その方法は次のようにできます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;$ rails c
+
+&lt;span class=&quot;synType&quot;&gt;Loading&lt;/span&gt; development environment (&lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;4.1&lt;/span&gt;.&lt;span class=&quot;synConstant&quot;&gt;4&lt;/span&gt;)
+&lt;span class=&quot;synComment&quot;&gt;# カラムにファイルを追加&lt;/span&gt;
+&amp;gt; &lt;span class=&quot;synType&quot;&gt;Picture&lt;/span&gt;.new(&lt;span class=&quot;synConstant&quot;&gt;photo&lt;/span&gt;: &lt;span class=&quot;synType&quot;&gt;File&lt;/span&gt;.new(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;app/assets/images/avatar/Aussie_Bear_toy_koala.jpg&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;r&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;))
+
+&lt;span class=&quot;synComment&quot;&gt;# 保存&lt;/span&gt;
+&amp;gt; &lt;span class=&quot;synType&quot;&gt;Picture&lt;/span&gt;.save
+
+&lt;span class=&quot;synComment&quot;&gt;# create や update_attributeメソッドも同様に更新可能&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;paperclip-add-csv&quot;&gt;5. PaperclipでCSVファイルをアップロードする&lt;/h3&gt;CSVをPaperclipでアップロードし、次のように配置先のリンクを表示し、ダウンロードできるようにします。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150114/20150114224014.jpg&quot; alt=&quot;f:id:nipe880324:20150114224014j:plain:w480&quot; title=&quot;f:id:nipe880324:20150114224014j:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;Paperclipで&lt;code&gt;csv&lt;/code&gt;カラムを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-sh&quot; data-lang=&quot;sh&quot; data-unlink&gt;bin/rails g paperclip Job csv   
+bin/rake db:migrate
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+モデルにCSV用のバリデーションを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/models/job.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Job&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  has_attached_file &lt;span class=&quot;synConstant&quot;&gt;:csv&lt;/span&gt;
+  validates_attachment_presence &lt;span class=&quot;synConstant&quot;&gt;:csv&lt;/span&gt;
+  validates_attachment_content_type &lt;span class=&quot;synConstant&quot;&gt;:csv&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:content_type&lt;/span&gt; =&amp;gt; [&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;text/csv&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;,&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;text/comma-separated-values&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;,&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;application/csv&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;,&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;text/plain&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;]
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+StrongParametersに&lt;code&gt;csv&lt;/code&gt;を追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;job_params&lt;/span&gt;
+  params.require(&lt;span class=&quot;synConstant&quot;&gt;:job&lt;/span&gt;).permit(&lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:priority&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:csv&lt;/span&gt;)
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+フォームにファイルフィールドを追加します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; form_for(@job)&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; do |f| %&amp;gt;&lt;/span&gt;
+
+  ...
+
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.label&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :csv %&amp;gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;br&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.file_field&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; :csv %&amp;gt;&lt;/span&gt;
+
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; f.submit&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% end %&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+表示時にCSVファイル名を表示します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; link_to&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; job.csv_file_name, job.csv.&lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;url&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;以上です。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;https://github.com/thoughtbot/paperclip/wiki&quot;&gt;Home &amp;middot; thoughtbot/paperclip Wiki &amp;middot; GitHub&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;Todo&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;本格的なバリデーション（ファイルサイズ、コンテンツタイプを偽ったファイルのアップロードなどのセキュリティ）&lt;/li&gt;
+&lt;li&gt;S3へのアップロード&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Wed, 16 Jul 2014 01:58:04 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/12921228815728233134</guid>
+          
+            <category>ファイルアップロード</category>
+          
+            <category>Rails初級</category>
+          
+        </item>
+      
+    
+  </channel>
+</rss>

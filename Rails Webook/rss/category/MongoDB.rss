@@ -1,0 +1,208 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>MongoDB - Rails Webook</title>
+    <link>http://ruby-rails.hatenadiary.com/category/MongoDB</link>
+    <description>自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</description>
+    <lastBuildDate>Fri, 18 Dec 2015 02:44:31 +0900</lastBuildDate>
+    <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+    <generator>Hatena::Blog</generator>
+    
+      
+      
+        <item>
+          <title>MongoDBの基礎入門 - インストール から CRUDまで</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20140726/1406331785</link>
+          <description>&lt;p&gt;NoSQLのMongoDBのインストールからCRUD（データの作成、検索、更新、削除）までの簡単な使い方について説明します。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    &lt;p&gt;・MongoDBとは&lt;br /&gt;
+・MongoDBの基本用語&lt;br /&gt;
+・インストール方法&lt;br /&gt;
+・MongoDBの起動、コンソールからの接続方法と使い方&lt;br /&gt;
+・MongoDBのCRUD（作成、検索、更新、削除）&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;MongoDBとは&lt;/h3&gt;
+    &lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140726/20140726084215.jpg&quot; alt=&quot;f:id:nipe880324:20140726084215j:plain&quot; title=&quot;f:id:nipe880324:20140726084215j:plain&quot; class=&quot;hatena-fotolife&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;
+
+    &lt;blockquote&gt;
+        &lt;p&gt;widipediaから引用&lt;/p&gt;&lt;p&gt;MongoDBはRDBMSではなく、いわゆるNoSQLと呼ばれるデータベースに分類されるものである。&lt;br /&gt;
+RDBMSのようにレコードをテーブルに格納するのではなく、「ドキュメント」と呼ばれる構造的データをJSONライクな形式で表現し、そのドキュメントの集合を「コレクション」として管理する（このデータの物理的な格納はBSONと呼ばれるJSONのバイナリ版といえる形式で行われる）。&lt;br /&gt;
+コレクションはRDBMSのような固定的なスキーマを持たない。ドキュメントには複雑な階層構造を持たせることもでき、それらの構造に含まれるフィールドを指定したクエリやインデクス生成も簡単な指定によって行える。&lt;br /&gt;
+RDBMSのように高度な結合操作を効率的に行うことはできないが、データの追加・更新・削除・クエリは高速に行うことができる。また、アプリケーションは自身の構造やデータ型に合った自然な形でデータを格納することができるため、扱うデータの特性によっては、RDBMSよりも容易かつ迅速に開発を行うことができる可能性がある。&lt;/p&gt;
+
+    &lt;/blockquote&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;基本用語&lt;/h3&gt;
+    
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;・MongoDBドキュメント&lt;/h5&gt;
+    &lt;p&gt; JSONライクなフィールドと値のセットが集まったたもの。「MongoDBドキュメント」や「ドキュメント」などと呼ばれます。&lt;br /&gt;
+SQLでは&lt;b&gt;「レコード」&lt;/b&gt;に対応します。次のような形式で保存、表示されます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;  {
+    name: &amp;#34;太郎&amp;#34;,                  // field: value
+    age: 26,                       // field: value
+    status: &amp;#34;A&amp;#34;,                   // field: value
+    groups: [ &amp;#34;news&amp;#34;, &amp;#34;sports&amp;#34; ]   // field: value
+  }&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;・コレクション&lt;/h5&gt;
+    &lt;p&gt;名前からも分かるように、上記のMongoDBドキュメントを複数格納しているものです。&lt;br /&gt;
+SQLでは、&lt;b&gt;「テーブル」&lt;/b&gt;に対応します。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;・フィールド&lt;/h5&gt;
+    &lt;p&gt;SQLでいう&lt;b&gt;「カラム」&lt;/b&gt;のことです。&lt;br /&gt;
+フィールドを指定することにより、値を取得したりできます。&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;インストール方法&lt;/h3&gt;
+    &lt;p&gt;環境ごとに違うので、詳細は公式ドキュメントを参考にしてください。&lt;br /&gt;
+&lt;a href=&quot;http://docs.mongodb.org/manual/installation/&quot; target=&quot;_blank&quot;&gt;MongoDBのインストール方法（公式ページ）&lt;/a&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;MongoDBの起動、コンソールからの接続方法と使い方&lt;/h3&gt;
+    
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;・MongoDBの起動&lt;/h5&gt;
+    &lt;p&gt;デフォルトでは、ポート番号は「27017」で起動します。&lt;br /&gt;
+もし、ポート番号を指定したい場合は--port」引数を使ってください。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ mongod&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;・mongodにコンソールから接続&lt;/h5&gt;
+    &lt;p&gt;上記のコマンドでMongoDBが起動していると思いますので、別のコンソールから下記のコマンドで接続しましょう。&lt;br /&gt;
+デフォルトでは、ホスト名は「localhost」でポート番号は「27017」に接続します。&lt;br /&gt;
+もし、上記でポート番号などを変えている場合は、「--host」や「--port」引数を使ってください。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ mongo&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;・DBを選択する&lt;/h5&gt;
+    &lt;p&gt;mongoコマンドで接続直後は、「test」という名のDBに接続されています&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;&amp;gt; db                   // 現在のDBを確認する (ex: 接続直後は 「test」が表示されるはず）
+&amp;gt; show dbs        // DBの一覧を表示
+&amp;gt; use &amp;lt;DB名&amp;gt;    // &amp;lt;DB名&amp;gt;を使うことを指定（MongoDBはDBを作成することはなく、insertした時点で自動で作成されます）
+&amp;gt; db  // =&amp;gt; test_mongodb_development 現在のDBを確認する&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;・ヘルプの表示&lt;/h5&gt;
+    &lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;&amp;gt; help&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;・MongoDBの使い方&lt;/h5&gt;
+    &lt;p&gt;操作を行うDBを選択&lt;br /&gt;
+DBが存在しないが「mydb」を使うと選択できる。あとから、DBにデータを作成するときに自動でDBが作成されるので問題ない。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;use mydb&lt;/pre&gt;&lt;p&gt;MongoDBドキュメントを作成&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;&amp;gt; j = { name : &amp;#34;mongo&amp;#34; }    // j というドキュメントを作成
+&amp;gt; k = { x : 3 }                    // k というドキュメントを作成&lt;/pre&gt;&lt;p&gt;testDataコレクションにjとkを挿入&lt;br /&gt;
+testDataというコレクションを作成していないが、MongoDBが自動で作成してくれる。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;&amp;gt; db.testData.insert( j )
+&amp;gt; db.testData.insert( k )&lt;/pre&gt;&lt;p&gt;現在のDBのコレクションを表示し、testDataコレクションが存在することを確認&lt;br /&gt;
+system.indexesコレクションはすべてのDBが持っているコレクションです。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;&amp;gt; show collections 
+system.indexes
+testData&lt;/pre&gt;&lt;p&gt;findでドキュメントが存在することを確認する&lt;br /&gt;
+全てのMongoDBドキュメントは &quot;_id&quot;フィールドを持っている。これはMongoDBドキュメント作成時に、MongoDBが自動で一意（ユニーク）な値を作成してくれている。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;db.testData.find
+{ &amp;#34;_id&amp;#34; : ObjectId(&amp;#34;53d2d417ef8ccef0d315a9f3&amp;#34;), &amp;#34;name&amp;#34; : &amp;#34;mongo&amp;#34; }
+{ &amp;#34;_id&amp;#34; : ObjectId(&amp;#34;53d2d41fef8ccef0d315a9f4&amp;#34;), &amp;#34;x&amp;#34; : 3 }&lt;/pre&gt;&lt;p&gt;これで基本的なMongoDBのコンソールからの操作が分かったと思いますので、作成、検索、更新、削除の仕方について学んでいきましょう。&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;MongoDBのCRUD（作成、検索、更新、削除）&lt;/h3&gt;
+    &lt;p&gt;※解説のために、複数行で記載していますが、もちろん1行で記載することも可能です。&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;・データの追加 - INSERT&lt;/h5&gt;
+    &lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;db.users.insert(                     // コレクションを指定する（ex: usersコレクションにデータを追加する）
+                  {                          // フィールドと値のセットをカンマ(,)区切りで渡す
+                      name: &amp;#34;鈴木&amp;#34;,
+                       age: 26,
+                    status: &amp;#34;B&amp;#34;
+                  }
+                )&lt;/pre&gt;&lt;p&gt;SQL文だったら...&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;INSERT INTO users
+            ( name, age, status )
+VALUES      ( &amp;#34;鈴木&amp;#34;, 26, &amp;#34;B&amp;#34; )&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;・データの取得 - FIND&lt;/h5&gt;
+    &lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;db.users.find(                       // コレクションを指定する（ex: usersコレクションのデータを探す）
+  { age: { $gt: 18 } },              // 検索条件を指定する（ex: ageが18より大きい値を取得。つまり、age &amp;gt; 18）
+  { name: 1, age: 1 }       // 取得するフィールドを指定する（ex: nameとageを取得する。_idは必ず取得されてしまう）
+).sort( { age: 1 } ).litmi(3)     // 検索結果に対する操作を指定する（ex:  sort: ageの昇順で並び替える(1:昇順 / -1:降順)。limit: それを3ドキュメントまで取得）
+
+SQL文だったら...
+&amp;gt;||
+SELECT _id, name, age
+FROM   users
+WHERE  age &amp;gt; 18
+ORDER BY age ASC
+LIMIT  3&lt;/pre&gt;&lt;p&gt;その他&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;db.users.find() // usersコレクション内の全てのドキュメントを取得&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;・データの更新 - UPDATE&lt;/h5&gt;
+    &lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;db.users.update(           // コレクションを指定する
+  { age: { $gt: 18 } },       // 検索条件を指定する
+  { $set: { status: &amp;#34;A&amp;#34; } },    // 設定する値を指定する
+  { multi: true }                // 検索オプション（multiオプションは検索条件にヒットする全てのドキュメントを更新する）
+)&lt;/pre&gt;&lt;p&gt;SQL文だったら...&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;UPDATE users
+SET    status = &amp;#34;A&amp;#34;
+WHERE  age &amp;gt; 18&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h5&gt;・データの削除 - DELETE&lt;/h5&gt;
+    &lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;db.users.remove(      // コレクションを指定する
+  { status: &amp;#34;D&amp;#34; }          // 削除する条件を指定する（statusフィールドが&amp;#34;D&amp;#34;のドキュメントを削除する）
+)&lt;/pre&gt;&lt;p&gt;SQL文だったら...&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;DELETE FROM users
+WHERE  status = &amp;#34;D&amp;#34;&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+以上です。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://www.mongodb.org/&quot; target=&quot;_blank&quot;&gt;MongoDBの公式ページ&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Sat, 26 Jul 2014 08:43:05 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/12921228815728864884</guid>
+          
+            <category>MongoDB</category>
+          
+            <category>DB</category>
+          
+        </item>
+      
+    
+  </channel>
+</rss>

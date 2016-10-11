@@ -1,0 +1,191 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>Rails Mail - Rails Webook</title>
+    <link>http://ruby-rails.hatenadiary.com/category/Rails%20Mail</link>
+    <description>自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</description>
+    <lastBuildDate>Fri, 18 Dec 2015 02:44:31 +0900</lastBuildDate>
+    <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+    <generator>Hatena::Blog</generator>
+    
+      
+      
+        <item>
+          <title>RailsのAction Mailerでメール送信</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20140828/1409236436</link>
+          <description>&lt;p&gt;RailsのデフォルトのgemのAction Mailerを使いメールの送信や受信を行うことができます。&lt;br /&gt;
+この記事では、ステップバイステップでRailsアプリケーションでメールの送信ができるようにしていきます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140828/20140828225307.png&quot; alt=&quot;f:id:nipe880324:20140828225307p:plain:w480&quot; title=&quot;f:id:nipe880324:20140828225307p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#basic-mail-create-project&quot;&gt;&lt;/a&gt;Railsプロジェクトの作成&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#basic-mail-create-mailer&quot;&gt;&lt;/a&gt;メーラーの作成（メール送信）&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#basic-mail-configure-gmail-smtp&quot;&gt;&lt;/a&gt;SMTPサーバの設定（Gmailで設定）&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;basic-mail-create-project&quot;&gt;&lt;/a&gt;Railsプロジェクトの作成&lt;/h3&gt;まず、いつも通りRailsプロジェクトを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ rails new mail_basis&lt;/pre&gt;&lt;p&gt;次に、記事(Post)のソース一式をScaffoleを使って作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ cd mail_basis
+$ rails g scaffold Post title:string content:text&lt;/pre&gt;&lt;p&gt;DBマイグレートをします。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ rake db:migrate&lt;/pre&gt;&lt;p&gt;これで、記事(Post)の一覧表示、作成、更新、削除ができました。&lt;br /&gt;
+&lt;code&gt;$ rails server&lt;/code&gt;でローカルのサーバを起動していくつかデータを入力してみました。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140828/20140828225333.png&quot; alt=&quot;f:id:nipe880324:20140828225333p:plain:w480&quot; title=&quot;f:id:nipe880324:20140828225333p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;basic-mail-create-mailer&quot;&gt;&lt;/a&gt;メーラーの作成（メール送信）&lt;/h3&gt;それでは、この記事(Post)を作成したときにメールを送信するようにしてみましょう。&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;メーラーをジェネレーターで作成&lt;/h4&gt;
+    &lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;$ rails g mailer PostMailer
+      create  app/mailers/post_mailer.rb
+      invoke  erb
+      create    app/views/post_mailer
+      invoke  test_unit
+      create    test/mailers/post_mailer_test.rb
+      create    test/mailers/previews/post_mailer_preview.rb&lt;/pre&gt;&lt;p&gt;メーラーは、コントローラーと似ていて、&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;メール処理を記述する&lt;code&gt;xxx_mailer.rb&lt;/code&gt;を&lt;code&gt;app/mailers/&lt;/code&gt;配下に配置&lt;/li&gt;
+&lt;li&gt;メールの表示を記述するファイルを&lt;code&gt;app/views/post_mailer/&lt;/code&gt;配下に配置&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;というように、なっています。&lt;/p&gt;&lt;p&gt;ジェネレーターで作成された&lt;code&gt;app/mailers/post_mailer.rb&lt;/code&gt;を確認してみましょう。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;PostMailer&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActionMailer&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  default &lt;span class=&quot;synConstant&quot;&gt;from&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;from@example.com&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;コントローラーやモデルと同様に、全てのメーラーのクラスは、&lt;code&gt;ActionMailer::Base&lt;/code&gt;を継承する必要があります。&lt;br /&gt;
+このファイルにアクションを記載すると、そのアクション名に対応するメーラービュー(app/views/xxx_mailer/配下のファイル)が表示されます。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;メール送信メソッドを実装&lt;/h4&gt;
+    &lt;p&gt;では、早速、「投稿(Post)を作成したときにメールを送信する&lt;code&gt;post_email&lt;/code&gt;メソッド」を実装してみます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;PostMailer&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActionMailer&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  default &lt;span class=&quot;synConstant&quot;&gt;from&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;from@example.com&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;post_email&lt;/span&gt;(user, post)
+    &lt;span class=&quot;synIdentifier&quot;&gt;@title&lt;/span&gt; = post.title
+    mail &lt;span class=&quot;synConstant&quot;&gt;to&lt;/span&gt;: user.email, &lt;span class=&quot;synConstant&quot;&gt;subject&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;記事を投稿しました&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;default&lt;/code&gt;メソッドは、オプションで指定した値をこのクラス内すべてに適用します。今回の例では、メールのFromヘッダーを全て &quot;from@example.com&quot; に設定しました。もちろん、各アクションで変更することが可能です。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;mail&lt;/code&gt;メソッドは、実際のメールを送信するメソッドです。今回は、メールのToとSubjectヘッダーを設定してメールを送信しました。&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;i&gt;これらのオプションには基本的なメールのヘッダーである、subject, to, from, cc, bcc, reply_to, dateが使えます。&lt;/i&gt;&lt;/p&gt;&lt;p&gt;また、インスタンス変数(@xxx)でメーラービューに値を渡すことができます。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;メーラービューの作成&lt;/h4&gt;
+    &lt;p&gt;では、HTML形式とテキスト形式の2種類のメーラービューを作成します。&lt;br /&gt;
+HTML形式が良いユーザーやテキスト形式が良いユーザーの２パターンのユーザーがいるため両方とも作成するのが良いとされています。&lt;/p&gt;&lt;p&gt;まずは、HTML形式のメーラービューを作成します。&lt;br /&gt;
+&lt;code&gt;app/views/post_mailer/&lt;/code&gt;に&lt;code&gt;post_email.html.erb&lt;/code&gt;を作成して下さい。&lt;br /&gt;
+基本的にはHTMLで記述します。ERB形式なので、Rubyのコードを記述することもできます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;&amp;lt;!DOCTYPE html&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;html&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;lang&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;ja&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;head&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;    &lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;meta&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;charset&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;UTF-8&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;  &lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;head&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;新しい記事「&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; @title&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt; 」を投稿しました。&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;h1&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      投稿しました。&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;br&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; /&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;p&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;html&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;次に、テキスト形式のメーラービューを作成します。&lt;br /&gt;
+&lt;code&gt;app/views/post_mailer/&lt;/code&gt;に&lt;code&gt;post_email.text.erb&lt;/code&gt;を作成して下さい。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;===========================================
+  新しい記事「&amp;lt;%= @title %&amp;gt; 」を投稿しました。
+===========================================
+
+  投稿しました。&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;メーラーを呼び出す&lt;/h4&gt;
+    &lt;p&gt;では、投稿(Post)を作成したときに今作成したメーラーを呼び出すようにしてみます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/post_controller.rb&lt;/span&gt;
+
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;PostsController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt;
+  before_action &lt;span class=&quot;synConstant&quot;&gt;:set_post&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;only&lt;/span&gt;: [&lt;span class=&quot;synConstant&quot;&gt;:show&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:edit&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:update&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:destroy&lt;/span&gt;]
+
+  .....
+
+	&lt;span class=&quot;synComment&quot;&gt;# Userクラスを作成していないので、擬似的なUser構造体を作る&lt;/span&gt;
+	&lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Struct&lt;/span&gt;.new(&lt;span class=&quot;synConstant&quot;&gt;:name&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;:email&lt;/span&gt;)
+
+
+  &lt;span class=&quot;synComment&quot;&gt;# POST /posts&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# POST /posts.json&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;create&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;@post&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Post&lt;/span&gt;.new(post_params)
+
+    respond_to &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;format&lt;/span&gt;|
+      &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;@post&lt;/span&gt;.save
+        &lt;span class=&quot;synComment&quot;&gt;# 擬似的なUser構造体を作成する&lt;/span&gt;
+      	user = &lt;span class=&quot;synType&quot;&gt;User&lt;/span&gt;.new(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;lt;送信したいメールアドレス&amp;gt;&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;)
+
+      	&lt;span class=&quot;synComment&quot;&gt;# deliverメソッドを使って、メールを送信する&lt;/span&gt;
+      	&lt;span class=&quot;synType&quot;&gt;PostMailer&lt;/span&gt;.post_email(user, &lt;span class=&quot;synIdentifier&quot;&gt;@post&lt;/span&gt;).deliver
+
+        format.html { redirect_to &lt;span class=&quot;synIdentifier&quot;&gt;@post&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;notice&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Post was successfully created.&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; }
+        format.json { render &lt;span class=&quot;synConstant&quot;&gt;:show&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;status&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:created&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;location&lt;/span&gt;: &lt;span class=&quot;synIdentifier&quot;&gt;@post&lt;/span&gt; }
+      &lt;span class=&quot;synStatement&quot;&gt;else&lt;/span&gt;
+        format.html { render &lt;span class=&quot;synConstant&quot;&gt;:new&lt;/span&gt; }
+        format.json { render &lt;span class=&quot;synConstant&quot;&gt;json&lt;/span&gt;: &lt;span class=&quot;synIdentifier&quot;&gt;@post&lt;/span&gt;.errors, &lt;span class=&quot;synConstant&quot;&gt;status&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:unprocessable_entity&lt;/span&gt; }
+      &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  .....
+
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;h3 id=&quot;basic-mail-configure-gmail-smtp&quot;&gt;&lt;/a&gt;SMTPサーバの設定（Gmailで設定）&lt;/h3&gt;ここまでで一通りのメーラーを作成することができました。&lt;br /&gt;
+しかし、メールを送信するにはSMTPサーバが必要ですのでそのための設定が必要です。&lt;br /&gt;
+今回は、SMTPサーバを構築したくないので、SMTPサーバにGmailを利用し、その設定を記載します。&lt;/p&gt;&lt;p&gt;&lt;code&gt;config/environments/development.rb&lt;/code&gt;に以下の設定を追加して下さい。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;...
+config.action_mailer.delivery_method = &lt;span class=&quot;synConstant&quot;&gt;:smtp&lt;/span&gt;
+config.action_mailer.smtp_settings = {
+	&lt;span class=&quot;synConstant&quot;&gt;address&lt;/span&gt;:               &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;smtp.gmail.com&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;,
+	&lt;span class=&quot;synConstant&quot;&gt;port&lt;/span&gt;:      	           &lt;span class=&quot;synConstant&quot;&gt;587&lt;/span&gt;,
+	&lt;span class=&quot;synConstant&quot;&gt;domain&lt;/span&gt;:                &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;example.com&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;,
+	&lt;span class=&quot;synConstant&quot;&gt;user_name&lt;/span&gt;:             &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;lt;Gmailのユーザ名&amp;gt;&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;,
+	&lt;span class=&quot;synConstant&quot;&gt;password&lt;/span&gt;:              &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;lt;Gmailのパスワード&amp;gt;&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;,
+	&lt;span class=&quot;synConstant&quot;&gt;authentication&lt;/span&gt;:        &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;plain&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;,
+	&lt;span class=&quot;synConstant&quot;&gt;enable_starttls_auto&lt;/span&gt;:  &lt;span class=&quot;synConstant&quot;&gt;true&lt;/span&gt;
+}
+...
+&lt;/pre&gt;&lt;p&gt;&lt;i&gt;Gmailのユーザ名やパスワードを設定ファイルに記載し、それをGitHubなどで公開するとバレてしまいますので、「&lt;a href=&quot;http://yss44.hatenablog.com/entry/2013/11/30/135446&quot; target=&quot;_blank&quot;&gt;Railsで定数設定ファイルをgitから外して管理する&lt;/a&gt;」を参照して、公開しないようにしましょう。また、万が一の場合もありますので、サービスとして展開していく場合は別のGmailアカウントを作ることをおすすめします。&lt;/i&gt;&lt;/p&gt;&lt;p&gt;では、&lt;code&gt;$ rails server&lt;/code&gt;でサーバを再起動しなおし、記事を登録してみます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140828/20140828230057.png&quot; alt=&quot;f:id:nipe880324:20140828230057p:plain:w480&quot; title=&quot;f:id:nipe880324:20140828230057p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140828/20140828230059.png&quot; alt=&quot;f:id:nipe880324:20140828230059p:plain:w480&quot; title=&quot;f:id:nipe880324:20140828230059p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;記事が登録されたので、メールが届いているか確認しましょう。&lt;br /&gt;
+実際に届いていますね。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20140828/20140828230335.png&quot; alt=&quot;f:id:nipe880324:20140828230335p:plain:w480&quot; title=&quot;f:id:nipe880324:20140828230335p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;i&gt;Gmailのセキュリティ上、届かない可能性があります。何かしらのメールを受信しているはずなので、その内容を確認して適切な対処をしてください。&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;i&gt;実際に記事を登録すると分かりますが、メール送信が裏で走っているため画面の画面の表示が遅いです。大抵、バックグラウンドジョブにメール送信は任せ、メールが送信完了前に画面遷移をするのが一般的です。&lt;/i&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://guides.rubyonrails.org/action_mailer_basics.html&quot; target=&quot;_blank&quot;&gt;Rails Guides - Action Mailer Basics&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Thu, 28 Aug 2014 23:33:56 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/12921228815731529275</guid>
+          
+            <category>Rails入門</category>
+          
+            <category>Rails Mail</category>
+          
+        </item>
+      
+    
+  </channel>
+</rss>

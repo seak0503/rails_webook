@@ -1,0 +1,789 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>Rails Tips - Rails Webook</title>
+    <link>http://ruby-rails.hatenadiary.com/category/Rails%20Tips</link>
+    <description>自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</description>
+    <lastBuildDate>Fri, 18 Dec 2015 02:44:31 +0900</lastBuildDate>
+    <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+    <generator>Hatena::Blog</generator>
+    
+      
+      
+        <item>
+          <title>Railsのlink_toメソッドでclass属性を指定する</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20150210/1423494000</link>
+          <description>&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150304/20150304013504.png&quot; alt=&quot;f:id:nipe880324:20150304013504p:plain&quot; title=&quot;f:id:nipe880324:20150304013504p:plain&quot; class=&quot;hatena-fotolife&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;link_toメソッドでclass属性を指定するには、&lt;code&gt;class&lt;/code&gt;オプションを利用します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# ビューファイル&lt;/span&gt;
+&amp;lt;%= link_to &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;プロフィール&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;@profile&lt;/span&gt;, &lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;btn btn-large&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;id&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;profile-btn&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; %&amp;gt;
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;lt;a href=&amp;quot;/profiles/1&amp;quot; class=&amp;quot;btn btn-large&amp;quot; id=&amp;quot;profile-btn&amp;quot;&amp;gt;プロフィール&amp;lt;/a&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;以上です。&lt;/p&gt;
+</description>
+          <pubDate>Tue, 10 Feb 2015 00:00:00 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450086938187</guid>
+          
+            <category>Rails View</category>
+          
+            <category>Rails入門</category>
+          
+            <category>Rails Tips</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>Railsのlink_toにパラメータを追加する</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20150114/1421161200</link>
+          <description>&lt;p&gt;link_toメソッドの&lt;code&gt;_path&lt;/code&gt;メソッドの引数にハッシュを渡すことで、URLにパラメータ（クエリストリング）を付与することができます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# ビューファイル&lt;/span&gt;
+&amp;lt;%= link_to  &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;プロフィール&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, profile_path(&lt;span class=&quot;synIdentifier&quot;&gt;@profile&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;q1&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;some&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;q2&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;thing&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;)  %&amp;gt;
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;lt;a href=&amp;quot;/profiles/1?q1=some&amp;amp;q2=thing&amp;quot;&amp;gt;プロフィール&amp;lt;/a&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;また、&lt;code&gt;format&lt;/code&gt;オプションと値に&lt;code&gt;:json&lt;/code&gt;、&lt;code&gt;:xls&lt;/code&gt;などを渡すことで、JSONリクエスト(.json)やXLSリクエスト(.xls)になります。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# ビューファイル&lt;/span&gt;
+&amp;lt;%= link_to  &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;プロフィール&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, profile_path(&lt;span class=&quot;synIdentifier&quot;&gt;@profile&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;q1&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;some&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;q2&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;thing&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;format&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:json&lt;/span&gt;)  %&amp;gt;
+&lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;lt;a href=&amp;quot;/profiles/1.json?q1=some&amp;amp;q2=thing&amp;quot;&amp;gt;プロフィール&amp;lt;/a&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+以上です。&lt;/p&gt;
+</description>
+          <pubDate>Wed, 14 Jan 2015 00:00:00 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450086939651</guid>
+          
+            <category>Rails初級</category>
+          
+            <category>Rails View</category>
+          
+            <category>Rails Tips</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>Railsで日付/時刻のフォーマットを設定するTips</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20141226/1419600679</link>
+          <description>&lt;p&gt;Railsのデフォルトの日付や日時のフォーマットを追加する方法を説明します。&lt;br /&gt;
+Railsで日付や日時を表示すると、デフォルトでは次のように&lt;code&gt;2014-10-01 09:00:00 +0900&lt;/code&gt;のように表示されてしまいます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141206/20141206171216.png&quot; alt=&quot;f:id:nipe880324:20141206171216p:plain:w420&quot; title=&quot;f:id:nipe880324:20141206171216p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;そのため、&lt;code&gt;strftime&lt;/code&gt;メソッドを使って表示を変えている人もいると思います。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&amp;lt;%= product.published_on.strftime(&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;%Y年%m月%d日 %H時%M分&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;) %&amp;gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+しかし、このようにすると、各出力で個別にフォーマットを記載しないといけないのでめんどくさく、アプリケーションを通してフォーマットがバラバラになってしまうと可能性があります。&lt;br /&gt;
+そのため、&lt;code&gt;config/initierlizers/time_formats.rb&lt;/code&gt;のような名前でファイルを作成し、フォーマットを一覧にしておいて、アプリから簡単に使えるようにします。&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;1. フォーマットを作成する&lt;/h3&gt;
+    &lt;p&gt;&lt;code&gt;config/initierlizers/time_formats.rb&lt;/code&gt;ファイルを作成し、カスタムフォーマットを定義します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# config/initierlizers/time_formats.rb&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# 既に定義されているフォーマット&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# default =&amp;gt; &amp;quot;2014-10-01 09:00:00 +0900&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# long    =&amp;gt; &amp;quot;October 01, 2014 09:00&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# short   =&amp;gt; &amp;quot;01 Oct 09:00&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# db      =&amp;gt; &amp;quot;2014-10-01 00:00:00&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# カスタムフォーマットを定義&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Time&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;DATE_FORMATS&lt;/span&gt;[&lt;span class=&quot;synConstant&quot;&gt;:published_on&lt;/span&gt;] = &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;%Y年%m月%d日 %H時%M分&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Date&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;DATE_FORMATS&lt;/span&gt;[&lt;span class=&quot;synConstant&quot;&gt;:default&lt;/span&gt;]      = &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;%Y年%m月d日&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;2. ビューなどから日時のフォーマットを使う&lt;/h3&gt;
+    &lt;p&gt;ビューなどから&lt;code&gt;to_s&lt;/code&gt;の引数とシンボルを渡すと、フォーマットされます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# Viewファイル
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; product.published_on.to_s(:published_on)&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+サーバーを再起動して確認すると指定したフォーマットで作成されています。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141206/20141206172156.png&quot; alt=&quot;f:id:nipe880324:20141206172156p:plain:w420&quot; title=&quot;f:id:nipe880324:20141206172156p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;3. 日付/日時のフォーマットで使える文字列一覧&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://docs.ruby-lang.org/ja/2.1.0/class/Time.html#I_STRFTIME&quot;&gt;class Time&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://qiita.com/Vit-Symty/items/399c77d1fd681b77d593&quot;&gt;Rails - &amp;#x65E5;&amp;#x4ED8;/&amp;#x6642;&amp;#x9593;&amp;#x30D5;&amp;#x30A9;&amp;#x30FC;&amp;#x30DE;&amp;#x30C3;&amp;#x30C8;&amp;#x306E;&amp;#x30C7;&amp;#x30D5;&amp;#x30A9;&amp;#x30EB;&amp;#x30C8;&amp;#x3092;&amp;#x8A2D;&amp;#x5B9A; - Qiita&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;br /&gt;
+以上です。&lt;/p&gt;
+
+&lt;/div&gt;</description>
+          <pubDate>Fri, 26 Dec 2014 22:31:19 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450076293960</guid>
+          
+            <category>Rails Tips</category>
+          
+            <category>Rails ActiveSupport</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>Railsで１フォームに複数のサブミット(Submit)ボタンを配置するTips</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20141225/1419515057</link>
+          <description>&lt;p&gt;Railsで、次のように１つのフォームに複数のSubmitボタンを追加したときの処理のハンドリングについて説明します。&lt;/p&gt;&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141206/20141206180539.png&quot; alt=&quot;f:id:nipe880324:20141206180539p:plain:w420&quot; title=&quot;f:id:nipe880324:20141206180539p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/articles/_form.html.erb
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; form_for(@article)&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; do |f| %&amp;gt;&lt;/span&gt;
+  ...
+
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; submit_tag&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;投稿&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; submit_tag&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;プレビュー&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;preview_button&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% end %&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#tips-one-form-two-submit&quot;&gt;Submit時のパラメーターを確認&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#tips-one-form-two-submit&quot;&gt;Submitボタンにname属性を設定&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#tips-one-form-two-submit&quot;&gt;コントローラーで処理を振り分ける&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#tips-one-form-two-submit&quot;&gt;ビューに表示内容を設定&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#tips-one-form-two-submit&quot;&gt;動作確認&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;tips-one-form-two-submit&quot;&gt;1. Submit時のパラメーターを確認&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;まず、「投稿」ボタン、「プレビュー」ボタンを押した時の&lt;code&gt;params&lt;/code&gt;の内容を確認してみましょう。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# 投稿ボタンをした時のパラメーター&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Parameters&lt;/span&gt;:
+{
+  &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;utf8&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;✓&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;authenticity_token&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;5Du...&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,
+  &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;article&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; {
+    &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;title&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;   =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;content&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;
+  },
+  &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;commit&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;投稿&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+}
+
+&lt;span class=&quot;synComment&quot;&gt;# プレビューボタンを押した時のパラメーター&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Parameters&lt;/span&gt;:
+{
+  &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;utf8&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;✓&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;authenticity_token&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;5Du...&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,
+  &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;article&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; {
+    &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;title&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;   =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;content&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;
+  },
+  &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;commit&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;プレビュー&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+}
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+両者を見比べる&lt;code&gt;commmit&lt;/code&gt;の内容が違うことに気づくと思います。&lt;br /&gt;
+基本的にはコントローラー側で&lt;code&gt;commit&lt;/code&gt;の値を確認し、条件分岐をすればよいです。&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;tips-one-form-two-submit&quot;&gt;2. Submitボタンにname属性を設定&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;上記のままでもよいのですが、ボタン名は変わる可能性があるので往々にしてあるので、次のように&lt;code&gt;name&lt;/code&gt;属性を設定します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; submit_tag&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;投稿&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; submit_tag&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;プレビュー&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;, &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;name&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;preview_button&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+「プレビュー」ボタンを押したときのパラメーターは次のように変わります。&lt;br /&gt;
+（「投稿」ボタンを押したときのパラメーターは上記と変わりません）&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# プレビューボタンを押した時のパラメーター&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Parameters&lt;/span&gt;:
+{
+  &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;utf8&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;✓&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;authenticity_token&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;5Du...&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;,
+  &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;article&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; {
+    &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;title&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;   =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;,
+    &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;content&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&amp;quot;&lt;/span&gt;
+  },
+  &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;preview_button&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;プレビュー&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+}
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;tips-one-form-two-submit&quot;&gt;3. コントローラーで処理を振り分ける&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;先ほど追加した&lt;code&gt;preview_button&lt;/code&gt;キーの存在有無により、処理を振り分けます。&lt;br /&gt;
+プレビュー機能なので、もう一度作成画面を表示するようにします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/articles_controller.rb&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# POST /articles&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# POST /articles.json&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;create&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;@article&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Article&lt;/span&gt;.new(article_params)
+
+  &lt;span class=&quot;synComment&quot;&gt;# params[:preview_button]キーが存在する場合か、ariticleがDBに保存できない場合&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# new画面を再度表示する&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; params[&lt;span class=&quot;synConstant&quot;&gt;:preview_button&lt;/span&gt;] || !&lt;span class=&quot;synIdentifier&quot;&gt;@article&lt;/span&gt;.save
+    render &lt;span class=&quot;synConstant&quot;&gt;:new&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;else&lt;/span&gt;
+    redirect_to &lt;span class=&quot;synIdentifier&quot;&gt;@article&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;notice&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Article was successfully created.&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+  &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;tips-one-form-two-submit&quot;&gt;4. ビューに表示内容を設定&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;&lt;code&gt;_form.html.erb&lt;/code&gt;に&lt;code&gt;preview_button&lt;/code&gt;キーが存在するときの画面表示を記載します。&lt;br /&gt;
+ここではプレビュー機能なので、&lt;code&gt;show.html.erb&lt;/code&gt;の表示内容と同じ内容を表示するようにしました。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/articles/_form.html.erb
+...
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% if params[:preview_button] %&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;preview&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synComment&quot;&gt;&amp;lt;!-- show.html.erbと重複しているので部分テンプレートにするべき --&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;title&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; @article.title&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;content&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+      &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; simple_format&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; @article.&lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;content&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+    &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+  &lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;div&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;% end %&amp;gt;&lt;/span&gt;
+...
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;tips-one-form-two-submit&quot;&gt;5. 動作確認&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;では、サーバーを起動し、画面を確認してみます。&lt;br /&gt;
+新規画面でタイトルと内容を記載し、「プレビュー」ボタンを押すと、登録画面が再表示され、preview_buttonパラメーターが存在するためプレビューが表示されます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141206/20141206180631.png&quot; alt=&quot;f:id:nipe880324:20141206180631p:plain:w420&quot; title=&quot;f:id:nipe880324:20141206180631p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;「登録」ボタンを押すと、DBに保存されて、詳細画面に遷移します。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141206/20141206180641.png&quot; alt=&quot;f:id:nipe880324:20141206180641p:plain:w420&quot; title=&quot;f:id:nipe880324:20141206180641p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;以上です。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://railscasts.com/episodes/38-multibutton-form&quot;&gt;#38 Multibutton Form - RailsCasts&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Thu, 25 Dec 2014 22:44:17 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450076296829</guid>
+          
+            <category>Rails Tips</category>
+          
+            <category>Rails View</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>Railsで新しい環境(environment)を追加する</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20141224/1419414316</link>
+          <description>&lt;p&gt;Railsでは、デフォルトで&lt;code&gt;development&lt;/code&gt;、&lt;code&gt;test&lt;/code&gt;、&lt;code&gt;production&lt;/code&gt;の3つの環境が用意されています。&lt;br /&gt;
+しかし、QA環境、Staging環境といった環境が欲しくなることが往々にしてあります。そういった新しい環境を作る方法を説明します。&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;Staging環境を追加&lt;/h3&gt;
+    &lt;p&gt;今回は、新しくパフォーマンスやキャッシュなどのテストができtodる&lt;code&gt;staging&lt;/code&gt;環境を追加してみます。&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;1. database.ymlを設定&lt;/h4&gt;
+    &lt;p&gt;&lt;code&gt;database.yml&lt;/code&gt;にステージング環境を追加する。&lt;br /&gt;
+&lt;code&gt;production&lt;/code&gt;の内容をコピーし、環境名やDBの名前を&lt;code&gt;staging&lt;/code&gt;に変更します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# config/database.yml
+default: &amp;amp;default
+  adapter: sqlite3
+  pool: 5
+  timeout: 5000
+
+development:
+  &amp;lt;&amp;lt;: *default
+  database: db/development.sqlite3
+
+test:
+  &amp;lt;&amp;lt;: *default
+  database: db/test.sqlite3
+
+staging:
+  &amp;lt;&amp;lt;: *default
+  database: db/staging.sqlite3
+
+production:
+  &amp;lt;&amp;lt;: *default
+  database: db/production.sqlite3&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;2. secrets.ymlを設定&lt;/h4&gt;
+    &lt;p&gt;&lt;code&gt;secrets.yml&lt;/code&gt;にステージング環境を追加します。ENV名も少し変えます。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;# config/secrets.yml
+development:
+  secret_key_base: 6e0c74b2b7c5c70081fbe7c0f17941ebc1003ebb05f1d7608689e75668503a44e3bad322b4241561f51fbbf47485771716056bfe05b0bf4ffa6d601b4eb47f43
+
+test:
+  secret_key_base: 1c3d0c1767d23a3b03df761c91e0b356fcf2806224992f29783073fe192606cc75019b5e7f55424e240ee81fe31acbb652dca60f515bf270beda955fa176f901
+
+staging:
+  secret_key_base: &amp;lt;%= ENV[&amp;#34;STAGING_SECRET_KEY_BASE&amp;#34;] %&amp;gt;
+
+# Do not keep production secrets in the repository,
+# instead read values from the environment.
+production:
+  secret_key_base: &amp;lt;%= ENV[&amp;#34;SECRET_KEY_BASE&amp;#34;] %&amp;gt;&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;3. environments/staging.rbを作成&lt;/h4&gt;
+    &lt;p&gt;ステージング環境用の設定ファイルの&lt;code&gt;config/environments/staging.rb&lt;/code&gt;を作成し、中身は&lt;code&gt;config/environments/production.rb&lt;/code&gt;からコピーしてきます。&lt;/p&gt;&lt;p&gt;以下の値だけ、ステージング用に設定を変更します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# config/environments/staging.rb&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# Set to :debug to see everything in the log.&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# config.log_level = :info&lt;/span&gt;
+config.log_level = &lt;span class=&quot;synConstant&quot;&gt;:debug&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# ログレベルをinfoからdebugにする&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;次の箇所に各設定パラメーターの意味が書いてあります。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://guides.rubyonrails.org/configuring.html#configuring-action-controller&quot;&gt;Configuring Rails Applications &amp;mdash; Ruby on Rails Guides&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h4&gt;4. 動作確認&lt;/h4&gt;
+    &lt;p&gt;&lt;code&gt;production&lt;/code&gt;と同じ環境をすぐに用意できるのならいいのですが、すぐに用意できない場合は、次の記事を参考にしてローカルで&lt;code&gt;staging&lt;/code&gt;環境でテストしてみましょう。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20141110/1415623670&quot;&gt;RailsをローカルでProductionモードで起動させる&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;(productionをstaging, SECRET_KEY_BASEをSTAGING_SECRET_KEY_BASEに読み替えて実行してください)&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;ちなみに、&lt;code&gt;staging&lt;/code&gt;環境で起動していることを確認するために、サーバーを起動させる前に&lt;code&gt;application.html.erb&lt;/code&gt;に下記を追加しましょう。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/layouts/application.html.erb
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;%= &lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&amp;quot;Railsの環境: #{Rails.env} / staging?: #{Rails.env.staging?}&amp;quot;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+では、サーバーを起動させると、画面に&lt;code&gt;staging&lt;/code&gt;と表示されています。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141206/20141206163924.png&quot; alt=&quot;f:id:nipe880324:20141206163924p:plain:w420&quot; title=&quot;f:id:nipe880324:20141206163924p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;以上です。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;/div&gt;</description>
+          <pubDate>Wed, 24 Dec 2014 18:45:16 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450076283380</guid>
+          
+            <category>Rails Tips</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>RailsでURLにモデルのID以外の値を表示するTips</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20141223/1419334845</link>
+          <description>&lt;p&gt;Railsでは、デフォルトでは次のように&lt;code&gt;/products/1&lt;/code&gt;や&lt;code&gt;/users/1&lt;/code&gt;などモデルのIDが表示されます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141206/20141206161259.png&quot; alt=&quot;f:id:nipe880324:20141206161259p:plain:w480&quot; title=&quot;f:id:nipe880324:20141206161259p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;これは、ActiveRecord(ActiveModel)の&lt;code&gt;to_param&lt;/code&gt;が使われているためです。&lt;br /&gt;
+&lt;code&gt;to_param&lt;/code&gt;メソッドは、URLで使われるオブジェクトの文字列を返します。保存されていない場合は、nilを返します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;; &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+product = &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.create
+product.to_param &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;1&amp;quot;&lt;/span&gt;
+
+product = &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.new
+product.to_param &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; nil&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;つまり、&lt;code&gt;to_param&lt;/code&gt;をオーバーライドすることで任意のURLを表示することが可能です。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/models/product.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;to_param&lt;/span&gt;
+    &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;#{&lt;/span&gt;id&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;-&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;name&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+こうすることにより、次のようにURLに文字列が入った値を表示することができます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141206/20141206160447.png&quot; alt=&quot;f:id:nipe880324:20141206160447p:plain:w420&quot; title=&quot;f:id:nipe880324:20141206160447p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;日本語もURLで表示することができます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141206/20141206160448.png&quot; alt=&quot;f:id:nipe880324:20141206160448p:plain:w420&quot; title=&quot;f:id:nipe880324:20141206160448p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;もちろん、モデルの作成、更新、削除も問題なく動作します。これは、次のようになっているからです。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# params[:id] に &amp;quot;2-オレンジジュース&amp;quot; が入っている&lt;/span&gt;
+params
+&lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; {:id=&amp;gt;&amp;quot;2-オレンジジュース&amp;quot;}&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# to_i で数値化すると2のみになる&lt;/span&gt;
+params[&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;].to_i
+=&amp;gt; &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# そのため、コントローラの次のような箇所でも問題なく動作する&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;@product&lt;/span&gt; = &lt;span class=&quot;synType&quot;&gt;Product&lt;/span&gt;.find(params[&lt;span class=&quot;synConstant&quot;&gt;:id&lt;/span&gt;])
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;もし、URLにIDを入れたくない場合は、&lt;code&gt;permalink&lt;/code&gt;カラムを追加し、ユニークになる制限をDBとモデルに追加し、&lt;code&gt;to_param&lt;/code&gt;メソッドを次のようにすればよいでしょう。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/models/product.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;to_param&lt;/span&gt;
+  permalink
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;もちろんコントローラ、ビューなども&lt;code&gt;permalink&lt;/code&gt;に合わせて対応させる必要があります。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;以上です。&lt;/p&gt;
+</description>
+          <pubDate>Tue, 23 Dec 2014 20:40:45 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450076282007</guid>
+          
+            <category>Rails Tips</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>RailsでCSSスタイリングをコントローラー単位で分けるTips</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20141220/1419058040</link>
+          <description>&lt;p&gt;Railsでは複数のSCSSファイルをCSSにコンパイルし、１つのファイルにまとめる機能があります。こうすることでサーバーとブラウザの通信回数が減るため速度はあがるのですが、CSSスタイリングのCSSの名前空間が衝突して、意図しないCSSの動作となってしまうことがあります。&lt;/p&gt;&lt;p&gt;そのため、ハック的ですがCSSの名前空間の衝突を防止するために、RailsでCSSスタイリングをコントローラー単位で分けるTipsを説明します。&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;1. &lt;code&gt;body&lt;/code&gt;タグの&lt;code&gt;class&lt;/code&gt;属性にコントローラ名をつける&lt;/h3&gt;
+    &lt;p&gt;次のようにして、レイアウトファイルの&lt;code&gt;body&lt;/code&gt;タグの&lt;code&gt;class&lt;/code&gt;属性にコントローラ名を設定するようにします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/layouts/application.html.erb
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;body&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; &lt;/span&gt;&lt;span class=&quot;synType&quot;&gt;class&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;&#39;&amp;lt;%= &amp;quot;#{controller.controller_name}&amp;quot; %&amp;gt;&#39;&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+こうすることで、&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;UsersController&lt;/code&gt;にアクセスすると、&lt;code&gt;body class=&quot;users&quot;&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;ProductsController&lt;/code&gt;にアクセスすると、&lt;code&gt;body class=&quot;products&quot;&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;とコントローラーごとに&lt;code&gt;class&lt;/code&gt;属性の値を変更できます。&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;2. SCSSを記載する&lt;/h3&gt;
+    &lt;p&gt;SCSSは階層構造に記述することができる機能を利用して、コントローラ名を一番最初に記載することでCSSのスタイリングの適用範囲を狭めることができます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-css&quot; data-lang=&quot;css&quot; data-unlink&gt;&lt;span class=&quot;synIdentifier&quot;&gt;.products&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  # ProductsControllerで表示するビューのスタイリングを記載
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+
+&lt;span class=&quot;synIdentifier&quot;&gt;.users&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  # UsersControllerで表示するビューのスタイリングを記載
+&lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+では、実際にスタイリングを記載してみます。&lt;br /&gt;
+まず、Product側のスタイリングを記載します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-css&quot; data-lang=&quot;css&quot; data-unlink&gt;# app/assets/stylesheets/products&lt;span class=&quot;synIdentifier&quot;&gt;.css.scss&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;.products&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;synType&quot;&gt;background-color&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;green&lt;/span&gt;;
+
+  h&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt; {
+    &lt;span class=&quot;synType&quot;&gt;color&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;yellow&lt;/span&gt;;
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;synError&quot;&gt;}&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+次に、User側のスタイリングを記載します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-css&quot; data-lang=&quot;css&quot; data-unlink&gt;# app/assets/stylesheets/users&lt;span class=&quot;synIdentifier&quot;&gt;.css.scss&lt;/span&gt;
+&lt;span class=&quot;synIdentifier&quot;&gt;.users&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;{&lt;/span&gt;
+  &lt;span class=&quot;synType&quot;&gt;background-color&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;blue&lt;/span&gt;;
+
+  h&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt; {
+    &lt;span class=&quot;synType&quot;&gt;color&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;white&lt;/span&gt;;
+  &lt;span class=&quot;synIdentifier&quot;&gt;}&lt;/span&gt;
+&lt;span class=&quot;synError&quot;&gt;}&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;3. 画面の確認&lt;/h3&gt;
+    &lt;p&gt;商品一覧画面を表示します。背景が&quot;緑色&quot;、h1タグが&quot;黄色&quot;になっています。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141206/20141206150946.png&quot; alt=&quot;f:id:nipe880324:20141206150946p:plain:w420&quot; title=&quot;f:id:nipe880324:20141206150946p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;商品一覧画面を表示します。背景が&quot;青色&quot;、h1タグが&quot;白色&quot;になっています。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141206/20141206151025.png&quot; alt=&quot;f:id:nipe880324:20141206151025p:plain:w420&quot; title=&quot;f:id:nipe880324:20141206151025p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;以上です。&lt;/p&gt;
+
+&lt;/div&gt;</description>
+          <pubDate>Sat, 20 Dec 2014 15:47:20 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450076278908</guid>
+          
+            <category>Rails Tips</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>Rails4でページごとにページのタイトル(titleタグ)の内容を変更する</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20141219/1418990626</link>
+          <description>&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141206/20141206143413.png&quot; alt=&quot;f:id:nipe880324:20141206143413p:plain:w420&quot; title=&quot;f:id:nipe880324:20141206143413p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;p&gt;Railsでページごとにページタイトル(titleタグ)を変更するTipsを説明します。&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;1. タイトルを設定するヘルパーメソッドを作成&lt;/h3&gt;
+    &lt;p&gt;タイトルを設定するメソッドを追加します。&lt;br /&gt;
+&lt;code&gt;page_title&lt;/code&gt;がからの場合、&lt;code&gt;base_title&lt;/code&gt;しか表示しないようにしています。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/helpers/application_helper.rb&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;module&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ApplicationHelper&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;full_title&lt;/span&gt;(page_title)
+    base_title = &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;アプリ名&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;# 自分のアプリ名を設定する&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; page_title.empty?
+      base_title
+    &lt;span class=&quot;synStatement&quot;&gt;else&lt;/span&gt;
+      &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;#{&lt;/span&gt;page_title&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; | &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;base_title&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;2. レイアウトの&amp;gt;title&amp;lt;タグからヘルパーメソッドを使う&lt;/h3&gt;
+    &lt;p&gt;レイアウトファイルのtitleタグを書き換えます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/layouts/applicaiton.html.erb
+&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;title&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&amp;lt;%=&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; full_title(yield(:title))&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; %&amp;gt;&amp;lt;/&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;title&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt;&amp;gt;&lt;/span&gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;3. それぞれの部分テンプレートでtitleに値を設定する&lt;/h3&gt;
+    &lt;p&gt;新規画面で&lt;code&gt;title&lt;/code&gt;に値を設定します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/views/users/new.html.erb&lt;/span&gt;
+&amp;lt;!-- 一番上に追加 --&amp;gt;
+&amp;lt;% provide(&lt;span class=&quot;synConstant&quot;&gt;:title&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;ユーザー作成&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;) %&amp;gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+同様に編集画面でも&lt;code&gt;title&lt;/code&gt;に値を設定します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/views/users/edit.html.erb&lt;/span&gt;
+&amp;lt;!-- 一番上に追加 --&amp;gt;
+&amp;lt;% provide(&lt;span class=&quot;synConstant&quot;&gt;:title&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;ユーザー編集&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;) %&amp;gt;
+&lt;/pre&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;4. 動作確認&lt;/h3&gt;
+    &lt;p&gt;サーバーを起動し、タイトルを確認してみます。&lt;br /&gt;
+一覧画面にアクセスすると、&lt;code&gt;title&lt;/code&gt;を設定していないので、「アプリ名」のみが表示されます。&lt;/p&gt;&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141206/20141206143927.png&quot; alt=&quot;f:id:nipe880324:20141206143927p:plain:w420&quot; title=&quot;f:id:nipe880324:20141206143927p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;新規画面にアクセスすると、「ユーザー作成 | アプリ名」と表示されています。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141206/20141206144016.png&quot; alt=&quot;f:id:nipe880324:20141206144016p:plain:w420&quot; title=&quot;f:id:nipe880324:20141206144016p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;同様に編集画面にアクセスすると、「ユーザー編集 | アプリ名」と表示されています。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141206/20141206144027.png&quot; alt=&quot;f:id:nipe880324:20141206144027p:plain:w420&quot; title=&quot;f:id:nipe880324:20141206144027p:plain:w420&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:420px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;以上です。&lt;/p&gt;
+
+&lt;/div&gt;</description>
+          <pubDate>Fri, 19 Dec 2014 21:03:46 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450076277446</guid>
+          
+            <category>Rails Tips</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>Rails4でクラス名、DB名、ファイル名の変換</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20141216/1418729961</link>
+          <description>&lt;p&gt;Railsの規約を実装するために、クラス名からDB名を取得する、ファイル名を取得するなど文字列を変換する処理がActiveSuportに実装されています。ActiveSupportはStringクラスを拡張する形で、上記の名前を簡単に変換することができます。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;li&gt;ActiveSupport 4.1.7&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#activesupport-pluralize&quot;&gt;単数形から複数形にする(pluralize)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#activesupport-singularize&quot;&gt;複数形から単数形にする(singularize)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#activesupport-underscore&quot;&gt;クラス名からファイル名へ変換する(underscore)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#activesupport-camelcase&quot;&gt;ファイル名からクラス名へ変換する(camelcase)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#activesupport-tableize&quot;&gt;モデルクラス名からテーブル名へ変換する(tableize)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#activesupport-classify&quot;&gt;テーブル名からモデルクラス名へ変換する(classify)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#activesupport-constantize&quot;&gt;クラス名からクラスオブジェクトを取得する(constantize)&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;activesupport-pluralize&quot;&gt;1. 単数形から複数形にする(pluralize)&lt;/h3&gt;Stringクラスの&lt;code&gt;pluralize&lt;/code&gt;メソッドは、&lt;b&gt;単数形を複数形&lt;/b&gt;にします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# 単数形を複数形に変換する&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;post&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.pluralize     &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;posts&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;the post&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.pluralize &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;the posts&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 複数形のものはそのまま&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;posts&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.pluralize &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;posts&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 不規則変換も変換してくれる&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;person&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.pluralize &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; &amp;quot;people&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 日本語は変な風に変換されてしまうので注意が必要&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;あいう&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.pluralize =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;あいうs&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# ロケールを指定すれば変換されない&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;あいう&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.pluralize(locale = &lt;span class=&quot;synConstant&quot;&gt;:ja&lt;/span&gt;) &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;あいう&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;activesupport-singularize&quot;&gt;2. 複数形から単数形にする(singularize)&lt;/h3&gt;Stringクラスの&lt;code&gt;singularize&lt;/code&gt;メソッドは&lt;b&gt;複数形を単数形&lt;/b&gt;にします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# 複数形を単数形に変換する&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;posts&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.singularize    &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;post&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;the post&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.singularize &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;the post&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 単数形のものはそのまま&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;post&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.singularize &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;post&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 不規則変換も変換してくれる&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;people&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.singularize &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;person&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;activesupport-underscore&quot;&gt;3. クラス名からファイル名へ変換する(underscore)&lt;/h3&gt;Railsでは、&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;クラス名は、キャメルケース（例: &lt;code&gt;UsersControler&lt;/code&gt;、&lt;code&gt;User&lt;/code&gt;)&lt;/li&gt;
+&lt;li&gt;ファイル名は、スネークケース（例：&lt;code&gt;users_controller.rb&lt;/code&gt;、&lt;code&gt;user.rb&lt;/code&gt;)&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;です。&lt;br /&gt;
+Stringクラスの&lt;code&gt;underscore&lt;/code&gt;メソッドで&lt;b&gt;スネークケース&lt;/b&gt;にします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;UsersControlller&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.underscore         &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;users_controlller&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;#{&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;UsersControlller&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.underscore&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;.rb&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;users_controlller.rb&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;User&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.underscore          &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;user&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;User&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.underscore &amp;lt;&amp;lt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;.rb&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;user.rb&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# :: は / に変換してくれる&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;ActiveModel::Errors&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.underscore &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;active_model/errors&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;activesupport-camelcase&quot;&gt;4. ファイル名からクラス名へ変換する(camelcase)&lt;/h3&gt;Railsでは、&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;ファイル名は、スネークケース（例：&lt;code&gt;users_controller.rb&lt;/code&gt;、&lt;code&gt;user.rb&lt;/code&gt;)&lt;/li&gt;
+&lt;li&gt;クラス名は、キャメルケース（例: &lt;code&gt;UsersControler&lt;/code&gt;、&lt;code&gt;User&lt;/code&gt;)&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;です。&lt;/p&gt;&lt;p&gt;Stringクラスの&lt;code&gt;camelcase&lt;/code&gt;メソッドで&lt;b&gt;キャメルケース&lt;/b&gt;にします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;users_controller&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.camelcase    &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;UsersController&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;users_controller.rb&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.camelcase &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;UsersController.rb&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.camelcase &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;User&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# / は :: に変換してくれる&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;active_model/errors&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.camelcase &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;ActiveModel::Errors&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;activesupport-tableize&quot;&gt;5. モデルクラス名からテーブル名へ変換する(tableize)&lt;/h3&gt;テーブル名は、&lt;code&gt;ActiveModel::Base&lt;/code&gt;を継承したモデルクラスのクラス名(例: &lt;code&gt;User&lt;/code&gt;、&lt;code&gt;LineItem&lt;/code&gt;)のスネークケースの複数形である必要があります。（例: &lt;code&gt;users&lt;/code&gt;、&lt;code&gt;line_items&lt;/code&gt;)&lt;/p&gt;&lt;p&gt;Stringクラスの&lt;code&gt;tableize&lt;/code&gt;メソッドでモデル名をテーブル名へ変換します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;User&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.tableize     &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;users&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;LineItem&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.tableize &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;line_items&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;activesupport-classify&quot;&gt;6. テーブル名からモデルクラス名へ変換する(classify)&lt;/h3&gt;Stringクラスの&lt;code&gt;classify&lt;/code&gt;メソッドでテーブル名をモデルクラス名へ変換します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;users&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.classify      &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;User&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;line_items&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.classify &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; &amp;quot;LineItem&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;activesupport-constantize&quot;&gt;7. クラス名からクラスオブジェクトを取得する(constantize)&lt;/h3&gt;Stringクラスの&lt;code&gt;constantize&lt;/code&gt;メソッドでクラス名からクラスオブジェクトを取得します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;User&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.constantize            &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; User&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;UsersController&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.constantize &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; UsersController&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# newなどをチェインさせれば、オブジェクトを作成できる&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;User&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.constantize.new
+&lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; #&amp;lt;User id: nil, name: nil, created_at: nil, updated_at: nil&amp;gt;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 存在しないクラスをconstantizeするとNameError例外が発生する&lt;/span&gt;
+&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Hoge&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.constantize &lt;span class=&quot;synComment&quot;&gt;#=&amp;gt; NameError: uninitialized constant Hoge&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;code&gt;config/initializers/inflections.rb&lt;/code&gt;に変換ルールを定義できる。&lt;/p&gt;&lt;p&gt;以上です。&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://api.rubyonrails.org/&quot;&gt;Ruby on Rails API&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Rails3 レシピブック 190の技&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Tue, 16 Dec 2014 20:39:21 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450075628427</guid>
+          
+            <category>Rails Tips</category>
+          
+            <category>Rails ActiveSupport</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>Railsでログ上のパスワードやクレジット番号などの情報をフィルタリングする</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20141215/1418641291</link>
+          <description>&lt;p&gt;Railsのログ上にパスワードやクレジット番号など表示させたくない場合、&lt;code&gt;filter_parameters&lt;/code&gt;に属性名を追加することでフィルタリングできます。&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;/ul&gt;&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# config/initializers/filter_parameter_logging.rb&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt;.application.config.filter_parameters += [&lt;span class=&quot;synConstant&quot;&gt;:password&lt;/span&gt;]
+
+&lt;span class=&quot;synComment&quot;&gt;# クレジットカード番号もフィルタリングする&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# Rails.application.config.filter_parameters += [:password, :credit_card_number]&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+もし、&lt;code&gt;Rails.application.config.filter_parameters += []&lt;/code&gt;の場合、次のように&lt;code&gt;password&lt;/code&gt;や&lt;code&gt;credit_card_number&lt;/code&gt;がログに表示されてしまいます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synType&quot;&gt;Started&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;POST&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;/users&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;127.0&lt;/span&gt;.&lt;span class=&quot;synConstant&quot;&gt;0.1&lt;/span&gt; at &lt;span class=&quot;synConstant&quot;&gt;2014&lt;/span&gt;-&lt;span class=&quot;synConstant&quot;&gt;12&lt;/span&gt;-&lt;span class=&quot;synConstant&quot;&gt;06&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;14&lt;/span&gt;:&lt;span class=&quot;synConstant&quot;&gt;02&lt;/span&gt;:&lt;span class=&quot;synConstant&quot;&gt;35&lt;/span&gt; +0900
+&lt;span class=&quot;synType&quot;&gt;Processing&lt;/span&gt; by &lt;span class=&quot;synType&quot;&gt;UsersController&lt;/span&gt;&lt;span class=&quot;synComment&quot;&gt;#create as HTML&lt;/span&gt;
+  &lt;span class=&quot;synConstant&quot;&gt;Parameters&lt;/span&gt;: {&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;utf8&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;✓&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;authenticity_token&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;IV2rjQ4ta9xPMTvvAMNOhp6XtgfIhh2nj7UpD8ZjHpQ=&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;{&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;email&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;test@test.com&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;password&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;secret&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;credit_card_number&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;1111-2222-3333-4444&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;}, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;commit&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Create User&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;}
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+&lt;code&gt;Rails.application.config.filter_parameters += [:password, :credit_card_number]&lt;/code&gt;を設定し、サーバーを再起動させると、ログの内容は次のようにフィルタリングされます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synType&quot;&gt;Processing&lt;/span&gt; by &lt;span class=&quot;synType&quot;&gt;UsersController&lt;/span&gt;&lt;span class=&quot;synComment&quot;&gt;#create as HTML&lt;/span&gt;
+  &lt;span class=&quot;synConstant&quot;&gt;Parameters&lt;/span&gt;: {&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;utf8&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;✓&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;authenticity_token&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;IV2rjQ4ta9xPMTvvAMNOhp6XtgfIhh2nj7UpD8ZjHpQ=&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;{&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;email&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;test@test.com&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;password&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;[FILTERED]&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;credit_card_number&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;[FILTERED]&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;}, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;commit&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Create User&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;}
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+ちなみに、&lt;code&gt;development&lt;/code&gt;環境だとデバッグログ出力がデフォルトになってますので、次のようにSQLの内容も表示されてしまい、そこにはパスワードとクレジットカード番号も表示されてしまいます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synType&quot;&gt;Started&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;POST&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;/users&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;127.0&lt;/span&gt;.&lt;span class=&quot;synConstant&quot;&gt;0.1&lt;/span&gt; at &lt;span class=&quot;synConstant&quot;&gt;2014&lt;/span&gt;-&lt;span class=&quot;synConstant&quot;&gt;12&lt;/span&gt;-&lt;span class=&quot;synConstant&quot;&gt;06&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;14&lt;/span&gt;:&lt;span class=&quot;synConstant&quot;&gt;03&lt;/span&gt;:&lt;span class=&quot;synConstant&quot;&gt;21&lt;/span&gt; +0900
+  &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;SchemaMigration&lt;/span&gt; Load (&lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;.1ms)  &lt;span class=&quot;synType&quot;&gt;SELECT&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;schema_migrations&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;.* &lt;span class=&quot;synType&quot;&gt;FROM&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;schema_migrations&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Processing&lt;/span&gt; by &lt;span class=&quot;synType&quot;&gt;UsersController&lt;/span&gt;&lt;span class=&quot;synComment&quot;&gt;#create as HTML&lt;/span&gt;
+  &lt;span class=&quot;synConstant&quot;&gt;Parameters&lt;/span&gt;: {&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;utf8&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;✓&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;authenticity_token&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;IV2rjQ4ta9xPMTvvAMNOhp6XtgfIhh2nj7UpD8ZjHpQ=&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;user&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;{&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;email&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;test@test.com&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;password&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;[FILTERED]&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;credit_card_number&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;[FILTERED]&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;}, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;commit&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;=&amp;gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Create User&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;}
+   (&lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;.2ms)  &lt;span class=&quot;synStatement&quot;&gt;begin&lt;/span&gt; transaction
+  SQL (&lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;.4ms)  &lt;span class=&quot;synType&quot;&gt;INSERT&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;INTO&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;users&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; (&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;created_at&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;credit_card_number&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;email&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;password&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;updated_at&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;) VALUES (&lt;span class=&quot;synConstant&quot;&gt;?,&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;?,&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;?,&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;?,&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;?)&lt;/span&gt;  [[&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;created_at&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;2014-12-06 05:03:21.278415&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;], [&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;credit_card_number&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;1111-2222-3333-4444&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;], [&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;email&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;test@test.com&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;], [&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;password&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;secret&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;], [&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;updated_at&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;2014-12-06 05:03:21.278415&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;]]
+   (&lt;span class=&quot;synConstant&quot;&gt;1&lt;/span&gt;.1ms)  commit transaction
+&lt;span class=&quot;synType&quot;&gt;Redirected&lt;/span&gt; to http&lt;span class=&quot;synConstant&quot;&gt;:/&lt;/span&gt;/localhost:&lt;span class=&quot;synConstant&quot;&gt;3000&lt;/span&gt;/users/&lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Completed&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;302&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Found&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;in&lt;/span&gt; 24ms (&lt;span class=&quot;synConstant&quot;&gt;ActiveRecord&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;2&lt;/span&gt;.1ms)
+&lt;/pre&gt;&lt;p&gt;&lt;span style=&quot;color: #ff5252&quot;&gt;&lt;i&gt;サンプルのため、平文でパスワードやクレジットカード番号をDBに保存していますが、商用では大切なデータですので暗号化してからDBに保存させてください。&lt;/i&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;いちおう、次のようにすれば、SQLログを出力しないようにできますが、そもそも&lt;code&gt;development&lt;/code&gt;環境で実際のパスワードやクレジットカード番号を入力することはないと考えられるので、その他の有用なログまで削除してしまうのはどうかと思います。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# config/environments/development.rb&lt;/span&gt;
+config.log_level = &lt;span class=&quot;synConstant&quot;&gt;:info&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+以上です。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://api.rubyonrails.org/&quot;&gt;Ruby on Rails API&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Mon, 15 Dec 2014 20:01:31 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450076275841</guid>
+          
+            <category>Security</category>
+          
+            <category>Rails Tips</category>
+          
+        </item>
+      
+    
+  </channel>
+</rss>

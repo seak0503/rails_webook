@@ -1,0 +1,256 @@
+<?xml version="1.0"?>
+<rss version="2.0">
+  <channel>
+    <title>運用 - Rails Webook</title>
+    <link>http://ruby-rails.hatenadiary.com/category/%E9%81%8B%E7%94%A8</link>
+    <description>自社のECを開発している会社で働いています。Rails情報やサービスを成長させる方法を書いていきます</description>
+    <lastBuildDate>Fri, 18 Dec 2015 02:44:31 +0900</lastBuildDate>
+    <docs>http://blogs.law.harvard.edu/tech/rss</docs>
+    <generator>Hatena::Blog</generator>
+    
+      
+      
+        <item>
+          <title>Railsでのログ/ロガーまとめ（ログ出力、ログレベル、ロガー作成、ログフォーマット）</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20150110/1420863998</link>
+          <description>&lt;p&gt;&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20150110/20150110132541.jpg&quot; alt=&quot;f:id:nipe880324:20150110132541j:plain:w520&quot; title=&quot;f:id:nipe880324:20150110132541j:plain:w520&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:520px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;br /&gt;
+&lt;i&gt;Photo by &lt;a href=&quot;https://www.flickr.com/photos/humboldtstate/&quot;&gt;Flickr: Humboldt State University&amp;#39;s Photostream&lt;/a&gt;&lt;/i&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;Railsでログ出力を行う、ログレベルを設定する、新たにロガーを作成する、ログのフォーマットを設定する方法などRailsのログに関することをまとめました。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;動作確認&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Rails 4.1&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;#log-output&quot;&gt;1. ログを出力する&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#log-setting-level&quot;&gt;2. ログレベルを設定する&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#log-creating-logger&quot;&gt;3. 新たにロガーを作成する&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#log-format&quot;&gt;4. ログのフォーマットを設定する&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;log-output&quot;&gt;1. ログを出力する&lt;/h3&gt;&lt;code&gt;logger&lt;/code&gt;を使うことでコントローラー、モデル、ビューなどからロガーで設定されたログ出力先にログを出力することができます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;logger.debug &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;ログ出力先にDebugレベルで情報を出力する&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+次の5つのメソッドが用意されており、それぞれログレベルに出力有無が変わります。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;logger.fatal &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;致命的なエラー情報&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+logger.error &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;エラー情報&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+logger.warn  &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;警告情報&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+logger.info  &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;お知らせ情報&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+logger.debug &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;デバッグ情報&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;log-setting-level&quot;&gt;2. ログレベルを設定する&lt;/h3&gt;まず、ログレベルの使い分けは次のようになっています。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;fatal  &lt;span class=&quot;synComment&quot;&gt;# プログラムがクラッシュしたなどエラーハンドリングできないエラー&lt;/span&gt;
+error  &lt;span class=&quot;synComment&quot;&gt;# エラーハンドリングできるエラー&lt;/span&gt;
+warn   &lt;span class=&quot;synComment&quot;&gt;# 警告&lt;/span&gt;
+info   &lt;span class=&quot;synComment&quot;&gt;# システム操作に対する一般的な役に立つ情報&lt;/span&gt;
+debug  &lt;span class=&quot;synComment&quot;&gt;# 開発者向けの詳細な情報&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+Railsでログレベルを設定するには、&lt;code&gt;config/development.rb&lt;/code&gt;、&lt;code&gt;config/test.rb&lt;/code&gt;、&lt;code&gt;config/production.rb&lt;/code&gt;内で次のように記載します。&lt;br /&gt;
+設定したログレベルより低い(fatal &gt; error &gt; warn &gt; info &gt; debug)ログは出力されなくなります。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# :fatal, :error, :warn, :info, :debugが設定可能&lt;/span&gt;
+config.log_level = &lt;span class=&quot;synConstant&quot;&gt;:warn&lt;/span&gt;  &lt;span class=&quot;synComment&quot;&gt;# logger.info と logger.debugの内容は出力されない&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+もしくは、上記のinitializers以外でログレベルを変更したい場合は次のようにします。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt;.logger.level = &lt;span class=&quot;synConstant&quot;&gt;0&lt;/span&gt;  &lt;span class=&quot;synComment&quot;&gt;# :debug&lt;/span&gt;
+&lt;span class=&quot;synComment&quot;&gt;# 4 :fatal, 3 :error, 2 :warn, 1 :info, 0 :debug&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+各環境ごとのデフォルトのログレベルは次のとおりです。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;development &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; debug&lt;/span&gt;
+test        &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; debug&lt;/span&gt;
+production  &lt;span class=&quot;synComment&quot;&gt;# =&amp;gt; info&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;log-creating-logger&quot;&gt;3. 新たにロガーを作成する&lt;/h3&gt;Railsでロガーを作成するには、&lt;code&gt;config/development.rb&lt;/code&gt;、&lt;code&gt;config/test.rb&lt;/code&gt;、&lt;code&gt;config/production.rb&lt;/code&gt;内で次のように記載します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# log/developmetn.logに出力するロガーを作成。週ごとにログファイルがローテートされる&lt;/span&gt;
+config.logger = &lt;span class=&quot;synType&quot;&gt;Logger&lt;/span&gt;.new(&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;log/development.log&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;weekly&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;)
+
+&lt;span class=&quot;synComment&quot;&gt;# log/developmetn_special.logに出力する２つ目のロガーを作成。日ごとにログファイルがローテートされる&lt;/span&gt;
+config.special_logger = &lt;span class=&quot;synType&quot;&gt;Logger&lt;/span&gt;.new(&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;log/development_special.log&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;daily&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;)
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+コントローラー、モデル、ビューなどで上記で作成したログを使うことができます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;logger.debug &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;log/development.logに出力します&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# 新たに定義したロガーは次のような指定をしないといけない&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt;.application.config.special_logger.debug &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;log/development_special.logに出力される&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;log-format&quot;&gt;4. ログのフォーマットを設定する&lt;/h3&gt;Railsでロガーを作成するには、&lt;code&gt;config/development.rb&lt;/code&gt;、&lt;code&gt;config/test.rb&lt;/code&gt;、&lt;code&gt;config/production.rb&lt;/code&gt;内で&lt;code&gt;formatter&lt;/code&gt;を設定します。&lt;/p&gt;&lt;p&gt;デフォルトのフォーマッターは次のように設定します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;config.logger.formatter = ::&lt;span class=&quot;synType&quot;&gt;Logger&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Formatter&lt;/span&gt;.new
+
+&lt;span class=&quot;synComment&quot;&gt;# ログ内容です。&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;I&lt;/span&gt;, [&lt;span class=&quot;synConstant&quot;&gt;2014&lt;/span&gt;-&lt;span class=&quot;synConstant&quot;&gt;12&lt;/span&gt;-18T22:&lt;span class=&quot;synConstant&quot;&gt;50&lt;/span&gt;:&lt;span class=&quot;synConstant&quot;&gt;46.439420&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;#42595]  INFO -- : Started GET &amp;quot;/users&amp;quot; for 127.0.0.1 at 2014-12-18 22:50:46 +0900&lt;/span&gt;
+&lt;span class=&quot;synType&quot;&gt;I&lt;/span&gt;, [&lt;span class=&quot;synConstant&quot;&gt;2014&lt;/span&gt;-&lt;span class=&quot;synConstant&quot;&gt;12&lt;/span&gt;-18T22:&lt;span class=&quot;synConstant&quot;&gt;50&lt;/span&gt;:&lt;span class=&quot;synConstant&quot;&gt;46.585090&lt;/span&gt; &lt;span class=&quot;synComment&quot;&gt;#42595]  INFO -- : Processing by UsersController#index as HTML&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+また、自分でログフォーマットをカスタマイズすることができます。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;config.logger.formatter = &lt;span class=&quot;synStatement&quot;&gt;proc&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt; |&lt;span class=&quot;synIdentifier&quot;&gt;severity&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;datetime&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;progname&lt;/span&gt;, &lt;span class=&quot;synIdentifier&quot;&gt;msg&lt;/span&gt;|
+  &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;[&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;severity&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;]&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;datetime&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;: &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;progname&lt;span class=&quot;synSpecial&quot;&gt;}&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt; : &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;msg&lt;span class=&quot;synSpecial&quot;&gt;}\n&amp;quot;&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synComment&quot;&gt;# ログ内容です。&lt;/span&gt;
+[&lt;span class=&quot;synType&quot;&gt;INFO&lt;/span&gt;]&lt;span class=&quot;synConstant&quot;&gt;2014&lt;/span&gt;-&lt;span class=&quot;synConstant&quot;&gt;12&lt;/span&gt;-&lt;span class=&quot;synConstant&quot;&gt;18&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;22&lt;/span&gt;:&lt;span class=&quot;synConstant&quot;&gt;48&lt;/span&gt;:&lt;span class=&quot;synConstant&quot;&gt;40&lt;/span&gt; +0900:  : &lt;span class=&quot;synType&quot;&gt;Started&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;GET&lt;/span&gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;/users&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;for&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;127.0&lt;/span&gt;.&lt;span class=&quot;synConstant&quot;&gt;0.1&lt;/span&gt; at &lt;span class=&quot;synConstant&quot;&gt;2014&lt;/span&gt;-&lt;span class=&quot;synConstant&quot;&gt;12&lt;/span&gt;-&lt;span class=&quot;synConstant&quot;&gt;18&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;22&lt;/span&gt;:&lt;span class=&quot;synConstant&quot;&gt;48&lt;/span&gt;:&lt;span class=&quot;synConstant&quot;&gt;40&lt;/span&gt; +0900
+[&lt;span class=&quot;synType&quot;&gt;INFO&lt;/span&gt;]&lt;span class=&quot;synConstant&quot;&gt;2014&lt;/span&gt;-&lt;span class=&quot;synConstant&quot;&gt;12&lt;/span&gt;-&lt;span class=&quot;synConstant&quot;&gt;18&lt;/span&gt; &lt;span class=&quot;synConstant&quot;&gt;22&lt;/span&gt;:&lt;span class=&quot;synConstant&quot;&gt;48&lt;/span&gt;:&lt;span class=&quot;synConstant&quot;&gt;40&lt;/span&gt; +0900:  : &lt;span class=&quot;synType&quot;&gt;Processing&lt;/span&gt; by &lt;span class=&quot;synType&quot;&gt;UsersController&lt;/span&gt;&lt;span class=&quot;synComment&quot;&gt;#index as HTML&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+以上です。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&quot;http://www.ruby-doc.org/stdlib-2.1.0/libdoc/logger/rdoc/Logger.html&quot;&gt;Class: Logger (Ruby 2.1.0)&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://guides.rubyonrails.org/debugging_rails_applications.html#the-logger&quot;&gt;Debugging Rails Applications &amp;mdash; Ruby on Rails Guides&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Sat, 10 Jan 2015 13:26:38 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450077440779</guid>
+          
+            <category>Rails初級</category>
+          
+            <category>運用</category>
+          
+            <category>まとめ</category>
+          
+        </item>
+      
+    
+      
+      
+        <item>
+          <title>Railsでrescue_fromメソッドを使ってエラーハンドリングをする方法</title>
+          <link>http://ruby-rails.hatenadiary.com/entry/20141111/1415707101</link>
+          <description>&lt;p&gt;運用をしていくと、Railsアプリケーション内で例外が発生した場合に、適切な例外処理をする必要があります。&lt;br /&gt;
+Railsでは、コントローラー内に&lt;code&gt;rescue_from&lt;/code&gt;メソッドを使って、例外をキャッチし例外処理を記述することが一般的です。&lt;/p&gt;
+
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;確認環境&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;Ruby   2.1.2&lt;/li&gt;
+&lt;li&gt;Rails  4.1&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;目次&lt;/h3&gt;
+    
+&lt;ol&gt;
+&lt;li&gt;&lt;a href=&quot;#rails-error-handling-create-rails&quot;&gt;Railsプロジェクトの作成&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#rails-error-handling-getting-started&quot;&gt;エラーハンドリング処理の追加&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;#rails-error-handling-confirmation&quot;&gt;エラーハンドリング処理の確認&lt;/a&gt;&lt;/li&gt;
+&lt;/ol&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;rails-error-handling-create-rails&quot;&gt;1. Railsプロジェクトの作成&lt;/h3&gt;まずはRailsプロジェクトを作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rails new error_handling_test
+cd error_handling_test&lt;/pre&gt;&lt;p&gt;次にエラーハンドリングの挙動を確認するために、PostをScaffoldで作成します。&lt;/p&gt;
+&lt;pre class=&quot;code&quot; data-lang=&quot;&quot; data-unlink&gt;rails g scaffold Post title:string content:text
+rake db:migrate&lt;/pre&gt;&lt;p&gt;&lt;/p&gt;&lt;p&gt;&lt;h3 id=&quot;rails-error-handling-getting-started&quot;&gt;2. エラーハンドリング処理の追加&lt;/h3&gt;では、Railsにエラーハンドリングを追加していきましょう。&lt;/p&gt;&lt;p&gt;まず、ApplicationControllerにエラーハンドリング処理を追加します。&lt;br /&gt;
+&lt;code&gt;rescue_from&lt;/code&gt;メソッドにより、アプリケーション内のException(例外)をキャッチし、適切な処理をさせるという流れです。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# app/controllers/application_controller.rb&lt;/span&gt;
+
+&lt;span class=&quot;synPreProc&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;ApplicationController&lt;/span&gt; &amp;lt; &lt;span class=&quot;synType&quot;&gt;ActionController&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;Base&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# Prevent CSRF attacks by raising an exception.&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# For APIs, you may want to use :null_session instead.&lt;/span&gt;
+  protect_from_forgery &lt;span class=&quot;synConstant&quot;&gt;with&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:exception&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# 他のエラーハンドリングでキャッチできなかった場合に&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# 500 Internal Server Error(システムエラー)を発生させる&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# &lt;/span&gt;&lt;span class=&quot;synTodo&quot;&gt;NOTE&lt;/span&gt;&lt;span class=&quot;synComment&quot;&gt;: rescue_from は下から評価されるので記載箇所はここが正解&lt;/span&gt;
+  rescue_from &lt;span class=&quot;synType&quot;&gt;Exception&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;with&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:handle_500&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;unless&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt;.env.development?
+
+  &lt;span class=&quot;synComment&quot;&gt;# 例外に合わせたエラーハンドリング&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;# 404 Not Found リソースが見つからない。アクセス権がない場合にも使用される&lt;/span&gt;
+  rescue_from &lt;span class=&quot;synType&quot;&gt;ActionController&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;RoutingError&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;with&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:handle_404&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;unless&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt;.env.development?
+  rescue_from &lt;span class=&quot;synType&quot;&gt;ActiveRecord&lt;/span&gt;::&lt;span class=&quot;synType&quot;&gt;RecordNotFound&lt;/span&gt;,   &lt;span class=&quot;synConstant&quot;&gt;with&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:handle_404&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;unless&lt;/span&gt; &lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt;.env.development?
+  &lt;span class=&quot;synComment&quot;&gt;#rescue_from ActiveRecord::RecordNotUnique, with: :render_409&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;#rescue_from UnauthorizedError,             with: :render_401&lt;/span&gt;
+  &lt;span class=&quot;synComment&quot;&gt;#rescue_from IllegalAccessError,            with: :render_403&lt;/span&gt;
+
+  &lt;span class=&quot;synComment&quot;&gt;# エラーハンドリング処理&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;handle_500&lt;/span&gt;(exception = &lt;span class=&quot;synConstant&quot;&gt;nil&lt;/span&gt;)
+    logger.info &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Rendering 500 with exception: &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;exception.message&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; exception
+
+    &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; request.xhr?
+      &lt;span class=&quot;synComment&quot;&gt;# Ajaxのための処理&lt;/span&gt;
+      render &lt;span class=&quot;synConstant&quot;&gt;json&lt;/span&gt;: { &lt;span class=&quot;synConstant&quot;&gt;error&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;500 error&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; }, &lt;span class=&quot;synConstant&quot;&gt;status&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;500&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;else&lt;/span&gt;
+      render &lt;span class=&quot;synConstant&quot;&gt;template&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;errors/error_500&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;status&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;500&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;layout&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;application&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;content_type&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;text/html&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+  &lt;span class=&quot;synPreProc&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;synIdentifier&quot;&gt;handle_404&lt;/span&gt;(exception = &lt;span class=&quot;synConstant&quot;&gt;nil&lt;/span&gt;)
+    logger.info &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;Rendering 404 with exception: &lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;#{&lt;/span&gt;exception.message&lt;span class=&quot;synSpecial&quot;&gt;}&amp;quot;&lt;/span&gt; &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; exception
+
+    &lt;span class=&quot;synStatement&quot;&gt;if&lt;/span&gt; request.xhr?
+      &lt;span class=&quot;synComment&quot;&gt;# Ajaxのための処理&lt;/span&gt;
+      render &lt;span class=&quot;synConstant&quot;&gt;json&lt;/span&gt;: { &lt;span class=&quot;synConstant&quot;&gt;error&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;404 error&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt; }, &lt;span class=&quot;synConstant&quot;&gt;status&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;404&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;else&lt;/span&gt;
+      render &lt;span class=&quot;synConstant&quot;&gt;template&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;errors/error_404&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;status&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;404&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;layout&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;application&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;content_type&lt;/span&gt;: &lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;text/html&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&#39;&lt;/span&gt;
+    &lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+  &lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+
+&lt;span class=&quot;synPreProc&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+次に、エラーハンドリング時に表示させるビューを作成します。&lt;/p&gt;&lt;p&gt;500エラー時のビューです。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/errors/error_500.html.erb
+システムエラーが発生しました。&lt;span class=&quot;synIdentifier&quot;&gt;&amp;lt;&lt;/span&gt;&lt;span class=&quot;synStatement&quot;&gt;br&lt;/span&gt;&lt;span class=&quot;synIdentifier&quot;&gt; /&amp;gt;&lt;/span&gt;
+管理者にご連絡してください。
+&lt;/pre&gt;&lt;p&gt; 404エラー時のビューです。&lt;/p&gt;
+&lt;pre class=&quot;code lang-html&quot; data-lang=&quot;html&quot; data-unlink&gt;# app/views/errors/error_404.html.erb
+ご指定になったページは存在しません。
+&lt;/pre&gt;&lt;p&gt;&lt;br /&gt;
+ルーティングに定義されていなURLの場合、エラーはRack MIddlewareで発生するので、&lt;code&gt;rescue_from&lt;/code&gt;メソッドでキャッチできません。&lt;br /&gt;
+そのため、ルーティング設定の最後にすべてのURLをキャッチするようにして対応します。&lt;/p&gt;
+&lt;pre class=&quot;code lang-ruby&quot; data-lang=&quot;ruby&quot; data-unlink&gt;&lt;span class=&quot;synComment&quot;&gt;# config/routes.rb&lt;/span&gt;
+
+&lt;span class=&quot;synType&quot;&gt;Rails&lt;/span&gt;.application.routes.draw &lt;span class=&quot;synStatement&quot;&gt;do&lt;/span&gt;
+  resources &lt;span class=&quot;synConstant&quot;&gt;:posts&lt;/span&gt;
+
+  root &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;posts#index&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;
+
+  match &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;*path&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt; =&amp;gt; &lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;&lt;span class=&quot;synConstant&quot;&gt;application#handle_404&lt;/span&gt;&lt;span class=&quot;synSpecial&quot;&gt;&amp;quot;&lt;/span&gt;, &lt;span class=&quot;synConstant&quot;&gt;via&lt;/span&gt;: &lt;span class=&quot;synConstant&quot;&gt;:all&lt;/span&gt;
+&lt;span class=&quot;synStatement&quot;&gt;end&lt;/span&gt;
+&lt;/pre&gt;&lt;p&gt;これでエラーハンドリングの実装は完了です。&lt;/p&gt;&lt;br /&gt;
+&lt;br /&gt;
+&lt;br /&gt;
+&lt;p&gt;&lt;h3 id=&quot;rails-error-handling-confirmation&quot;&gt;3. エラーハンドリング処理の確認&lt;/h3&gt;&lt;/p&gt;&lt;p&gt;では、&lt;code&gt;production&lt;/code&gt;モードでサーバーを起動させ、エラーハンドリング処理の確認をしましょう。&lt;br /&gt;
+&lt;b&gt;productionモードでのサーバーの起動方法は、&lt;a href=&quot;http://ruby-rails.hatenadiary.com/entry/20141111/1415707101&quot; target=&quot;_blank&quot;&gt;こちら&lt;/a&gt;&lt;/b&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;code&gt;localhost:3000&lt;/code&gt;にアクセスしましょう。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141108/20141108151607.png&quot; alt=&quot;f:id:nipe880324:20141108151607p:plain:w480&quot; title=&quot;f:id:nipe880324:20141108151607p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;では、Postを作成してましょう。問題なく登録できます。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141108/20141108151634.png&quot; alt=&quot;f:id:nipe880324:20141108151634p:plain:w480&quot; title=&quot;f:id:nipe880324:20141108151634p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;次に、URLを適当な値にし、存在しないIDにアクセスしてみましょう。404エラー画面に遷移します。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141108/20141108151717.png&quot; alt=&quot;f:id:nipe880324:20141108151717p:plain:w480&quot; title=&quot;f:id:nipe880324:20141108151717p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;また、存在しないURLにアクセスした場合も、404エラーが発生します。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141108/20141108151737.png&quot; alt=&quot;f:id:nipe880324:20141108151737p:plain:w480&quot; title=&quot;f:id:nipe880324:20141108151737p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;最後に、シンタックスエラーなどにし、サーバーを再起動しアクセスすると、500エラーが発生します。&lt;br /&gt;
+&lt;span itemscope itemtype=&quot;http://schema.org/Photograph&quot;&gt;&lt;img src=&quot;http://cdn-ak.f.st-hatena.com/images/fotolife/n/nipe880324/20141108/20141108151757.png&quot; alt=&quot;f:id:nipe880324:20141108151757p:plain:w480&quot; title=&quot;f:id:nipe880324:20141108151757p:plain:w480&quot; class=&quot;hatena-fotolife&quot; style=&quot;width:480px&quot; itemprop=&quot;image&quot;&gt;&lt;/span&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;以上です。&lt;br /&gt;
+&lt;br /&gt;
+&lt;/p&gt;
+
+&lt;/div&gt;
+&lt;div class=&quot;section&quot;&gt;
+    &lt;h3&gt;参考文献&lt;/h3&gt;
+    
+&lt;ul&gt;
+&lt;li&gt;本「パーフェクトRuby on Rails」&lt;/li&gt;
+&lt;li&gt;[&lt;a href=&quot;http://qiita.com/ms2sato/items/249ec3aa186dd42176fb&quot;&gt;Rails - rescue_from&amp;#x306E;&amp;#x8D70;&amp;#x67FB;&amp;#x306F;&amp;#x4E0B;&amp;#x304B;&amp;#x3089;&amp;#x4E0A;&amp;#x3060;&amp;#x3063;&amp;#x305F;&amp;#x3002; - Qiita&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&quot;http://ja.wikipedia.org/wiki/HTTP%E3%82%B9%E3%83%86%E3%83%BC%E3%82%BF%E3%82%B9%E3%82%B3%E3%83%BC%E3%83%89&quot;&gt;HTTP&amp;#x30B9;&amp;#x30C6;&amp;#x30FC;&amp;#x30BF;&amp;#x30B9;&amp;#x30B3;&amp;#x30FC;&amp;#x30C9; - Wikipedia&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;/div&gt;</description>
+          <pubDate>Tue, 11 Nov 2014 20:58:21 +0900</pubDate>
+          <guid isPermalink="false">hatenablog://entry/8454420450072926620</guid>
+          
+            <category>運用</category>
+          
+            <category>エラーハンドリング</category>
+          
+        </item>
+      
+    
+  </channel>
+</rss>
