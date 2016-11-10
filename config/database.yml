@@ -47,6 +47,12 @@ test:
 #   production:
 #     url: <%= ENV['DATABASE_URL'] %>
 #
+staging:
+  <<: *default
+  database: rails_webook_staging
+  username: rails_webook
+  password: <%= ENV['RAILS_WEBOOK_DATABASE_PASSWORD'] %>
+
 production:
   <<: *default
   database: rails_webook_production
