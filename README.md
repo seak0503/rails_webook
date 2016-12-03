@@ -12,7 +12,17 @@ $ git clone git@github.com:seak0503/rails_webook.git
 
 $ cd rails_webook
 
-$ bundle install
+$ rbenv gemset create 2.2.5 rails_webook
+
+$ gem install bundler
+
+$ bundle install --path vendor/bundle
+
+$ bin/rake db:create
+
+$ bin/rake db:migrate
+
+$ bin/rspec # すべてのテストが通ることを確認
 ```
 
 ## 補足
