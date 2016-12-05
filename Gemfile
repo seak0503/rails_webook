@@ -12,6 +12,7 @@ gem 'jbuilder', '~> 2.0'
 gem 'bcrypt-ruby', '~> 3.0.0'
 gem 'sdoc', '~> 0.4.0',          group: :doc
 gem 'foreigner', '~> 1.7.0'
+gem 'jquery-turbolinks', '~> 2.1.0'
 
 gem 'spring',        group: :development
 

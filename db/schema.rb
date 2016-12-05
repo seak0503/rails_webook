@@ -11,7 +11,19 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20161011083925) do
+ActiveRecord::Schema.define(version: 20161203225352) do
+
+  create_table "addresses", force: true do |t|
+    t.integer  "user_id"
+    t.string   "zipcode"
+    t.string   "city"
+    t.string   "street"
+    t.string   "tel"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "addresses", ["user_id"], name: "index_addresses_on_user_id", using: :btree
 
   create_table "categories", force: true do |t|
     t.string   "name"
@@ -26,5 +38,15 @@ ActiveRecord::Schema.define(version: 20161011083925) do
     t.datetime "created_at"
     t.datetime "updated_at"
   end
+
+  create_table "users", force: true do |t|
+    t.string   "username"
+    t.integer  "age"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  Foreigner.load
+  add_foreign_key "addresses", "users", name: "addresses_user_id_fk"
 
 end
